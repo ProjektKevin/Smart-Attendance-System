@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.net.*?>   <!-- needed for <URL> in stylesheets -->
+
+<BorderPane xmlns:fx="http://javafx.com/fxml">
+    <stylesheets>
+        <URL value="@styles.css"/>
+    </stylesheets>
+    <top>
+        <ToolBar><Label text="Smart Attendance System (v3)"/></ToolBar>
+    </top>
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <Tab text="Dashboard"><content><fx:include source="DashboardView.fxml"/></content></Tab>
+                <Tab text="Students"><content><fx:include source="StudentView.fxml"/></content></Tab>
+                <Tab text="Sessions"><content><fx:include source="SessionView.fxml"/></content></Tab>
+                <Tab text="Live Recognition"><content><fx:include source="LiveView.fxml"/></content></Tab>
+                <Tab text="Reports"><content><fx:include source="ReportView.fxml"/></content></Tab>
+                <Tab text="Settings"><content><fx:include source="SettingsView.fxml"/></content></Tab>
+            </tabs>
+        </TabPane>
+    </center>
+</BorderPane>

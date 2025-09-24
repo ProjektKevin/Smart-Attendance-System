@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" style="-fx-padding: 10;"
+      fx:controller="com.smartattendance.controller.ReportController">
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="From"/>
+        <DatePicker fx:id="fromDate"/>
+        <Label text="To"/>
+        <DatePicker fx:id="toDate"/>
+    </HBox>
+
+    <HBox spacing="10">
+        <Button text="Export CSV" onAction="#onExportCSV"/>
+        <Button text="Export PDF" onAction="#onExportPDF"/>
+        <Separator orientation="VERTICAL"/>
+        <Button text="Import Students CSV" onAction="#onImportStudentsCSV"/>
+        <Button text="Import Attendance CSV" onAction="#onImportAttendanceCSV"/>
+    </HBox>
+
+    <Separator/>
+
+    <!-- Email section -->
+    <Label text="Email Report" style="-fx-font-weight: bold;"/>
+    <HBox spacing="8">
+        <TextField fx:id="emailTo" promptText="recipient@example.com" prefWidth="280"/>
+        <TextField fx:id="emailSubject" promptText="Subject (e.g. Attendance Report) " prefWidth="320"/>
+        <Button text="Send PDF via Email" onAction="#onEmailPdf"/>
+        <Button text="Send CSV via Email" onAction="#onEmailCsv"/>
+    </HBox>
+    <TextArea fx:id="emailBody" promptText="Optional message…" prefRowCount="3"/>
+
+    <Label fx:id="reportStatus" style="-fx-text-fill: #555;"/>
+</VBox>

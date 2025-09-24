@@ -1,0 +1,6 @@
+.root { -fx-font-size: 13px; }
+.card { -fx-background-color: #ffffff; -fx-padding: 12; -fx-background-radius: 12;
+        -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 10, 0.2, 0, 2); }
+.card-title { -fx-text-fill: #666666; -fx-font-size: 12px; }
+.card-metric { -fx-font-size: 28px; -fx-font-weight: bold; }
+.section-title { -fx-font-weight: bold; -fx-padding: 0 0 6 0; }

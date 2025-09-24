@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" fx:controller="com.smartattendance.controller.StudentController" style="-fx-padding: 10;">
+    <TableView fx:id="studentTable" prefHeight="300">
+        <columns>
+            <TableColumn fx:id="colId" text="Student ID" prefWidth="120"/>
+            <TableColumn fx:id="colName" text="Name" prefWidth="180"/>
+            <TableColumn fx:id="colGroup" text="Group" prefWidth="100"/>
+        </columns>
+    </TableView>
+    <HBox spacing="10">
+        <Button text="Add" onAction="#onAddStudent"/>
+    </HBox>
+</VBox>

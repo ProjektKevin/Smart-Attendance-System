@@ -1,0 +1,32 @@
+# Build output
+/target/
+
+# IDE/OS
+/.idea/
+/.vscode/
+*.iml
+.DS_Store
+
+# Local configuration and secrets
+.env
+config.properties
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+.class

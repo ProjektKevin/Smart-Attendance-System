@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" style="-fx-padding: 10;" fx:controller="com.smartattendance.controller.SessionController">
+    <Label fx:id="sessionsInfo" text="Sessions info (stub)"/>
+    <HBox spacing="10">
+        <Button text="Create Session" onAction="#onCreateSession"/>
+        <Button text="Start" onAction="#onStartSession"/>
+        <Button text="Stop" onAction="#onStopSession"/>
+    </HBox>
+</VBox>

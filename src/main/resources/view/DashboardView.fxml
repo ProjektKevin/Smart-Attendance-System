@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns:fx="http://javafx.com/fxml" spacing="12" style="-fx-padding: 12;"
+      fx:controller="com.smartattendance.controller.DashboardController">
+
+    <!-- Metric cards -->
+    <HBox spacing="12">
+        <StackPane styleClass="card">
+            <VBox spacing="2">
+                <Label text="Students" styleClass="card-title"/>
+                <Label fx:id="studentsCount" styleClass="card-metric"/>
+            </VBox>
+        </StackPane>
+        <StackPane styleClass="card">
+            <VBox spacing="2">
+                <Label text="Sessions" styleClass="card-title"/>
+                <Label fx:id="sessionsCount" styleClass="card-metric"/>
+            </VBox>
+        </StackPane>
+        <StackPane styleClass="card">
+            <VBox spacing="2">
+                <Label text="Present Today" styleClass="card-title"/>
+                <Label fx:id="presentTodayCount" styleClass="card-metric"/>
+            </VBox>
+        </StackPane>
+    </HBox>
+
+    <!-- Row: weekly chart + recent activity -->
+    <HBox spacing="12">
+        <VBox VBox.vgrow="ALWAYS" prefWidth="520">
+            <Label text="Attendance (This Week)" styleClass="section-title"/>
+            <BarChart fx:id="weeklyChart" prefHeight="300">
+                <xAxis><CategoryAxis fx:id="chartXAxis"/></xAxis>
+                <yAxis><NumberAxis fx:id="chartYAxis"/></yAxis>
+            </BarChart>
+        </VBox>
+
+        <VBox VBox.vgrow="ALWAYS" prefWidth="480">
+            <Label text="Recent Activity" styleClass="section-title"/>
+            <TableView fx:id="recentTable" prefHeight="300">
+                <columns>
+                    <TableColumn fx:id="colTime" text="Time" prefWidth="90"/>
+                    <TableColumn fx:id="colStudent" text="Student" prefWidth="200"/>
+                    <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </HBox>
+
+    <!-- Row: arrival histogram + status pie + by-course stacked bars -->
+    <HBox spacing="12">
+        <VBox VBox.vgrow="ALWAYS" prefWidth="380">
+            <Label text="Arrival Time Distribution" styleClass="section-title"/>
+            <BarChart fx:id="arrivalHistogram" prefHeight="280">
+                <xAxis><CategoryAxis fx:id="arrivalXAxis"/></xAxis>
+                <yAxis><NumberAxis fx:id="arrivalYAxis"/></yAxis>
+            </BarChart>
+        </VBox>
+
+        <VBox VBox.vgrow="ALWAYS" prefWidth="320">
+            <Label text="Today’s Status Split" styleClass="section-title"/>
+            <PieChart fx:id="statusPie" prefHeight="280"/>
+        </VBox>
+
+        <VBox VBox.vgrow="ALWAYS" prefWidth="420">
+            <Label text="Attendance by Course" styleClass="section-title"/>
+            <StackedBarChart fx:id="courseChart" prefHeight="280">
+                <xAxis><CategoryAxis fx:id="courseXAxis"/></xAxis>
+                <yAxis><NumberAxis fx:id="courseYAxis"/></yAxis>
+            </StackedBarChart>
+        </VBox>
+    </HBox>
+
+    <!-- Row: Regression -->
+    <HBox spacing="12">
+        <VBox VBox.vgrow="ALWAYS" prefWidth="520">
+            <Label text="Confidence vs Arrival Δ (with regression)" styleClass="section-title"/>
+            <ScatterChart fx:id="regressChart" prefHeight="300">
+                <xAxis><NumberAxis fx:id="regXAxis" /></xAxis>
+                <yAxis><NumberAxis fx:id="regYAxis" /></yAxis>
+            </ScatterChart>
+        </VBox>
+    </HBox>
+</VBox>
