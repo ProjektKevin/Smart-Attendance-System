@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import java.net.*?>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.smartattendance.controller.student.StudentCaptureController"
+      spacing="12">
+    <stylesheets>
+        <URL value="@styles/styles.css"/>
+    </stylesheets>
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <Button fx:id="startBtn" text="Start Camera" onAction="#startCamera"/>
+        <Button fx:id="captureBtn" text="Capture" onAction="#capture" disable="true"/>
+        <Button fx:id="stopBtn" text="Stop Camera" onAction="#stopCamera" disable="true"/>
+        <Label fx:id="statusLabel" text="Camera stopped"/>
+    </HBox>
+
+    <BorderPane prefHeight="400">
+        <center>
+            <ImageView fx:id="cameraView" preserveRatio="true" fitHeight="380"/>
+        </center>
+        <padding>
+            <Insets top="8" right="0" bottom="0" left="0"/>
+        </padding>
+    </BorderPane>
+
+    <TitledPane text="How to take pictures" expanded="true">
+        <content>
+            <VBox spacing="8">
+                <padding>
+                    <Insets top="12" right="12" bottom="12" left="12"/>
+                </padding>
+                <Label text="1) Click Start Camera to see the live preview."/>
+                <Label text="2) Center your face. Neutral expression."/>
+                <Label text="3) Take 5–10 photos: front, slight left/right, varied lighting."/>
+                <Label text="4) Click Capture each time. Images save to data/captures/&lt;studentId&gt;."/>
+                <Label text="5) Click Stop Camera when done."/>
+            </VBox>
+        </content>
+    </TitledPane>
+</VBox>

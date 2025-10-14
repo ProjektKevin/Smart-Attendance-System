@@ -1,0 +1,235 @@
+/* =========================================================
+   DASHBOARD THEME (scoped – no chained lookups)
+   ========================================================= */
+
+/* -------- LIGHT (default) -------- */
+.dashboard {
+  /* palette */
+  -dash-bg:          #f7f8fb;
+  -dash-surface:     #ffffff;
+  -dash-surface-2:   #f3f4f6;
+  -dash-border:      rgba(0,0,0,0.10);
+  -dash-border-soft: rgba(0,0,0,0.06);
+  -dash-text:        #111827;  /* gray-900 */
+  -dash-muted:       #6b7280;  /* gray-500 */
+  -dash-accent:      #3b82f6;  /* blue-500 */
+
+  /* semantic */
+  -dash-ok:          #10b981;  /* emerald-500 */
+  -dash-warn:        #f59e0b;  /* amber-500 */
+  -dash-bad:         #ef4444;  /* red-500 */
+  -dash-neutral:     #94a3b8;  /* slate-400 */
+
+  -fx-font-family: "Segoe UI","Roboto","Helvetica Neue",Arial,sans-serif;
+  -fx-text-fill: -dash-text;
+  -fx-background-color: -dash-bg;
+  -fx-padding: 16 18;
+}
+
+/* -------- DARK overrides -------- */
+.root.dark .dashboard {
+  -dash-bg:          #0b1220;
+  -dash-surface:     #131a2a;
+  -dash-surface-2:   #0f172a;
+  -dash-border:      rgba(255,255,255,0.12);
+  -dash-border-soft: rgba(255,255,255,0.08);
+  -dash-text:        #e5e7eb;
+  -dash-muted:       #94a3b8;
+  -dash-accent:      #60a5fa;
+
+  -dash-ok:          #22c55e;
+  -dash-warn:        #f59e0b;
+  -dash-bad:         #ef4444;
+  -dash-neutral:     #94a3b8;
+
+  /* subtle depth is fine for Region */
+  -fx-background-color: linear-gradient(to bottom, #0d1628, #0b1220);
+}
+
+/* ---------- LAYOUT ---------- */
+.dashboard > .hbox, .dashboard > .vbox { -fx-spacing: 16; }
+.dashboard .hbox,  .dashboard .vbox  { -fx-spacing: 14; }
+
+.dashboard .section-title {
+  -fx-text-fill: -dash-text;
+  -fx-font-size: 15px;
+  -fx-font-weight: 700;
+  -fx-padding: 0 0 8 2;
+}
+.dashboard .subtitle {
+  -fx-text-fill: -dash-muted;
+  -fx-font-size: 12.5px;
+  -fx-padding: 2 0 10 2;
+}
+
+/* ---------- CARDS ---------- */
+.dashboard .card {
+  -fx-background-color: -dash-surface;
+  -fx-background-radius: 18;
+  -fx-padding: 18 22;
+  -fx-border-color: -dash-border-soft;
+  -fx-border-radius: 18;
+  -fx-border-width: 1;
+  -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 16, 0.28, 0, 3);
+}
+.root.dark .dashboard .card {
+  -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.35), 12, 0.3, 0, 2);
+}
+.dashboard .card:hover {
+  -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.12), 20, 0.35, 0, 4);
+}
+.dashboard .card-title {
+  -fx-text-fill: -dash-muted;
+  -fx-font-size: 12px;
+  -fx-font-weight: 600;
+  -fx-letter-spacing: .2px;
+}
+.dashboard .card-metric {
+  -fx-text-fill: -dash-text;
+  -fx-font-size: 32px;
+  -fx-font-weight: 800;
+}
+
+/* ---------- CHART/TABLE CONTAINERS ---------- */
+.dashboard .chart,
+.dashboard .pie-chart,
+.dashboard .bar-chart,
+.dashboard .line-chart,
+.dashboard .stacked-bar-chart,
+.dashboard .table-view {
+  -fx-background-color: -dash-surface;
+  -fx-background-radius: 14;
+  -fx-padding: 12;
+  -fx-border-color: -dash-border-soft;
+  -fx-border-radius: 14;
+  -fx-border-width: 1;
+}
+
+/* Charts polish */
+.dashboard .chart-plot-background { -fx-background-color: transparent; }
+.dashboard .chart-legend { -fx-background-color: transparent; -fx-padding: 6 0 0 0; }
+
+.dashboard .axis .axis-label { -fx-text-fill: #374151; -fx-font-weight: 600; }
+.root.dark .dashboard .axis .axis-label { -fx-text-fill: #cbd5e1; }
+
+.dashboard .axis .tick-label { -fx-text-fill: #4b5563; }
+.root.dark .dashboard .axis .tick-label { -fx-text-fill: #94a3b8; }
+
+.dashboard .chart-vertical-grid-lines,
+.dashboard .chart-horizontal-grid-lines { -fx-stroke: rgba(0,0,0,0.10); }
+.root.dark .dashboard .chart-vertical-grid-lines,
+.root.dark .dashboard .chart-horizontal-grid-lines { -fx-stroke: rgba(255,255,255,0.12); }
+
+/* ---------- SERIES COLORS (scoped) ---------- */
+/* single-series bar/line charts use accent */
+.dashboard .bar-chart .default-color0.chart-bar,
+.dashboard .line-chart .default-color0.chart-series-line { -fx-bar-fill: -dash-accent; -fx-stroke: -dash-accent; }
+
+/* stacked bars use semantic colors */
+.dashboard .stacked-bar-chart .default-color0.chart-bar { -fx-bar-fill: -dash-ok; }
+.dashboard .stacked-bar-chart .default-color1.chart-bar { -fx-bar-fill: -dash-warn; }
+.dashboard .stacked-bar-chart .default-color2.chart-bar { -fx-bar-fill: -dash-bad; }
+
+/* pie slices */
+.dashboard .default-color0.chart-pie { -fx-pie-color: -dash-ok; }
+.dashboard .default-color1.chart-pie { -fx-pie-color: -dash-warn; }
+.dashboard .default-color2.chart-pie { -fx-pie-color: -dash-bad; }
+.dashboard .default-color3.chart-pie { -fx-pie-color: -dash-neutral; }
+
+/* bar rounded tops + hover */
+.dashboard .bar-chart .chart-bar {
+  -fx-background-insets: 0;
+  -fx-background-radius: 6 6 0 0;
+}
+.dashboard .bar-chart .chart-bar:hover {
+  -fx-opacity: .9;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.3, 0, 2);
+}
+
+/* ---------- LEGEND ---------- */
+.dashboard .chart-legend-item { -fx-background-radius: 8; -fx-padding: 2 8; }
+.dashboard .chart-legend-item:hover { -fx-background-color: rgba(0,0,0,0.035); -fx-cursor: hand; }
+.root.dark .dashboard .chart-legend-item:hover { -fx-background-color: rgba(255,255,255,0.06); }
+.dashboard .chart-legend-item-symbol { -fx-background-radius: 6; -fx-padding: 5; }
+.dashboard .chart-legend .label { -fx-text-fill: #334155; -fx-font-weight: 600; }
+.root.dark .dashboard .chart-legend .label { -fx-text-fill: #cbd5e1; }
+
+/* ---------- PIE LABELS ---------- */
+.dashboard .chart-pie-label { -fx-font-size: 12px; -fx-font-weight: 700; -fx-fill: #1f2937; }
+.root.dark .dashboard .chart-pie-label { -fx-fill: #e2e8f0; }
+
+/* ---------- TABLE ---------- */
+.dashboard .table-view .column-header-background {
+  -fx-background-color: -dash-surface-2;
+  -fx-background-radius: 12 12 0 0;
+  -fx-padding: 8 10;
+  -fx-border-color: -dash-border-soft;
+  -fx-border-width: 0 0 1 0;
+}
+.dashboard .table-view .column-header .label { -fx-font-weight: 700; -fx-text-fill: #374151; }
+.root.dark .dashboard .table-view .column-header .label { -fx-text-fill: #cbd5e1; }
+
+.dashboard .table-row-cell { -fx-cell-size: 34px; }
+.dashboard .table-row-cell:odd { -fx-background-color: rgba(0,0,0,0.015); }
+.root.dark .dashboard .table-row-cell:odd { -fx-background-color: rgba(255,255,255,0.03); }
+.dashboard .table-row-cell:selected { -fx-background-color: rgba(59,130,246,0.14); -fx-background-insets: 0; }
+.root.dark .dashboard .table-row-cell:selected { -fx-background-color: rgba(96,165,250,0.22); }
+
+/* ---------- BUTTONS (within dashboard only) ---------- */
+.dashboard .button {
+  -fx-background-color: -dash-accent;
+  -fx-text-fill: white;
+  -fx-background-radius: 10;
+  -fx-padding: 7 14;
+  -fx-font-weight: 600;
+  -fx-border-color: transparent;
+  -fx-effect: dropshadow(gaussian, rgba(59,130,246,0.18), 10, 0.35, 0, 2);
+}
+.dashboard .button:hover { -fx-translate-y: -1px; }
+
+/* ---------- TOOLTIP ---------- */
+.dashboard .tooltip {
+  -fx-background-radius: 8;
+  -fx-background-color: rgba(17,24,39,0.92);
+  -fx-text-fill: white;
+  -fx-padding: 6 8;
+  -fx-font-size: 12px;
+  -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 10, 0.3, 0, 2);
+}
+
+/* ---------- CHART TOOLS BAR (top of each BorderPane) ---------- */
+.dashboard .chart-tools { -fx-padding: 6 8; }
+
+.dashboard .chart-tool {
+  -fx-background-color: -dash-surface;
+  -fx-border-color: -dash-border;
+  -fx-border-width: 1;
+  -fx-background-radius: 10;
+  -fx-border-radius: 10;
+  -fx-padding: 2 8;
+  -fx-font-size: 12px;
+}
+.root.dark .dashboard .chart-tool { -fx-background-color: derive(-dash-surface, 6%); }
+
+/* (kept if you still use any overlay zoom buttons elsewhere) */
+.dashboard .chart-zoom {
+  -fx-background-color: rgba(0,0,0,0.35);
+  -fx-text-fill: white;
+  -fx-background-radius: 10;
+  -fx-padding: 4 8;
+  -fx-cursor: hand;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 8, 0.3, 0, 1);
+  -fx-border-color: rgba(255,255,255,0.35);
+  -fx-border-width: 1;
+  -fx-border-radius: 10;
+  -fx-font-size: 12px;
+}
+.root.light .dashboard .chart-zoom { -fx-background-color: rgba(0,0,0,0.25); }
+.dashboard .chart-zoom:hover { -fx-background-color: rgba(59,130,246,0.55); }
+
+/* keep chart legends visible inside cards */
+.dashboard .card .pie-chart > .chart-legend,
+.dashboard .card .stacked-bar-chart > .chart-legend {
+  -fx-padding: 8 6 0 6;   /* room for the legend row */
+  -fx-opacity: 1.0;       /* guard against overrides */
+}

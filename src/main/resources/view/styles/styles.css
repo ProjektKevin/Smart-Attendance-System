@@ -1,0 +1,318 @@
+/* =========================================================
+   SMART ATTENDANCE — THEMEABLE UI (Light / Dark)
+   Everything here is JavaFX-CSS safe.
+   ========================================================= */
+
+/* ---------- Base rhythm ---------- */
+.root { -fx-font-size: 13px; }
+
+/* ---------- Theme tokens (looked-up colors) ---------- */
+.root.light {
+  /* Surfaces */
+  -color-bg:            #ffffff;
+  -color-surface:       #f6f7f9;
+  -color-surface-2:     #eef1f6;
+
+  /* Content */
+  -color-text:          #111827; /* gray-900 */
+  -color-muted:         #4b5563; /* gray-600 */
+
+  /* Borders / outlines */
+  -color-border:        #e5e7eb;
+
+  /* Brand & states */
+  -color-accent:        #2563eb; /* blue-600 */
+  -color-accent-weak:   #dbeafe; /* blue-100 */
+  -color-success:       #10b981;
+  -color-warn:          #f59e0b;
+  -color-danger:        #ef4444;
+}
+
+.root.dark {
+  /* Surfaces */
+  -color-bg:            #0b1220;
+  -color-surface:       #131a2a;
+  -color-surface-2:     #0f172a;
+
+  /* Content */
+  -color-text:          #e5e7eb;
+  -color-muted:         #94a3b8;
+
+  /* Borders / outlines */
+  -color-border:        #28324a;
+
+  /* Brand & states */
+  -color-accent:        #60a5fa; /* blue-400 */
+  -color-accent-weak:   #1e293b;
+  -color-success:       #34d399;
+  -color-warn:          #fbbf24;
+  -color-danger:        #f87171;
+}
+
+/* Apply page background */
+.root, .border-pane { -fx-background-color: -color-bg; }
+
+/* ---------------------------------------------------------
+   APP HEADER / NAVBAR
+   --------------------------------------------------------- */
+.tool-bar {
+  -fx-background-color: -color-surface;
+  -fx-padding: 10 14;
+  -fx-border-color: -color-border;
+  -fx-border-width: 0 0 1 0;
+  -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 12, 0.25, 0, 2);
+}
+.tool-bar .label {
+  -fx-text-fill: -color-text;
+  -fx-font-size: 16px;
+  -fx-font-weight: 700;
+}
+
+/* Theme toggle (top-right) */
+.tool-bar .toggle-button {
+  -fx-background-color: transparent;
+  -fx-text-fill: -color-text;
+  -fx-padding: 6 12;
+  -fx-background-radius: 12;
+  -fx-border-radius: 12;
+  -fx-border-color: -color-border;
+  -fx-border-width: 1;
+}
+.tool-bar .toggle-button:hover { -fx-background-color: derive(-color-surface, -4%); }
+.tool-bar .toggle-button:selected {
+  -fx-background-color: -color-accent;
+  -fx-border-color: -color-accent;
+  -fx-text-fill: white;
+}
+
+/* ---------------------------------------------------------
+   TABS (pill look with clear gaps)
+   --------------------------------------------------------- */
+.tab-pane > .tab-header-area { -fx-padding: 12 16 0 16; }
+.tab-pane > .tab-header-area > .tab-header-background {
+  -fx-background-color: derive(-color-surface, -6%);
+  -fx-border-color: -color-border;
+  -fx-border-width: 0 0 1 0;
+}
+
+/* Each tab = clear pill, visible outline, no shadow. */
+.tab-pane .tab {
+  -fx-background-color: -color-surface, transparent;
+  -fx-background-insets: 0, 0 10 0 0;     /* right gap = 10px */
+  -fx-background-radius: 14 14 0 0, 14 14 0 0;
+  -fx-border-color: -color-border;
+  -fx-border-width: 1 1 0 1;
+  -fx-border-radius: 14 14 0 0;
+  -fx-padding: 10 22;
+  -fx-effect: none;
+}
+.tab-pane .tab:hover {
+  -fx-background-color: derive(-color-surface, 2%), transparent;
+}
+.tab-pane .tab:selected {
+  -fx-background-color: -color-bg;
+  -fx-background-insets: 0;
+  -fx-background-radius: 14 14 0 0;
+  -fx-border-color: -color-border;
+  -fx-border-width: 1 1 0 1;
+  -fx-border-radius: 14 14 0 0;
+}
+.tab-pane .tab-label {
+  -fx-text-fill: -color-text;
+  -fx-font-weight: 600;
+  -fx-graphic-text-gap: 8;
+}
+.tab-pane { -fx-background-color: -color-bg; -fx-padding: 10 12 12 12; }
+
+/* ---------------------------------------------------------
+   TEXT / FORM CONTROLS
+   --------------------------------------------------------- */
+.label, .text { -fx-fill: -color-text; -fx-text-fill: -color-text; }
+
+/* Inputs */
+.text-field, .password-field, .text-area, .combo-box-base, .date-picker {
+  -fx-background-color: -color-surface;
+  -fx-text-fill: -color-text;
+  -fx-background-radius: 10;
+  -fx-border-radius: 10;
+  -fx-border-color: -color-border;
+  -fx-border-width: 1;
+}
+.text-area .content { -fx-background-color: -color-surface; -fx-text-fill: -color-text; }
+.text-field:focused, .password-field:focused, .text-area:focused,
+.combo-box-base:focused, .date-picker:focused {
+  -fx-border-color: -color-accent;
+  -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.35), 10, 0.35, 0, 0);
+}
+
+/* ---------------------------------------------------------
+   BUTTONS
+   --------------------------------------------------------- */
+/* Default (neutral) button */
+.button {
+  -fx-background-color: -color-surface;
+  -fx-text-fill: -color-text;          /* dark in light mode, light in dark mode via token */
+  -fx-background-radius: 10;
+  -fx-border-radius: 10;
+  -fx-padding: 7 14;
+  -fx-font-weight: 600;
+  -fx-border-color: -color-border;
+  -fx-border-width: 1;
+}
+.button > .label { -fx-text-fill: -color-text; }
+.button:hover { -fx-background-color: derive(-color-surface, -4%); }
+.button:disabled { -fx-opacity: 0.6; }
+
+/* Primary (accent) button — add styleClass="primary" in FXML */
+.button.primary {
+  -fx-background-color: -color-accent;
+  -fx-text-fill: white;
+  -fx-border-color: transparent;
+}
+.button.primary > .label { -fx-text-fill: white; }
+.button.primary:hover { -fx-background-color: derive(-color-accent, 10%); }
+.button.primary:disabled { -fx-opacity: 0.6; }
+
+/* ---------------------------------------------------------
+   CARDS & METRICS
+   --------------------------------------------------------- */
+.card {
+  -fx-background-color: -color-surface;
+  -fx-padding: 14;
+  -fx-background-radius: 14;
+  -fx-border-color: -color-border;
+  -fx-border-radius: 14;
+  -fx-border-width: 1;
+  -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.10), 16, 0.28, 0, 3);
+}
+.card-title { -fx-text-fill: -color-muted; -fx-font-size: 12px; -fx-font-weight: 600; }
+.card-metric { -fx-text-fill: -color-text; -fx-font-size: 30px; -fx-font-weight: 800; }
+
+/* ---------------------------------------------------------
+   TABLES
+   --------------------------------------------------------- */
+.table-view {
+  -fx-background-color: -color-surface;
+  -fx-control-inner-background: -color-surface;
+  -fx-background-insets: 0;
+  -fx-padding: 8;
+  -fx-border-color: -color-border;
+  -fx-border-width: 1;
+  -fx-border-radius: 12;
+  -fx-background-radius: 12;
+  -fx-text-background-color: -color-text;
+}
+.table-view .column-header-background {
+  -fx-background-color: -color-surface-2;
+  -fx-background-radius: 12 12 0 0;
+  -fx-padding: 8 10;
+  -fx-border-color: -color-border;
+  -fx-border-width: 0 0 1 0;
+}
+.table-view .column-header .label { -fx-text-fill: -color-text; -fx-font-weight: 700; }
+.table-row-cell { -fx-cell-size: 36px; -fx-background-color: -color-surface; }
+.table-row-cell:odd { -fx-background-color: derive(-color-surface, -2%); }
+.table-row-cell:selected {
+  -fx-background-color: rgba(59,130,246,0.22);
+  -fx-text-background-color: white;
+}
+
+/* ---------------------------------------------------------
+   CHARTS
+   --------------------------------------------------------- */
+.chart, .bar-chart, .line-chart, .pie-chart, .stacked-bar-chart {
+  -fx-background-color: -color-surface;
+  -fx-background-radius: 14;
+  -fx-padding: 12;
+  -fx-border-color: -color-border;
+  -fx-border-radius: 14;
+  -fx-border-width: 1;
+}
+.chart-plot-background { -fx-background-color: transparent; }
+.chart-legend { -fx-background-color: transparent; -fx-padding: 6 0 0 0; }
+.axis .axis-label { -fx-text-fill: -color-text; -fx-font-weight: 600; }
+.axis .tick-label { -fx-text-fill: -color-muted; }
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines {
+  -fx-stroke: rgba(255,255,255,0.10); /* light/dark friendly faint grid */
+}
+/* Series colors */
+.default-color0.chart-bar, .default-color0.chart-series-line { -fx-bar-fill: #3b82f6; -fx-stroke: #3b82f6; }
+.default-color1.chart-bar, .default-color1.chart-series-line { -fx-bar-fill: #10b981; -fx-stroke: #10b981; }
+.default-color2.chart-bar, .default-color2.chart-series-line { -fx-bar-fill: #f59e0b; -fx-stroke: #f59e0b; }
+.default-color3.chart-bar, .default-color3.chart-series-line { -fx-bar-fill: #ef4444; -fx-stroke: #ef4444; }
+/* Pie slices */
+.default-color0.chart-pie { -fx-pie-color: -color-success; }
+.default-color1.chart-pie { -fx-pie-color: -color-warn; }
+.default-color2.chart-pie { -fx-pie-color: -color-danger; }
+.default-color3.chart-pie { -fx-pie-color: #94a3b8; }
+
+/* ---------------------------------------------------------
+   MISC
+   --------------------------------------------------------- */
+.glyph { -fx-font-size: 14px; -fx-translate-y: 1px; }
+
+/* Tooltips — single, high-contrast style */
+.tooltip {
+  -fx-background-radius: 8;
+  -fx-background-color: rgba(17,24,39,0.92);
+  -fx-text-fill: white;
+  -fx-padding: 6 8;
+  -fx-font-size: 12px;
+  -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 10, 0.3, 0, 2);
+  -fx-border-color: rgba(0,0,0,0.18);
+  -fx-border-width: 0;
+}
+.tooltip > .label { -fx-text-fill: white; -fx-font-weight: 600; }
+.tooltip .text { -fx-fill: white; }
+
+/* ===== Table header visibility polish ===== */
+.table-view .column-header-background {
+  -fx-background-color: -color-surface-2;
+  -fx-border-color: -color-border;
+  -fx-border-width: 0 0 1 0;
+}
+.table-view .column-header-background .filler { -fx-background-color: -color-surface-2; }
+.table-view .column-header { -fx-background-color: transparent; -fx-border-color: transparent; }
+.table-view .column-header .label { -fx-text-fill: -color-text; -fx-font-weight: 700; }
+.table-view .column-header .arrow,
+.table-view .column-header .sort-order-dot { -fx-background-color: -color-text; }
+.table-view .column-header:hover  { -fx-background-color: derive(-color-surface-2, -4%); }
+.table-view .column-header:pressed{ -fx-background-color: derive(-color-surface-2, -8%); }
+
+/* === make all textual UI legible in both light/dark === */
+
+/* Labels, table cells, buttons, etc. */
+.label,
+.button,
+.toggle-button,
+.tab-pane *.tab-label,
+.combo-box-base,
+.text-field,
+.date-picker,
+.table-view *.label,
+.table-row-cell,
+.table-cell {
+    -fx-text-fill: -color-text;
+}
+
+/* Pure Text nodes (e.g., TitledPane header label, Text in VBoxes/TextFlow) */
+.text {
+    -fx-fill: -color-text;
+}
+
+/* TitledPane header + content backgrounds and header text */
+.titled-pane > .title {
+    -fx-background-color: -color-surface-2;
+}
+.titled-pane > .title > .text {
+    -fx-fill: -color-text;          /* header caption */
+}
+.titled-pane > .content {
+    -fx-background-color: -color-surface;
+    -fx-text-fill: -color-text;     /* for labels inside */
+}
+
+/* (optional) arrow color in the TitledPane header */
+.titled-pane > .title > .arrow-button > .arrow {
+    -fx-background-color: -color-muted;
+}

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.net.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>  
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.smartattendance.controller.student.StudentAttendanceController"
+      spacing="12" fillWidth="true">
+
+    <stylesheets>
+        <URL value="@styles/styles.css"/>
+    </stylesheets>
+
+    <!-- Filters -->
+    <ToolBar>
+        <Label text="Course:"/>
+        <ComboBox fx:id="courseCombo" prefWidth="220"/>
+
+        <Label text="From:" styleClass="spacer-left"/>
+        <DatePicker fx:id="fromDate"/>
+
+        <Label text="To:"/>
+        <DatePicker fx:id="toDate"/>
+
+        <Button text="Apply" onAction="#onApplyFilters"/>
+        <Button text="Reset" onAction="#onResetFilters"/>
+        <Pane HBox.hgrow="ALWAYS"/>
+        <Label fx:id="recordsLabel" text="0 records"/>
+    </ToolBar>
+
+    <!-- Per-module summary -->
+    <TitledPane expanded="true" text="Module Attendance Summary">
+        <content>
+            <TableView fx:id="summaryTable" prefHeight="160">
+                <columns>
+                    <TableColumn text="Module" prefWidth="280">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="module"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn text="Attended" prefWidth="100">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="attended"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn text="Total" prefWidth="90">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="total"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn text="Percentage" prefWidth="220" fx:id="colPercent">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="ratio"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                </columns>
+            </TableView>
+        </content>
+    </TitledPane>
+
+    <!-- Detailed rows -->
+    <TableView fx:id="table" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Date" prefWidth="130">
+                <cellValueFactory>
+                    <PropertyValueFactory property="date"/>
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn text="Module" prefWidth="260">
+                <cellValueFactory>
+                    <PropertyValueFactory property="module"/>
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn text="Status" prefWidth="120">
+                <cellValueFactory>
+                    <PropertyValueFactory property="status"/>
+                </cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+
+</VBox>

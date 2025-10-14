@@ -2,24 +2,53 @@
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<VBox xmlns:fx="http://javafx.com/fxml" spacing="12" style="-fx-padding: 12;"
-      fx:controller="com.smartattendance.controller.DashboardController">
 
-    <!-- Metric cards -->
-    <HBox spacing="12">
-        <StackPane styleClass="card">
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.smartattendance.controller.DashboardController"
+      spacing="16"
+      style="-fx-padding: 16;"
+      styleClass="dashboard"
+      stylesheets="@styles/dashboard.css">
+
+    <!-- FILTER BAR -->
+    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="filters">
+        <Label text="From"/>
+        <DatePicker fx:id="fromDate" promptText="Start date"/>
+        <Label text="To"/>
+        <DatePicker fx:id="toDate" promptText="End date"/>
+
+        <Label text="Course"/>
+        <ComboBox fx:id="courseCombo" prefWidth="150" promptText="All courses"/>
+        <Label text="Group"/>
+        <ComboBox fx:id="groupCombo" prefWidth="120" promptText="All groups"/>
+
+        <Label text="Status"/>
+        <CheckBox fx:id="onTimeChk"  text="On-time" selected="true"/>
+        <CheckBox fx:id="lateChk"    text="Late"    selected="true"/>
+        <CheckBox fx:id="absentChk"  text="Absent"  selected="true"/>
+        <CheckBox fx:id="excusedChk" text="Excused" selected="true"/>
+
+        <Pane HBox.hgrow="ALWAYS"/>
+        <Button fx:id="resetBtn" text="Reset"/>
+    </HBox>
+
+    <!-- METRIC CARDS -->
+    <HBox spacing="16" alignment="CENTER">
+        <StackPane styleClass="card" prefWidth="220" minWidth="180" maxWidth="320">
             <VBox spacing="2">
                 <Label text="Students" styleClass="card-title"/>
                 <Label fx:id="studentsCount" styleClass="card-metric"/>
             </VBox>
         </StackPane>
-        <StackPane styleClass="card">
+
+        <StackPane styleClass="card" prefWidth="220" minWidth="180" maxWidth="320">
             <VBox spacing="2">
                 <Label text="Sessions" styleClass="card-title"/>
                 <Label fx:id="sessionsCount" styleClass="card-metric"/>
             </VBox>
         </StackPane>
-        <StackPane styleClass="card">
+
+        <StackPane styleClass="card" prefWidth="220" minWidth="180" maxWidth="320">
             <VBox spacing="2">
                 <Label text="Present Today" styleClass="card-title"/>
                 <Label fx:id="presentTodayCount" styleClass="card-metric"/>
@@ -27,60 +56,119 @@
         </StackPane>
     </HBox>
 
-    <!-- Row: weekly chart + recent activity -->
-    <HBox spacing="12">
-        <VBox VBox.vgrow="ALWAYS" prefWidth="520">
+    <!-- ROW 1 -->
+    <HBox spacing="16" alignment="CENTER">
+        <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity">
             <Label text="Attendance (This Week)" styleClass="section-title"/>
-            <BarChart fx:id="weeklyChart" prefHeight="300">
-                <xAxis><CategoryAxis fx:id="chartXAxis"/></xAxis>
-                <yAxis><NumberAxis fx:id="chartYAxis"/></yAxis>
-            </BarChart>
+            <BorderPane VBox.vgrow="ALWAYS" styleClass="card">
+                <top>
+                    <HBox alignment="CENTER_RIGHT" spacing="6" styleClass="chart-tools"
+                          BorderPane.alignment="CENTER" pickOnBounds="false">
+                        <Pane HBox.hgrow="ALWAYS"/>
+                        <Button text="📷"  onAction="#exportWeeklyPng" styleClass="chart-tool"/>
+                        <Button text="🔍"  onAction="#zoomWeekly"     styleClass="chart-tool"/>
+                    </HBox>
+                </top>
+                <center>
+                    <BarChart fx:id="weeklyChart" prefHeight="320" legendVisible="false" VBox.vgrow="ALWAYS">
+                        <xAxis><CategoryAxis fx:id="chartXAxis"/></xAxis>
+                        <yAxis><NumberAxis fx:id="chartYAxis"/></yAxis>
+                    </BarChart>
+                </center>
+            </BorderPane>
         </VBox>
 
-        <VBox VBox.vgrow="ALWAYS" prefWidth="480">
+        <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity">
             <Label text="Recent Activity" styleClass="section-title"/>
-            <TableView fx:id="recentTable" prefHeight="300">
+            <TableView fx:id="recentTable" prefHeight="320" VBox.vgrow="ALWAYS" styleClass="card">
                 <columns>
-                    <TableColumn fx:id="colTime" text="Time" prefWidth="90"/>
-                    <TableColumn fx:id="colStudent" text="Student" prefWidth="200"/>
-                    <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
+                    <TableColumn fx:id="colTime"    text="Time"    prefWidth="120"/>
+                    <TableColumn fx:id="colStudent" text="Student" prefWidth="220"/>
+                    <TableColumn fx:id="colStatus"  text="Status"  prefWidth="120"/>
                 </columns>
             </TableView>
         </VBox>
     </HBox>
 
-    <!-- Row: arrival histogram + status pie + by-course stacked bars -->
-    <HBox spacing="12">
-        <VBox VBox.vgrow="ALWAYS" prefWidth="380">
+    <!-- ROW 2 -->
+    <HBox spacing="16" alignment="CENTER">
+        <!-- Arrival histogram -->
+        <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity" minWidth="260">
             <Label text="Arrival Time Distribution" styleClass="section-title"/>
-            <BarChart fx:id="arrivalHistogram" prefHeight="280">
-                <xAxis><CategoryAxis fx:id="arrivalXAxis"/></xAxis>
-                <yAxis><NumberAxis fx:id="arrivalYAxis"/></yAxis>
-            </BarChart>
+            <BorderPane VBox.vgrow="ALWAYS" styleClass="card">
+                <top>
+                    <HBox alignment="CENTER_RIGHT" spacing="6" styleClass="chart-tools"
+                          BorderPane.alignment="CENTER" pickOnBounds="false">
+                        <Pane HBox.hgrow="ALWAYS"/>
+                        <Button text="📷" onAction="#exportArrivalPng" styleClass="chart-tool"/>
+                        <Button text="🔍" onAction="#zoomArrival"     styleClass="chart-tool"/>
+                    </HBox>
+                </top>
+                <center>
+                    <BarChart fx:id="arrivalHistogram" prefHeight="300" legendVisible="false" VBox.vgrow="ALWAYS">
+                        <xAxis><CategoryAxis fx:id="arrivalXAxis"/></xAxis>
+                        <yAxis><NumberAxis fx:id="arrivalYAxis"/></yAxis>
+                    </BarChart>
+                </center>
+            </BorderPane>
         </VBox>
 
-        <VBox VBox.vgrow="ALWAYS" prefWidth="320">
+        <!-- Pie + external legend row -->
+        <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity" minWidth="260">
             <Label text="Today’s Status Split" styleClass="section-title"/>
-            <PieChart fx:id="statusPie" prefHeight="280"/>
+            <BorderPane VBox.vgrow="ALWAYS" styleClass="card">
+                <top>
+                    <!-- Tools + our external legend row under it -->
+                    <VBox spacing="6" styleClass="chart-tools" BorderPane.alignment="CENTER">
+                        <HBox alignment="CENTER_RIGHT" spacing="6">
+                            <Pane HBox.hgrow="ALWAYS"/>
+                            <Button text="📷" onAction="#exportStatusPng" styleClass="chart-tool"/>
+                            <Button text="🔍" onAction="#zoomPie"        styleClass="chart-tool"/>
+                        </HBox>
+                        <!-- External legend row (controller fills this) -->
+                        <HBox fx:id="statusLegendBox" spacing="10" alignment="CENTER_LEFT"/>
+                    </VBox>
+                </top>
+                <center>
+                    <!-- Built-in legend OFF in card; padding to breathe -->
+                    <PieChart fx:id="statusPie"
+                              prefHeight="300"
+                              VBox.vgrow="ALWAYS"
+                              legendVisible="false"
+                              style="-fx-padding: 14 12 12 12;"/>
+                </center>
+            </BorderPane>
         </VBox>
 
-        <VBox VBox.vgrow="ALWAYS" prefWidth="420">
+        <!-- Stacked bar + external legend row -->
+        <VBox HBox.hgrow="ALWAYS" maxWidth="Infinity" minWidth="260">
             <Label text="Attendance by Course" styleClass="section-title"/>
-            <StackedBarChart fx:id="courseChart" prefHeight="280">
-                <xAxis><CategoryAxis fx:id="courseXAxis"/></xAxis>
-                <yAxis><NumberAxis fx:id="courseYAxis"/></yAxis>
-            </StackedBarChart>
+            <BorderPane VBox.vgrow="ALWAYS" styleClass="card">
+                <top>
+                    <!-- Tools + our external legend row under it -->
+                    <VBox spacing="6" styleClass="chart-tools" BorderPane.alignment="CENTER">
+                        <HBox alignment="CENTER_RIGHT" spacing="6">
+                            <Pane HBox.hgrow="ALWAYS"/>
+                            <Button text="📷" onAction="#exportCoursePng" styleClass="chart-tool"/>
+                            <Button text="🔍" onAction="#zoomCourse"     styleClass="chart-tool"/>
+                        </HBox>
+                        <!-- External legend row (controller fills this) -->
+                        <HBox fx:id="courseLegendBox" spacing="10" alignment="CENTER_LEFT"/>
+                    </VBox>
+                </top>
+                <center>
+                    <!-- Built-in legend OFF in card; padding to breathe -->
+                    <StackedBarChart fx:id="courseChart"
+                                     prefHeight="300"
+                                     VBox.vgrow="ALWAYS"
+                                     legendVisible="false"
+                                     style="-fx-padding: 10 12 8 12;">
+                        <xAxis><CategoryAxis fx:id="courseXAxis"/></xAxis>
+                        <yAxis><NumberAxis fx:id="courseYAxis"/></yAxis>
+                    </StackedBarChart>
+                </center>
+            </BorderPane>
         </VBox>
     </HBox>
 
-    <!-- Row: Regression -->
-    <HBox spacing="12">
-        <VBox VBox.vgrow="ALWAYS" prefWidth="520">
-            <Label text="Confidence vs Arrival Δ (with regression)" styleClass="section-title"/>
-            <ScatterChart fx:id="regressChart" prefHeight="300">
-                <xAxis><NumberAxis fx:id="regXAxis" /></xAxis>
-                <yAxis><NumberAxis fx:id="regYAxis" /></yAxis>
-            </ScatterChart>
-        </VBox>
-    </HBox>
 </VBox>
