@@ -246,12 +246,13 @@ public class ReportController {
         String id = parts[0].trim();
         String name = parts[1].trim();
         String group = parts[2].trim();
+        String courseId = parts[3].trim();
         if (id.isEmpty() || name.isEmpty()) continue;
 
         var svc = AppContext.getStudentService();
         var found = svc.findById(id);
         if (found == null) {
-          svc.addStudent(new Student(id, name, group));
+          svc.addStudent(new Student(id, name, group, courseId));
           imported++;
         }
       }
@@ -292,7 +293,7 @@ public class ReportController {
 
         Student st = AppContext.getStudentService().findById(stuId);
         if (st == null) {
-          st = new Student(stuId, stuName.isEmpty() ? stuId : stuName, "G?");
+          st = new Student(stuId, stuName.isEmpty() ? stuId : stuName, "G?", courseId);
           AppContext.getStudentService().addStudent(st);
         }
         Session sess = new Session(sessId.isEmpty() ? "IMP-" + System.nanoTime() : sessId,

@@ -1,5 +1,78 @@
 package com.smartattendance.model;
-import java.time.*; public class Session {
-  private final String sessionId, courseId, location; private final LocalDate sessionDate; private final LocalTime startTime, endTime; private final int lateThresholdMinutes; private boolean open;
-  public Session(String sid,String cid,LocalDate d,LocalTime s,LocalTime e,String loc,int late){ this.sessionId=sid; this.courseId=cid; this.sessionDate=d; this.startTime=s; this.endTime=e; this.location=loc; this.lateThresholdMinutes=late; }
-  public String getSessionId(){ return sessionId; } public String getCourseId(){ return courseId; } public LocalDate getSessionDate(){ return sessionDate; } public LocalTime getStartTime(){ return startTime; } public LocalTime getEndTime(){ return endTime; } public String getLocation(){ return location; } public int getLateThresholdMinutes(){ return lateThresholdMinutes; } public boolean isOpen(){ return open; } public void open(){ open=true; } public void close(){ open=false; } }
+import java.time.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map; 
+
+public class Session extends AbstractEntity{
+  private final String sessionId, courseId, location; 
+  private final LocalDate sessionDate; 
+  private final LocalTime startTime, endTime; 
+  private final int lateThresholdMinutes; 
+  private boolean open;
+  private final Roster roster = new Roster();
+  private final Map<Student, AttendanceTracker> attendanceMap = new HashMap<>();
+
+  public Session(String sessionId,String courseId, LocalDate sessionDate,LocalTime startTime,LocalTime endTime,String location,int late){ 
+    this.sessionId=sessionId; 
+    this.courseId=courseId; 
+    this.sessionDate=sessionDate; 
+    this.startTime=startTime; 
+    this.endTime=endTime; 
+    this.location=location; 
+    this.lateThresholdMinutes=late; 
+  }
+
+  public String getSessionId(){
+    return sessionId; 
+  } 
+  
+  public String getCourseId(){ 
+    return courseId; 
+  } 
+  
+  public LocalDate getSessionDate(){ 
+    return sessionDate; 
+  } 
+  
+  public LocalTime getStartTime(){
+    return startTime;
+  } 
+
+  public LocalTime getEndTime(){ 
+    return endTime; 
+  } 
+  
+  public String getLocation(){
+    return location;
+  } 
+   
+  public int getLateThresholdMinutes(){ 
+    return lateThresholdMinutes; 
+  } 
+  
+  public boolean isOpen(){
+    return open;
+  } 
+  
+  public void open(){ 
+    open=true; 
+  } 
+  
+  public void close(){ 
+    open=false; 
+  }
+
+  public Roster getRoster() {
+    return roster;
+  } 
+
+  public void registerAttendance(Student s, AttendanceTracker.Status status, String method) { // check if the use of .Status is allowed since status is private
+    AttendanceTracker record = attendanceMap.computeIfAbsent(s, AttendanceTracker::new);
+    record.mark(status, method);
+  }
+
+  public Map<Student, AttendanceTracker> getAttendanceMap() {
+      return Collections.unmodifiableMap(attendanceMap);
+  }
+}
