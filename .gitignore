@@ -30,3 +30,6 @@ Thumbs.db
 .project
 .settings/
 .class
+
+## Attendance logs
+attendance.log.*
