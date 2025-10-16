@@ -39,6 +39,19 @@ public class AttendanceRecord {
         this.notes = "";
     }
 
+    /**
+     * Marks attendance with all relevant info.
+     */
+    public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {
+        this.status = status;
+        this.timestamp = timestamp;
+        this.lastSeen = timestamp;
+        this.method = method;
+        if (notes != null) {
+            this.notes = notes;
+        }
+    }
+
     public Student getStudent() {
         return student;
     }
@@ -85,18 +98,5 @@ public class AttendanceRecord {
 
     public void setNotes(String notes) {
         this.notes = notes;
-    }
-
-    /**
-     * Marks attendance with all relevant info.
-     */
-    public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {
-        this.status = status;
-        this.timestamp = timestamp;
-        this.lastSeen = timestamp;
-        this.method = method;
-        if (notes != null) {
-            this.notes = notes;
-        }
     }
 }

@@ -5,15 +5,19 @@
 */
 
 package com.smartattendance.service;
+import java.time.LocalDateTime;
+
+import com.smartattendance.model.AttendanceRecord;
+import com.smartattendance.model.Session;
 
 /**
  * Strategy interface for marking attendance.
  * Used by both AutoMarker and ManualMarker classes.
  */
 public interface AttendanceMarker {
-    void markAttendance(String studentId, float confidence);
+    void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime, float confidence, float threshold);
 
-    void registerObserver(AttendanceObserver observer);
+    // void registerObserver(AttendanceObserver observer);
 
-    void unregisterObserver(AttendanceObserver observer);
+    // void unregisterObserver(AttendanceObserver observer);
 }
