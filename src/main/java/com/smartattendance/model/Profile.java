@@ -1,6 +1,7 @@
 package com.smartattendance.model;
 
 public class Profile extends User {
+    private String profileId;
     private String firstName;
     private String lastName;
     private String phoneNo;
@@ -8,17 +9,24 @@ public class Profile extends User {
 
     // Address (Optional)
     // chore(): make a separate class if got time later on.
-    public Profile(String username, String passwordHash, String role, String firstName, String lastName, String phoneNo,
-            String email) {
+    public Profile(
+            String username, String passwordHash, String role,
+            String profileId, String firstName, String lastName,
+            String phoneNo, String email) {
 
         // Inherit and create user
         super(username, passwordHash, role);
 
         // Set profile properties
+        this.profileId = profileId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNo = phoneNo;
         this.email = email;
+    }
+
+    public String getProfileId() {
+        return profileId;
     }
 
     public String getFirstName() {
