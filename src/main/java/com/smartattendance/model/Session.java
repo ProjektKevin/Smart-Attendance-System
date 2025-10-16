@@ -1,5 +1,63 @@
 package com.smartattendance.model;
-import java.time.*; public class Session {
-  private final String sessionId, courseId, location; private final LocalDate sessionDate; private final LocalTime startTime, endTime; private final int lateThresholdMinutes; private boolean open;
-  public Session(String sid,String cid,LocalDate d,LocalTime s,LocalTime e,String loc,int late){ this.sessionId=sid; this.courseId=cid; this.sessionDate=d; this.startTime=s; this.endTime=e; this.location=loc; this.lateThresholdMinutes=late; }
-  public String getSessionId(){ return sessionId; } public String getCourseId(){ return courseId; } public LocalDate getSessionDate(){ return sessionDate; } public LocalTime getStartTime(){ return startTime; } public LocalTime getEndTime(){ return endTime; } public String getLocation(){ return location; } public int getLateThresholdMinutes(){ return lateThresholdMinutes; } public boolean isOpen(){ return open; } public void open(){ open=true; } public void close(){ open=false; } }
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+public class Session {
+
+    private final String sessionId, courseId, location;
+    private final LocalDate sessionDate;
+    private final LocalTime startTime, endTime;
+    private final int lateThresholdMinutes;
+    private boolean open;
+
+    public Session(String sid, String cid, LocalDate d, LocalTime s, LocalTime e, String loc, int late) {
+        this.sessionId = sid;
+        this.courseId = cid;
+        this.sessionDate = d;
+        this.startTime = s;
+        this.endTime = e;
+        this.location = loc;
+        this.lateThresholdMinutes = late;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public LocalDate getSessionDate() {
+        return sessionDate;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public int getLateThresholdMinutes() {
+        return lateThresholdMinutes;
+    }
+
+    public boolean isOpen() {
+        return open;
+    }
+
+    public void open() {
+        open = true;
+    }
+
+    public void close() {
+        open = false;
+    }
+}
