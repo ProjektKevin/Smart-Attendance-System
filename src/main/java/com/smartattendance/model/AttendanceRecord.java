@@ -2,77 +2,98 @@
  # Modified by: Chue Wan Yan
  # Step: 3
  # Date: 13 Oct 2025
-*/
-
+ */
 package com.smartattendance.model;
-import java.time.LocalDateTime; public class AttendanceRecord {
-  private final Student student; 
-  private final Session session; 
-  // private final String status;
-  private AttendanceStatus status;
-  private LocalDateTime timestamp; 
-  private MarkMethod method;
-  // private final String method; 
-  // private final double confidence; 
-  // private final LocalDateTime timestamp; 
-  private String notes;
 
-  // public AttendanceRecord(Student s, Session sess, AttendanceStatus st, MarkMethod m, double c, LocalDateTime ts){ 
-  //   this.student=s; 
-  //   this.session=sess; 
-  //   this.status=st; 
-  //   this.method=m; 
-  //   this.confidence=c; 
-  //   this.timestamp=ts; 
-  // }
+import java.time.LocalDateTime;
 
-  public AttendanceRecord(Student student, Session session) {
-    this.student = student;
-    this.session = session;
-    this.status = AttendanceStatus.ABSENT;
-    this.timestamp = null;
-    this.method = null;
-    this.notes = "";
-  }
+public class AttendanceRecord {
 
-  public Student getStudent(){ 
-    return student; 
-  }
-  
-  public Session getSession(){ 
-    return session; 
-  } 
-  
-  public AttendanceStatus getStatus(){ 
-    return status; 
-  } 
-  
-  public MarkMethod getMethod(){ 
-    return method; 
-  } 
-  
-  // public double getConfidence(){ 
-  //   return confidence; 
-  // } 
-  
-  public LocalDateTime getTimestamp(){ 
-    return timestamp; 
-  } 
-  
-  public String getNote(){ 
-    return notes; 
-  } 
-  
-  public void setNote(String note){ 
-    this.notes = note; 
-  } 
+    private final Student student;
+    private final Session session;
+    // private final String status;
+    private AttendanceStatus status;
+    private LocalDateTime timestamp;
+    private LocalDateTime lastSeen;
+    private MarkMethod method;
+    // private final String method; 
+    // private final double confidence; 
+    // private final LocalDateTime timestamp; 
+    private String notes;
 
-  /**
+    // public AttendanceRecord(Student s, Session sess, AttendanceStatus st, MarkMethod m, double c, LocalDateTime ts){ 
+    //   this.student=s; 
+    //   this.session=sess; 
+    //   this.status=st; 
+    //   this.method=m; 
+    //   this.confidence=c; 
+    //   this.timestamp=ts; 
+    // }
+    public AttendanceRecord(Student student, Session session) {
+        this.student = student;
+        this.session = session;
+        this.status = AttendanceStatus.ABSENT;
+        this.timestamp = null;
+        this.lastSeen = null;
+        this.method = null;
+        this.notes = "";
+    }
+
+    public Student getStudent() {
+        return student;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public AttendanceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(AttendanceStatus status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public LocalDateTime getLastSeen() {
+        return lastSeen;
+    }
+
+    public void setLastSeen(LocalDateTime lastSeen) {
+        this.lastSeen = lastSeen;
+    }
+
+    public MarkMethod getMethod() {
+        return method;
+    }
+
+    public void setMethod(MarkMethod method) {
+        this.method = method;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    /**
      * Marks attendance with all relevant info.
      */
     public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {
         this.status = status;
         this.timestamp = timestamp;
+        this.lastSeen = timestamp;
         this.method = method;
         if (notes != null) {
             this.notes = notes;

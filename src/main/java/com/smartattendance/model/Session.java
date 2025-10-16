@@ -8,6 +8,8 @@ package com.smartattendance.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Session {
 
@@ -15,6 +17,7 @@ public class Session {
     private final LocalDate sessionDate;
     private final LocalTime startTime, endTime;
     private final int lateThresholdMinutes;
+    private final List<Student> roster;
     private boolean open;
 
     public Session(String sid, String cid, LocalDate d, LocalTime s, LocalTime e, String loc, int late) {
@@ -25,6 +28,7 @@ public class Session {
         this.endTime = e;
         this.location = loc;
         this.lateThresholdMinutes = late;
+        this.roster = new ArrayList<>();
     }
 
     public String getSessionId() {
@@ -65,5 +69,9 @@ public class Session {
 
     public void close() {
         open = false;
+    }
+
+    public void addStudent(Student s) {
+        roster.add(s);
     }
 }
