@@ -1,8 +1,6 @@
 package com.smartattendance.model;
 import java.time.*;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map; 
+import java.util.*;
 
 public class Session extends AbstractEntity{
   private final String sessionId, courseId, location; 
@@ -11,7 +9,7 @@ public class Session extends AbstractEntity{
   private final int lateThresholdMinutes; 
   private boolean open;
   private final Roster roster = new Roster();
-  private final Map<Student, AttendanceTracker> attendanceMap = new HashMap<>();
+  private final List<AttendanceTracker> attendanceTrackers = new ArrayList<>();
 
   public Session(String sessionId,String courseId, LocalDate sessionDate,LocalTime startTime,LocalTime endTime,String location,int late){ 
     this.sessionId=sessionId; 
@@ -67,12 +65,13 @@ public class Session extends AbstractEntity{
     return roster;
   } 
 
-  public void registerAttendance(Student s, AttendanceTracker.Status status, String method) { // check if the use of .Status is allowed since status is private
-    AttendanceTracker record = attendanceMap.computeIfAbsent(s, AttendanceTracker::new);
-    record.mark(status, method);
+  public void addStudentToRoster(Student student) {
+        roster.addStudent(student);
+        attendanceTrackers.add(new AttendanceTracker(student));
   }
 
-  public Map<Student, AttendanceTracker> getAttendanceMap() {
-      return Collections.unmodifiableMap(attendanceMap);
-  }
+  public List<AttendanceTracker> getAttendanceTrackers() {
+    return Collections.unmodifiableList(attendanceTrackers);
+}
+
 }
