@@ -11,9 +11,6 @@
     <Label text="Create New Session" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
 
     <GridPane hgap="10" vgap="10">
-        <Label text="Session ID:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-        <TextField fx:id="txtId" GridPane.rowIndex="0" GridPane.columnIndex="1" />
-
         <Label text="Course ID:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
         <TextField fx:id="txtCourse" GridPane.rowIndex="1" GridPane.columnIndex="1" />
 

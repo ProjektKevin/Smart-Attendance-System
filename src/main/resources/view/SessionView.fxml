@@ -15,6 +15,7 @@
             <TableColumn fx:id="colEnd" text="End" prefWidth="100"/>
             <TableColumn fx:id="colLoc" text="Location" prefWidth="100"/>
             <TableColumn fx:id="colLate" text="Late Threshold" prefWidth="100"/>
+            <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
         </columns>
     </TableView>
 

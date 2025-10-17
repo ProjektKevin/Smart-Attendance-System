@@ -1,6 +1,8 @@
 package com.smartattendance.controller;
 
 import com.smartattendance.model.Session;
+import com.smartattendance.service.SessionService;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
@@ -9,7 +11,6 @@ import java.time.LocalTime;
 
 public class SessionFormController {
 
-    @FXML private TextField txtId;
     @FXML private TextField txtCourse;
     @FXML private DatePicker datePicker;
     @FXML private TextField txtStart;
@@ -25,13 +26,12 @@ public class SessionFormController {
 
     @FXML
     private void onCancel() {
-        ((Stage) txtId.getScene().getWindow()).close();
+        ((Stage) txtCourse.getScene().getWindow()).close();
     }
 
     @FXML
     private void onCreate() {
         try {
-            String id = txtId.getText();
             String course = txtCourse.getText();
             LocalDate date = datePicker.getValue();
             LocalTime start = LocalTime.parse(txtStart.getText());
@@ -39,8 +39,8 @@ public class SessionFormController {
             String loc = txtLocation.getText();
             int late = Integer.parseInt(txtLate.getText());
 
-            newSession = new Session(id, course, date, start, end, loc, late);
-            ((Stage) txtId.getScene().getWindow()).close();
+            newSession = new SessionService().createSession(course.toUpperCase(), date, start, end, loc, late);
+            ((Stage) txtCourse.getScene().getWindow()).close();
 
         } catch (Exception e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);

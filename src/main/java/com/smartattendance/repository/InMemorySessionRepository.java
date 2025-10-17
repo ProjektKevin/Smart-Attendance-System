@@ -15,6 +15,8 @@ public class InMemorySessionRepository {
                 java.time.LocalTime.of(13, 0), java.time.LocalTime.of(15, 0), "Room B", 10));
         sessions.add(new Session("S3", "CS106", java.time.LocalDate.now(),
                 java.time.LocalTime.of(15, 30), java.time.LocalTime.of(17, 30), "Room C", 10));
+        sessions.add(new Session("S4", "CS104", java.time.LocalDate.now(),
+                java.time.LocalTime.of(19, 00), java.time.LocalTime.of(22, 30), "Room D", 10));
     }
 
     /** Returns a copy of all sessions */
@@ -39,6 +41,10 @@ public class InMemorySessionRepository {
     /** Delete a session */
     public void delete(Session s) {
         sessions.remove(s);
+    }
+
+    public void clear() {
+        sessions.clear();
     }
 
     /** Check if a session with a given ID exists */
