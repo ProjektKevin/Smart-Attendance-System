@@ -59,6 +59,10 @@ public class Session {
         return lateThresholdMinutes;
     }
 
+    public List<Student> getRoster() {
+        return roster;
+    }
+
     public boolean isOpen() {
         return open;
     }
