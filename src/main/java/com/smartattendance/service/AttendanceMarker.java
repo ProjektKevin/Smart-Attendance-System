@@ -15,7 +15,9 @@ import com.smartattendance.model.Session;
  * Used by both AutoMarker and ManualMarker classes.
  */
 public interface AttendanceMarker {
-    void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime, float confidence, float threshold);
+    // void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime, float confidence, float threshold);
+    void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime);
+
 
     // void registerObserver(AttendanceObserver observer);
 

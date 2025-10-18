@@ -22,7 +22,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
     private final int lateThresholdMinutes = 15;
 
     @Override
-    public void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime, float confidence, float threshold) {
+    public void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime) {
         long minutesLate = Duration.between(session.getStartTime(), currentTime).toMinutes();
         AttendanceStatus status = (minutesLate > lateThresholdMinutes)
                 ? AttendanceStatus.LATE
