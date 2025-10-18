@@ -11,6 +11,7 @@ package com.smartattendance.service;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collections;
 
 import com.smartattendance.model.AttendanceRecord;
 import com.smartattendance.model.Session;
@@ -34,8 +35,22 @@ public class AttendanceService {
     }
     
     public synchronized Map<String, AttendanceRecord> getAll() {
-      return new HashMap<>(records);
+      return Collections.unmodifiableMap(new HashMap<>(records));
     }
+
+    public synchronized void printAllRecords() {
+      for (Map.Entry<String, AttendanceRecord> entry : records.entrySet()) {
+          String studentId = entry.getKey();
+          AttendanceRecord record = entry.getValue();
+
+          System.out.printf("Student ID: %s | Name: %s | Status: %s | Method: %s | Last Seen: %s%n",
+                  studentId,
+                  record.getStudent().getName(),
+                  record.getStatus(),
+                  record.getMethod(),
+                  record.getLastSeen());
+        }
+      }
 
     // public void addObserver(AttendanceObserver o) {
     //   observers.add(o);
