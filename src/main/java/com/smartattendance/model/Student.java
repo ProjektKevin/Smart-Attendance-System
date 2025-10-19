@@ -1,13 +1,12 @@
 package com.smartattendance.model;
 
 public class Student {
-  private final String studentId, name, group, courseId;
+  private final String studentId, name, course;
 
-  public Student(String id, String name, String group, String courseId) {
+  public Student(String id, String name, String course) {
     this.studentId = id;
     this.name = name;
-    this.group = group;
-    this.courseId = courseId;
+    this.course = course;
   }
 
   public String getStudentId() {
@@ -18,11 +17,7 @@ public class Student {
     return name;
   }
 
-  public String getGroup() {
-    return group;
-  }
-
-  public String getCourseId() {
-    return courseId;
+  public String getCourse() {
+    return course;
   }
 }

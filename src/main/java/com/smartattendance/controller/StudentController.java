@@ -22,14 +22,14 @@ public class StudentController {
   public void initialize() {
     colId.setCellValueFactory(new PropertyValueFactory<>("studentId"));
     colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-    colGroup.setCellValueFactory(new PropertyValueFactory<>("group"));
+    colGroup.setCellValueFactory(new PropertyValueFactory<>("course"));
     ObservableList<Student> data = FXCollections.observableArrayList(svc.getAllStudents());
     studentTable.setItems(data);
   }
 
   @FXML
   private void onAddStudent() {
-    Student s = new Student("S" + (100 + (int) (Math.random() * 900)), "New Student", "G3", "CS102");
+    Student s = new Student("S" + (100 + (int) (Math.random() * 900)), "New Student", "CS102");
     svc.addStudent(s);
     studentTable.getItems().add(s);
   }
