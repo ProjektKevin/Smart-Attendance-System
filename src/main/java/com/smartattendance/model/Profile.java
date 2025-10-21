@@ -8,7 +8,7 @@ public class Profile extends User {
     private String email;
 
     // Address (Optional)
-    // chore(): make a separate class if got time later on.
+    // chore(), Harry: make a separate class if got time later on.
     public Profile(
             String username, String passwordHash, String role,
             String profileId, String firstName, String lastName,

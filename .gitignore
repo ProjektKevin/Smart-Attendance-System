@@ -33,3 +33,8 @@ Thumbs.db
 
 ## Attendance logs
 attendance.log.*
+
+## Temp files (Harry)
+src/main/java/com/smartattendance/service/FaceCropDemo.java
+src/main/java/com/smartattendance/service/FaceRecognitionDemo.java
+src/main/java/com/smartattendance/service/DetectionService.java
