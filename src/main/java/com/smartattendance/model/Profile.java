@@ -15,10 +15,11 @@ public class Profile {
      * Custom constructor which sets student profile
      * 
      * @param profileId The id of the profile
-     * @param student   The student object
+     * @param studentId The id of the student (FK)
      * @param firstName The first name of the user
      * @param lastName  the last name of the user
      * @param phoneNo   The phone number of the user
+     * @param email     The email of the user
      */
     public Profile(
             String profileId,
