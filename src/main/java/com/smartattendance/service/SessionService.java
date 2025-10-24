@@ -23,7 +23,7 @@ public class SessionService {
     }
 
     // Return all sessions
-    public List<Session> getAllStudents() {
+    public List<Session> getAllSessions() {
         return repo.findAll();
     }
 
@@ -43,35 +43,22 @@ public class SessionService {
         repo.save(s);
     }
 
-    // public boolean deleteSession(String sid) {
-    // Session s = sessions.get(sid);
-    // if (s != null && !s.isOpen()) {
-    // sessions.remove(sid);
-    // return true;
-    // }
-    // return false; // can't delete active session
-    // }
+    public boolean deleteSession(String id) {
+        Session s = sessions.get(id);
+        if (s != null && !s.isOpen()) {
+            sessions.remove(id);
+            return true;
+        }
+        return false; // can't delete active session
+    }
 
     public void deleteSession(int id) {
         repo.deleteById(id);
     }
 
-    // public void openSession(String sid) {
-    //     Session s = sessions.get(sid);
-    //     if (s != null)
-    //         s.open();
-    // }
-
-    // public void closeSession(String sid) {
-    //     Session s = sessions.get(sid);
-    //     if (s != null)
-    //         s.close();
-    // }
-
-    // public Collection<Session> getAllSessions() {
-    //     return repo.findAll();
-    //     // return Collections.unmodifiableCollection(sessions.values());
-    // }
+    public void updateSessionStatus(Session s){
+        repo.updateStatus(s.getSessionId(), s.getStatus());
+    }
 
     // private void startLifecycleChecker() {
     //     Timeline lifecycleChecker = new Timeline(

@@ -1,7 +1,6 @@
 package com.smartattendance.repository;
 
 import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
 import com.smartattendance.util.DatabaseUtil;
 import java.util.*;
 import java.sql.*;
@@ -79,7 +78,7 @@ public class SessionRepository {
         String sql = "INSERT INTO sessions (course_name, session_date, start_time, end_time, location, late_threshold_minutes, status) VALUES (?, ?, ?, ?, ?, ?, ?) ";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             // Convert LocalDate to java.sql.Date
             java.sql.Date sqlDate = java.sql.Date.valueOf(s.getSessionDate());

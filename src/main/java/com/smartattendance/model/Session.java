@@ -5,10 +5,6 @@ import java.util.*;
 
 public class Session extends AbstractEntity {
 
-  // public enum SessionStatus {
-  //   PENDING, OPEN, CLOSED
-  // }
-
   private final String course, location;
   private final LocalDate sessionDate;
   private final LocalTime startTime, endTime;
@@ -18,7 +14,8 @@ public class Session extends AbstractEntity {
 
   public Session(String course, LocalDate sessionDate,
       LocalTime startTime, LocalTime endTime, String location, int late) {
-      this(0, course, sessionDate, startTime, endTime, location, late, "PENDING");
+      this(0, course, sessionDate, startTime, endTime, location, late, "Pending");
+      this.status = determineStatus(sessionDate, startTime, endTime);
   }
 
   public Session(int sessionId, String course, LocalDate sessionDate,
@@ -36,19 +33,19 @@ public class Session extends AbstractEntity {
   // ---------------------------------------------------------
   // Determine initial status based on current date/time
   // ---------------------------------------------------------
-  // private String determineInitialStatus(LocalDate sessionDate, LocalTime startTime, LocalTime endTime) {
-  //   LocalDateTime now = LocalDateTime.now();
-  //   LocalDateTime start = LocalDateTime.of(sessionDate, startTime);
-  //   LocalDateTime end = LocalDateTime.of(sessionDate, endTime);
+  private String determineStatus(LocalDate sessionDate, LocalTime startTime, LocalTime endTime) {
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime start = LocalDateTime.of(sessionDate, startTime);
+    LocalDateTime end = LocalDateTime.of(sessionDate, endTime);
 
-  //   if (now.isBefore(start)) {
-  //     return status = "PENDING"; // not started yet
-  //   } else if (now.isAfter(end)) {
-  //     return status = "CLOSED"; // already ended
-  //   } else {
-  //     return status = "OPEN"; // currently active
-  //   }
-  // }
+    if (now.isBefore(start)) {
+      return status = "Pending"; // not started yet
+    } else if (now.isAfter(end)) {
+      return status = "Closed"; // already ended
+    } else {
+      return status = "Open"; // currently active
+    }
+  }
 
   // ---------------------------------------------------------
   // Getters & utility methods
@@ -89,20 +86,19 @@ public class Session extends AbstractEntity {
     this.sessionId = id;
   }
 
+  public void open() {
+    this.status = "Open";
+  }
 
-//   public void open() {
-//     status = SessionStatus.OPEN;
-//   }
+  public void close() {
+    this.status = "Closed";
+  }
 
-//   public void close() {
-//     status = SessionStatus.CLOSED;
-//   }
+  public void setPending() {
+    this.status = "Pending";
+  }
 
-//   public void setPending() {
-//     status = SessionStatus.PENDING;
-//   }
-
-//   public boolean isOpen() {
-//     return status == SessionStatus.OPEN;
-//   }
+  public boolean isOpen() {
+    return status == "Open";
+  }
 }

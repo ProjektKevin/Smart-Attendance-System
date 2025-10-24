@@ -23,5 +23,6 @@
         <Button text="Create Session" onAction="#onCreateSession"/>
         <Button text="Start" onAction="#onStartSession"/>
         <Button text="Stop" onAction="#onStopSession"/>
+        <!-- <Button text="Delete" onAction="#onDeleteSession"> -->
     </HBox>
 </VBox>
