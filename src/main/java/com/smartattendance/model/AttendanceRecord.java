@@ -7,8 +7,10 @@ package com.smartattendance.model;
 
 import java.time.LocalDateTime;
 
-public class AttendanceRecord {
+import com.smartattendance.repository.AttendanceRecordRepository;
 
+public class AttendanceRecord {
+    private AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
     private final Student student;
     private final Session session;
     // private final String status;
@@ -17,9 +19,9 @@ public class AttendanceRecord {
     private LocalDateTime lastSeen;
     private MarkMethod method;
     // private final String method; 
-    // private final double confidence; 
+    private double confidence; 
     // private final LocalDateTime timestamp; 
-    private String notes;
+    private String note;
 
     // public AttendanceRecord(Student s, Session sess, AttendanceStatus st, MarkMethod m, double c, LocalDateTime ts){ 
     //   this.student=s; 
@@ -29,28 +31,42 @@ public class AttendanceRecord {
     //   this.confidence=c; 
     //   this.timestamp=ts; 
     // }
-    public AttendanceRecord(Student student, Session session) {
+    public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, LocalDateTime timestamp, MarkMethod method) {
         this.student = student;
         this.session = session;
-        this.status = AttendanceStatus.ABSENT;
-        this.timestamp = null;
-        this.lastSeen = null;
-        this.method = null;
-        this.notes = "";
+        // this.status = AttendanceStatus.ABSENT;
+        this.status = status;
+        this.confidence = confidence;
+        this.timestamp = timestamp;
+        this.lastSeen = timestamp;
+        this.method = method;
+        this.note = "";
     }
 
     /**
      * Marks attendance with all relevant info.
      */
-    public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {
+    public void mark() {
         this.status = status;
         this.timestamp = timestamp;
         this.lastSeen = timestamp;
         this.method = method;
-        if (notes != null) {
-            this.notes = notes;
+        if (note != null) {
+            this.note = note;
         }
+
+        attendanceRecordRepo.save(this); // modify this
+
     }
+    // public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {
+    //     this.status = status;
+    //     this.timestamp = timestamp;
+    //     this.lastSeen = timestamp;
+    //     this.method = method;
+    //     if (note != null) {
+    //         this.note = note;
+    //     }
+    // }
 
     public Student getStudent() {
         return student;
@@ -92,11 +108,20 @@ public class AttendanceRecord {
         this.method = method;
     }
 
-    public String getNotes() {
-        return notes;
+    public String getNote() {
+        return note;
     }
 
-    public void setNotes(String notes) {
-        this.notes = notes;
+    public void setNote(String note) {
+        this.note = note;
     }
+
+    public double getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(double confidence) {
+        this.confidence = confidence;
+    }
+
 }

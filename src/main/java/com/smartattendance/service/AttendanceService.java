@@ -5,24 +5,35 @@
  */
 package com.smartattendance.service;
 
-// import java.time.LocalDate;
-// import java.util.ArrayList;
-// import java.util.List;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.smartattendance.model.AttendanceRecord;
 import com.smartattendance.model.Session;
 import com.smartattendance.model.Student;
-// import com.smartattendance.util.AttendanceObserver;
+import com.smartattendance.util.AttendanceObserver;
 
 public class AttendanceService {
-    // private final List<AttendanceObserver> observers = new ArrayList<>();
-    // private final List<AttendanceRecord> records = new ArrayList<>();
+    private final List<AttendanceObserver> observers = new ArrayList<>();
+    private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
 
     private final Map<String, AttendanceRecord> records = new HashMap<>();
+
+    public void addObserver(AttendanceObserver o) {
+      observers.add(o);
+    }
+
+    public synchronized void markAttendance(AttendanceRecord r) {
+      attendanceRecords.add(r);
+      for (AttendanceObserver o : observers)
+        // notify the recognitionService that the attendance of a particular student is marked
+        o.onAttendanceMarked(r);
+      r.mark();
+    }
 
     public AttendanceRecord getOrCreateRecord(Student student, Session session) {
         return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));

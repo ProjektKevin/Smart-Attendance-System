@@ -143,8 +143,8 @@ public class AttendanceRecordRepository {
             
             ps.setString(1, record.getStudent().getStudentId());
             ps.setInt(2, record.getSession().getSessionId());
-            ps.setString(3, record.getStatus());
-            ps.setString(4, record.getMethod());
+            ps.setString(3, record.getStatus().toString());
+            ps.setString(4, record.getMethod().toString());
             ps.setDouble(5, record.getConfidence());
             ps.setTimestamp(6, Timestamp.valueOf(record.getTimestamp()));
             ps.setString(7, record.getNote());
@@ -163,8 +163,8 @@ public class AttendanceRecordRepository {
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            ps.setString(1, record.getStatus());
-            ps.setString(2, record.getMethod());
+            ps.setString(1, record.getStatus().toString());
+            ps.setString(2, record.getMethod().toString());
             ps.setDouble(3, record.getConfidence());
             ps.setTimestamp(4, Timestamp.valueOf(record.getTimestamp()));
             ps.setString(5, record.getNote());
