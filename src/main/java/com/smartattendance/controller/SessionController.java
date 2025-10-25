@@ -51,7 +51,6 @@ public class SessionController {
     TableColumn<Session, Void> colDelete = new TableColumn<>("Actions");
 
     private final SessionService sm = new SessionService();
-    private final StudentRepository studentRepo = new StudentRepository();
 
     // String sessionId,String courseId, LocalDate sessionDate,
     // LocalTime startTime,LocalTime endTime,String location,
@@ -118,15 +117,6 @@ public class SessionController {
             Session newSession = formCtrl.getNewSession();
 
             if (newSession != null) {
-                // // Populate roster with students of same course
-                // List<Student> enrolledStudents = studentRepo.findAll().stream()
-                //         .filter(s -> s.getCourse().equalsIgnoreCase(newSession.getCourse()))
-                //         .toList();
-
-                // for (Student s : enrolledStudents) {
-                //     newSession.addStudentToRoster(s);
-                // }
-
                 sessionTable.getItems().add(newSession);
                 sessionsInfo.setText("Session " + newSession.getSessionId() + " created successfully!");
             }

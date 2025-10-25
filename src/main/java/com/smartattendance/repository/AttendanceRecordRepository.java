@@ -135,7 +135,6 @@ public class AttendanceRecordRepository {
         return null;
     }
     
-    // Additional useful methods
     public boolean save(AttendanceRecord record) {
         String sql = "INSERT INTO attendance_records (student_id, session_id, status, method, confidence, timestamp, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
         

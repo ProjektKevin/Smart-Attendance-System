@@ -53,6 +53,32 @@ public class StudentRepository {
         return null;
     }
 
+    public List<Student> findByCourse(String course) {
+        List<Student> students = new ArrayList<>();
+        String sql = "SELECT student_id, name, course_name FROM students WHERE course_name = ?"; 
+
+        try (Connection conn = DatabaseUtil.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+           
+            stmt.setString(1, course);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    students.add(new Student(
+                        rs.getString("student_id"),
+                        rs.getString("name"),
+                        rs.getString("course_name")
+                    ));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
+
     public void save(Student s) {
         String sql = "INSERT INTO students (student_id, name, course_name) VALUES (?, ?, ?) " +
                      "ON CONFLICT (student_id) DO UPDATE SET name = ?, course_name = ?";
