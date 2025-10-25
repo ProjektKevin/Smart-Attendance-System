@@ -1,81 +1,105 @@
-/*
- # Modified by: Chue Wan Yan
- # Step: 8
- # Date: 13 Oct 2025
- */
-
 package com.smartattendance.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Session {
+public class Session extends AbstractEntity {
 
-    private final String sessionId, courseId, location;
-    private final LocalDate sessionDate;
-    private final LocalTime startTime, endTime;
-    private final int lateThresholdMinutes;
-    private final List<Student> roster;
-    private boolean open;
+  private final String course, location;
+  private final LocalDate sessionDate;
+  private final LocalTime startTime, endTime;
+  private final int lateThresholdMinutes;
+  private int sessionId;
+  private String status;
 
-    public Session(String sid, String cid, LocalDate d, LocalTime s, LocalTime e, String loc, int late) {
-        this.sessionId = sid;
-        this.courseId = cid;
-        this.sessionDate = d;
-        this.startTime = s;
-        this.endTime = e;
-        this.location = loc;
-        this.lateThresholdMinutes = late;
-        this.roster = new ArrayList<>();
+  public Session(String course, LocalDate sessionDate,
+      LocalTime startTime, LocalTime endTime, String location, int late) {
+      this(0, course, sessionDate, startTime, endTime, location, late, "Pending");
+      this.status = determineStatus(sessionDate, startTime, endTime);
+  }
+
+  public Session(int sessionId, String course, LocalDate sessionDate,
+      LocalTime startTime, LocalTime endTime, String location, int late, String status) {
+    this.sessionId = sessionId;
+    this.course = course;
+    this.sessionDate = sessionDate;
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.location = location;
+    this.lateThresholdMinutes = late;
+    this.status = status;
+  }
+
+  // ---------------------------------------------------------
+  // Determine initial status based on current date/time
+  // ---------------------------------------------------------
+  private String determineStatus(LocalDate sessionDate, LocalTime startTime, LocalTime endTime) {
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime start = LocalDateTime.of(sessionDate, startTime);
+    LocalDateTime end = LocalDateTime.of(sessionDate, endTime);
+
+    if (now.isBefore(start)) {
+      return status = "Pending"; // not started yet
+    } else if (now.isAfter(end)) {
+      return status = "Closed"; // already ended
+    } else {
+      return status = "Open"; // currently active
     }
+  }
 
-    public String getSessionId() {
-        return sessionId;
-    }
+  // ---------------------------------------------------------
+  // Getters & utility methods
+  // ---------------------------------------------------------
+  public int getSessionId() {
+    return sessionId;
+  }
 
-    public String getCourseId() {
-        return courseId;
-    }
+  public String getCourse() {
+    return course;
+  }
 
-    public LocalDate getSessionDate() {
-        return sessionDate;
-    }
+  public LocalDate getSessionDate() {
+    return sessionDate;
+  }
 
-    public LocalTime getStartTime() {
-        return startTime;
-    }
+  public LocalTime getStartTime() {
+    return startTime;
+  }
 
-    public LocalTime getEndTime() {
-        return endTime;
-    }
+  public LocalTime getEndTime() {
+    return endTime;
+  }
 
-    public String getLocation() {
-        return location;
-    }
+  public String getLocation() {
+    return location;
+  }
 
-    public int getLateThresholdMinutes() {
-        return lateThresholdMinutes;
-    }
+  public int getLateThresholdMinutes() {
+    return lateThresholdMinutes;
+  }
 
-    public List<Student> getRoster() {
-        return roster;
-    }
+  public String getStatus(){
+    return status;
+  }
 
-    public boolean isOpen() {
-        return open;
-    }
+  public void setSessionId(int id){
+    this.sessionId = id;
+  }
 
-    public void open() {
-        open = true;
-    }
+  public void open() {
+    this.status = "Open";
+  }
 
-    public void close() {
-        open = false;
-    }
+  public void close() {
+    this.status = "Closed";
+  }
 
-    public void addStudent(Student s) {
-        roster.add(s);
-    }
+  public void setPending() {
+    this.status = "Pending";
+  }
+
+  public boolean isOpen() {
+    return status == "Open";
+  }
 }
