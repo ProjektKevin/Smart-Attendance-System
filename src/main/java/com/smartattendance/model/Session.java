@@ -1,30 +1,61 @@
 package com.smartattendance.model;
 
 import java.time.*;
+import java.util.*;
 
-public class Session {
-  private final String sessionId, courseId, location;
+public class Session extends AbstractEntity {
+
+  private final String course, location;
   private final LocalDate sessionDate;
   private final LocalTime startTime, endTime;
   private final int lateThresholdMinutes;
-  private boolean open;
+  private int sessionId;
+  private String status;
 
-  public Session(String sid, String cid, LocalDate d, LocalTime s, LocalTime e, String loc, int late) {
-    this.sessionId = sid;
-    this.courseId = cid;
-    this.sessionDate = d;
-    this.startTime = s;
-    this.endTime = e;
-    this.location = loc;
-    this.lateThresholdMinutes = late;
+  public Session(String course, LocalDate sessionDate,
+      LocalTime startTime, LocalTime endTime, String location, int late) {
+      this(0, course, sessionDate, startTime, endTime, location, late, "Pending");
+      this.status = determineStatus(sessionDate, startTime, endTime);
   }
 
-  public String getSessionId() {
+  public Session(int sessionId, String course, LocalDate sessionDate,
+      LocalTime startTime, LocalTime endTime, String location, int late, String status) {
+    this.sessionId = sessionId;
+    this.course = course;
+    this.sessionDate = sessionDate;
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.location = location;
+    this.lateThresholdMinutes = late;
+    this.status = status;
+  }
+
+  // ---------------------------------------------------------
+  // Determine initial status based on current date/time
+  // ---------------------------------------------------------
+  private String determineStatus(LocalDate sessionDate, LocalTime startTime, LocalTime endTime) {
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime start = LocalDateTime.of(sessionDate, startTime);
+    LocalDateTime end = LocalDateTime.of(sessionDate, endTime);
+
+    if (now.isBefore(start)) {
+      return status = "Pending"; // not started yet
+    } else if (now.isAfter(end)) {
+      return status = "Closed"; // already ended
+    } else {
+      return status = "Open"; // currently active
+    }
+  }
+
+  // ---------------------------------------------------------
+  // Getters & utility methods
+  // ---------------------------------------------------------
+  public int getSessionId() {
     return sessionId;
   }
 
-  public String getCourseId() {
-    return courseId;
+  public String getCourse() {
+    return course;
   }
 
   public LocalDate getSessionDate() {
@@ -47,15 +78,27 @@ public class Session {
     return lateThresholdMinutes;
   }
 
-  public boolean isOpen() {
-    return open;
+  public String getStatus(){
+    return status;
+  }
+
+  public void setSessionId(int id){
+    this.sessionId = id;
   }
 
   public void open() {
-    open = true;
+    this.status = "Open";
   }
 
   public void close() {
-    open = false;
+    this.status = "Closed";
+  }
+
+  public void setPending() {
+    this.status = "Pending";
+  }
+
+  public boolean isOpen() {
+    return status == "Open";
   }
 }

@@ -1,7 +1,6 @@
 package com.smartattendance.service;
 
 import com.smartattendance.model.Student;
-import com.smartattendance.repository.InMemoryStudentRepository;
 import com.smartattendance.repository.StudentRepository;
 
 import java.util.List;
@@ -16,7 +15,7 @@ public class StudentService {
 
     /** Default: use in-memory repository. */
     public StudentService() {
-        this.repo = new InMemoryStudentRepository();
+        this.repo = new StudentRepository();
     }
 
     /** For DI/tests: pass any implementation of StudentRepository. */
