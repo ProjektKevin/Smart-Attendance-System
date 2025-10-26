@@ -5,6 +5,7 @@ public class User {
   private String userName;
   private String role;
   private String passwordHash;
+  private boolean isEmailVerified;
 
   /**
    * Temp constructor (Delete after all compile)
@@ -22,24 +23,27 @@ public class User {
    * 
    * @param email The email of the user
    */
-  public User(String email) {
+  public User(String email, boolean isEmailVerified) {
     this.email = email;
+    this.isEmailVerified = isEmailVerified;
   }
 
   /**
    * Custom default constructor which sets the user (For user registration by
    * admin)
    * 
-   * @param email        The email of the user
-   * @param userName     The username of the user
-   * @param passwordHash The hashed password of the user
-   * @param role         The role of the user
+   * @param email           The email of the user
+   * @param userName        The username of the user
+   * @param passwordHash    The hashed password of the user
+   * @param role            The role of the user
+   * @param isEmailVerified Email verification of the user
    */
-  public User(String email, String userName, String role, String passwordHash) {
+  public User(String email, String userName, String role, String passwordHash, boolean isEmailVerified) {
     this.email = email;
     this.userName = userName;
     this.passwordHash = passwordHash;
     this.role = role;
+    this.isEmailVerified = isEmailVerified;
   }
 
   public String getEmail() {
@@ -72,5 +76,13 @@ public class User {
 
   public void setRole(String role) {
     this.role = role;
+  }
+
+  public boolean getIsEmailVerified() {
+    return isEmailVerified;
+  }
+
+  public void setIsEmailVerified(boolean isEmailVerified) {
+    this.isEmailVerified = isEmailVerified;
   }
 }

@@ -6,19 +6,19 @@ public class Student {
 
   // this might become course object when implemented
   // chore(): Link back to course id if done
-  private String group;
+  private String course;
 
   /**
    * Custom constructor which sets student profile
    * 
    * @param studentId The id of the profile
    * @param user      The user object to set authentication
-   * @param group     The course the student is enrolled in
+   * @param course     The course the student is enrolled in
    */
-  public Student(String studentId, String userName, String group) {
+  public Student(String studentId, String userName, String course) {
     this.studentId = studentId;
     this.userName = userName;
-    this.group = group;
+    this.course = course;
   }
 
   public String getStudentId() {
@@ -37,11 +37,11 @@ public class Student {
     this.userName = userName;
   }
 
-  public String getGroup() {
-    return group;
+  public String getCourse() {
+    return course;
   }
 
-  public void setGroup(String group) {
-    this.group = group;
+  public void setCourse(String course) {
+    this.course = course;
   }
 }
