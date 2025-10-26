@@ -16,9 +16,12 @@ import javafx.stage.Stage;
 
 public class LoginController {
 
-    @FXML private TextField usernameField;    // Admin username OR Student ID
-    @FXML private PasswordField passwordField; // Admin password OR "student123"
-    @FXML private Label errorLabel;
+    @FXML
+    private TextField usernameField; // Admin username OR Student ID
+    @FXML
+    private PasswordField passwordField; // Admin password OR "student123"
+    @FXML
+    private Label errorLabel;
 
     private static final String STUDENT_PASSWORD = "student123";
 
@@ -48,7 +51,8 @@ public class LoginController {
     }
 
     // ===== Student login (new) =====
-    // Wire your Student Login button to onAction="#handleStudentLogin" in LoginView.fxml
+    // Wire your Student Login button to onAction="#handleStudentLogin" in
+    // LoginView.fxml
     @FXML
     private void handleStudentLogin() {
         String studentId = usernameField.getText() == null ? "" : usernameField.getText().trim();

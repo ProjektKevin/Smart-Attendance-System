@@ -1,7 +1,6 @@
 package com.smartattendance.service;
 
 import java.util.List;
-
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
@@ -29,7 +28,7 @@ public class FaceRecognitionService {
 
     System.out.println("Best Score: " + bestScore);
     System.out.println("Best Index: " + bestIndex);
-    
+
     return bestIndex;
   }
 
@@ -41,5 +40,4 @@ public class FaceRecognitionService {
 
     return Imgproc.compareHist(hist1, hist2, Imgproc.HISTCMP_CORREL);
   }
-
 }

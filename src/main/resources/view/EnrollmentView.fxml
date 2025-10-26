@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+    xmlns:fx="http://javafx.com/fxml"
+    fx:controller="com.smartattendance.controller.student.EnrollmentController"
+    prefWidth="800"
+    prefHeight="650"
+    style="-fx-background-color: #f5f5f5;">
+
+    <!-- Top Bar -->
+    <top>
+        <HBox style="-fx-background-color: #2196F3; -fx-padding: 15;"
+            alignment="CENTER_LEFT"
+            spacing="15">
+            <Label text="Student Enrollment" style="-fx-text-fill: white;">
+                <font>
+                    <Font name="System Bold" size="20" />
+                </font>
+            </Label>
+        </HBox>
+    </top>
+
+    <!-- Center - Camera View -->
+    <center>
+        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 20;">
+
+            <!-- Status Label - Shows face detection status -->
+            <HBox alignment="CENTER"
+                style="-fx-background-color: #FFFFFF; 
+                       -fx-padding: 10;
+                       -fx-border-radius: 5;
+                       -fx-background-radius: 5;
+                       -fx-border-color: #cccccc;
+                       -fx-border-width: 1;">
+                <Label text="Status: " style="-fx-font-weight: bold; -fx-font-size: 14;" />
+                <Label fx:id="statusLabel"
+                    text="Camera not started"
+                    style="-fx-font-size: 14; -fx-text-fill: #666666;" />
+            </HBox>
+
+            <!-- Camera Display -->
+            <VBox alignment="CENTER"
+                style="-fx-background-color: #000000; 
+                         -fx-border-color: #cccccc; 
+                         -fx-border-width: 2;
+                         -fx-padding: 10;">
+
+                <!-- Note: Changed fx:id from "cameraView" to "currentFrame" to match your
+                controller -->
+                <ImageView fx:id="currentFrame"
+                    fitWidth="640"
+                    fitHeight="480"
+                    preserveRatio="true"
+                    style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 0);" />
+            </VBox>
+
+            <!-- Camera Controls -->
+            <HBox alignment="CENTER" spacing="15">
+                <!-- Note: Changed fx:id from "startCameraButton" to "button" to match your
+                controller -->
+                <!-- Also changed onAction to match your method name "startCamera" -->
+                <Button fx:id="button"
+                    text="Start Camera"
+                    onAction="#startCamera"
+                    style="-fx-background-color: #4CAF50; 
+                               -fx-text-fill: white; 
+                               -fx-font-size: 14;
+                               -fx-padding: 10 20;
+                               -fx-min-width: 150;">
+                    <cursor>
+                        <javafx.scene.Cursor fx:constant="HAND" />
+                    </cursor>
+                </Button>
+            </HBox>
+
+            <!-- Instructions -->
+            <VBox alignment="CENTER" spacing="10"
+                style="-fx-background-color: #E3F2FD; 
+                         -fx-padding: 15; 
+                         -fx-border-radius: 5;
+                         -fx-background-radius: 5;">
+                <Label text="Instructions:" style="-fx-font-weight: bold; -fx-font-size: 14;" />
+                <Label text="1. Click 'Start Camera' to begin" style="-fx-font-size: 12;" />
+                <Label text="2. Position your face in the center of the frame"
+                    style="-fx-font-size: 12;" />
+                <Label text="3. Watch for the status message above" style="-fx-font-size: 12;" />
+                <Label text="4. Green rectangle = 1 face (perfect for enrollment)"
+                    style="-fx-font-size: 12; -fx-text-fill: #4CAF50; -fx-font-weight: bold;" />
+                <Label text="5. Orange = No face detected"
+                    style="-fx-font-size: 12; -fx-text-fill: #FF9800;" />
+                <Label text="6. Red = Multiple faces (remove others from frame)"
+                    style="-fx-font-size: 12; -fx-text-fill: #f44336;" />
+            </VBox>
+
+        </VBox>
+    </center>
+
+    <!-- Bottom - Action Buttons -->
+    <!-- <bottom>
+        <HBox alignment="CENTER" spacing="15" style="-fx-padding: 20;">
+            <Button fx:id="enrollButton"
+                text="Enroll"
+                onAction="#enrollFace"
+                style="-fx-background-color: #2196F3; 
+                           -fx-text-fill: white; 
+                           -fx-font-size: 16;
+                           -fx-padding: 12 30;">
+                <cursor>
+                    <javafx.scene.Cursor fx:constant="HAND" />
+                </cursor>
+            </Button>
+
+            <Button text="Back"
+                style="-fx-background-color: #9E9E9E; 
+                           -fx-text-fill: white; 
+                           -fx-font-size: 16;
+                           -fx-padding: 12 30;">
+                <cursor>
+                    <javafx.scene.Cursor fx:constant="HAND" />
+                </cursor>
+            </Button>
+        </HBox>
+    </bottom> -->
+
+</BorderPane>
