@@ -80,7 +80,7 @@ public class ReportController {
             esc(s.getSessionId()),
             esc(s.getCourseId()),
             esc(st.getStudentId()),
-            esc(st.getName()),
+            esc(st.getUserName()),
             esc(r.getStatus()),
             esc(r.getMethod()),
             String.format("%.2f", r.getConfidence()),
@@ -161,7 +161,7 @@ public class ReportController {
               r.getTimestamp().toLocalTime().format(tf),
               r.getSession().getSessionId(),
               r.getSession().getCourseId(),
-              r.getStudent().getName() + " (" + r.getStudent().getStudentId() + ")",
+              r.getStudent().getUserName() + " (" + r.getStudent().getStudentId() + ")",
               r.getStatus(),
               r.getMethod(),
               String.format("%.2f", r.getConfidence())

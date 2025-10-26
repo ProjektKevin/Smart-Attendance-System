@@ -51,10 +51,16 @@
       <artifactId>javafx-swing</artifactId>
       <version>${javafx.version}</version>
     </dependency>
-    <dependency>
+    <!-- <dependency>
       <groupId>org.bytedeco</groupId>
       <artifactId>opencv-platform</artifactId>
       <version>4.9.0-1.5.10</version>
+    </dependency> -->
+    <!-- https://mvnrepository.com/artifact/org.openpnp/opencv -->
+    <dependency>
+      <groupId>org.openpnp</groupId>
+      <artifactId>opencv</artifactId>
+      <version>4.9.0-0</version>
     </dependency>
 
 
