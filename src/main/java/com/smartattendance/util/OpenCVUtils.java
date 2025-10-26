@@ -4,10 +4,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
-import org.opencv.core.MatOfRect;
 import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -19,10 +16,6 @@ import javafx.scene.image.Image;
  * 
  */
 public final class OpenCVUtils {
-
-	private static final Scalar DEFAULT_RECT_COLOR = new Scalar(0, 255, 0); // Green
-	private static final Scalar ERROR_RECT_COLOR = new Scalar(0, 0, 255); // Red
-	private static final int DEFAULT_RECT_THICKNESS = 2;
 
 	/**
 	 * Convert a Mat object (OpenCV) in the corresponding Image for JavaFX
@@ -80,31 +73,5 @@ public final class OpenCVUtils {
 		return image;
 	}
 
-	/**
-	 * Draw rectangles with color coding based on face count.
-	 * The red color shows error if no face, green if valid
-	 * 
-	 * @param frame The frame to draw on
-	 * @param faces The detected faces
-	 * @return The number of faces detected
-	 */
-	public static int drawFaceRectangles(Mat frame, MatOfRect faces) {
-		if (frame == null || frame.empty() || faces == null) {
-			return 0;
-		}
 
-		Rect[] facesArray = faces.toArray();
-		int faceCount = facesArray.length;
-
-		// Validate faces by color. face count > 1 -> Green. If not, red
-		Scalar color;
-		color = faceCount == 1 ? DEFAULT_RECT_COLOR : ERROR_RECT_COLOR;
-
-		// Draw all rectangles with color
-		for (Rect rect : facesArray) {
-			Imgproc.rectangle(frame, rect.tl(), rect.br(), color, DEFAULT_RECT_THICKNESS);
-		}
-
-		return faceCount;
-	}
 }

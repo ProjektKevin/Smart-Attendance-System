@@ -106,9 +106,9 @@ public class EnrollmentController {
 					MatOfRect faces = faceDetectionService.detectFaces(frame);
 
 					// Draw rectangles on the COLOR frame (not grayscale)
-					int faceCount = OpenCVUtils.drawFaceRectangles(frame, faces);
+					int faceCount = faceDetectionService.drawFaceRectangles(frame, faces);
 
-					if(faceCount != 1){
+					if (faceCount != 1) {
 						System.out.println("Too many people for enrollment");
 						// chore(), Harry: Add validation here
 					}
