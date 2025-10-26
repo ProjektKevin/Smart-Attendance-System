@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
 
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
