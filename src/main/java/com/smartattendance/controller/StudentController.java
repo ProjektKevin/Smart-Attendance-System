@@ -16,21 +16,21 @@ public class StudentController {
   @FXML
   private TableColumn<Student, String> colName;
   @FXML
-  private TableColumn<Student, String> colGroup;
+  private TableColumn<Student, String> colCourse;
   private final StudentService svc = ApplicationContext.getStudentService();
 
   @FXML
   public void initialize() {
     colId.setCellValueFactory(new PropertyValueFactory<>("studentId"));
-    colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-    colGroup.setCellValueFactory(new PropertyValueFactory<>("group"));
+    colName.setCellValueFactory(new PropertyValueFactory<>("userName"));
+    colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
     ObservableList<Student> data = FXCollections.observableArrayList(svc.getAllStudents());
     studentTable.setItems(data);
   }
 
   @FXML
   private void onAddStudent() {
-    Student s = new Student("S" + (100 + (int) (Math.random() * 900)), "New Student", "G3");
+    Student s = new Student("S" + (100 + (int) (Math.random() * 900)), "New Student", "CS102");
     svc.addStudent(s);
     studentTable.getItems().add(s);
   }
