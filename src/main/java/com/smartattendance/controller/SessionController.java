@@ -10,7 +10,6 @@ import javafx.animation.Timeline;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.util.Callback;
 import javafx.util.Duration;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -63,7 +62,7 @@ public class SessionController {
 
     @FXML
     public void initialize() {
-        // Initialize columns
+        // Initialise columns
         colId.setCellValueFactory(new PropertyValueFactory<>("sessionId"));
         colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
         colDate.setCellValueFactory(new PropertyValueFactory<>("sessionDate"));
@@ -94,8 +93,11 @@ public class SessionController {
             });
         }
 
-        // Refresh table periodically
-        Timeline uiRefresher = new Timeline(new KeyFrame(Duration.seconds(30), e -> sessionTable.refresh()));
+        // Refresh table and reload data from database periodically
+        Timeline uiRefresher = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
+            loadSessionsFromDatabase();  // Reloads from DB
+            sessionTable.refresh();      // Updates the UI
+        }));
         uiRefresher.setCycleCount(Timeline.INDEFINITE);
         uiRefresher.play();
     }
@@ -126,16 +128,35 @@ public class SessionController {
             }
         ));
         
-        // Ensures the checkbox column doesn't try to bind to a property
+        // Ensures the checkbox column does not try to bind to a property
         colSelect.setCellValueFactory(cellData -> null);
     }
 
     private void loadSessionsFromDatabase() {
         try {
             List<Session> sessions = sm.getAllSessions();
+            boolean statusChanged = false;
+
+            // Update status of sessions based on current time (Automate opening and closing of sessions)  
+            for (Session s : sessions){
+                String currentStatus = s.getStatus();
+                String updatedStatus = s.determineStatus(s.getSessionDate(), s.getStartTime(), s.getEndTime());
+
+                // If status needs to be updated, update in database
+                if (!currentStatus.equals(updatedStatus)){
+                    s.setStatus(updatedStatus);
+                    sm.updateSessionStatus(s);
+                    statusChanged = true;
+                }
+            }
+
+            // Reload from database to get updated status (if necessary)
+            if (statusChanged) {
+                sessions = sm.getAllSessions();
+            }
             
             // Sort sessions by sessionId in ascending order
-            sessions.sort(Comparator.comparing(Session::getSessionId));
+            sessions.sort(Comparator.comparing(Session::getSessionId));  
             
             sessionList.setAll(sessions);
             sessionTable.setItems(sessionList);
@@ -154,6 +175,7 @@ public class SessionController {
         }
     }
 
+    // Update button states
     private void updateButtonStates() {
         List<Session> selectedSessions = getSelectedSessions();
         boolean hasSelection = !selectedSessions.isEmpty();
@@ -206,17 +228,20 @@ public class SessionController {
         }
     }
 
+    // Get selected sessions
     private List<Session> getSelectedSessions() {
         return sessionList.stream()
                 .filter(session -> selectionMap.get(session.getSessionId()).get())
                 .collect(Collectors.toList());
     }
 
+    // Select all sessions
     private void selectAllSessions() {
         selectionMap.values().forEach(prop -> prop.set(true));
         sessionTable.refresh();
     }
 
+    // Clear selections
     private void clearAllSelection() {
         selectionMap.values().forEach(prop -> prop.set(false));
         sessionTable.refresh();
@@ -224,6 +249,7 @@ public class SessionController {
 
     @FXML
     private void onSelectAll() {
+        // When select all checkbox is selected
         if (selectAllCheckBox.isSelected()) {
             selectAllSessions();
         } else {
@@ -235,6 +261,7 @@ public class SessionController {
     @FXML
     private void onCreateSession() {
         try {
+            // Load the form dialog
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/SessionForm.fxml"));
             Parent form = loader.load();
 
@@ -245,7 +272,7 @@ public class SessionController {
             dialog.showAndWait();
 
             SessionFormController formCtrl = loader.getController();
-            Session newSession = formCtrl.getNewSession();
+            Session newSession = formCtrl.getNewSession(); // Get newly created session
 
             if (newSession != null) {
                 loadSessionsFromDatabase(); // Reload to get the new session
@@ -260,6 +287,7 @@ public class SessionController {
 
     @FXML
     private void onStartSession() {
+        // Selection of sessions to start
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
             sessionsInfo.setText("Please select session(s) to start.");
@@ -282,6 +310,7 @@ public class SessionController {
 
     @FXML
     private void onStopSession() {
+        // Selection of sessions to stop if session status != "Closed"
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
             sessionsInfo.setText("Please select session(s) to stop.");
@@ -304,6 +333,7 @@ public class SessionController {
 
     @FXML
     private void onDeleteSession() {
+        // Selection of sessions to delete if session status != "Open"
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
             sessionsInfo.setText("Please select session(s) to delete.");
@@ -315,7 +345,7 @@ public class SessionController {
                                 selectedSessions.stream().noneMatch(s -> "Open".equals(s.getStatus()));
 
         if (shouldDeleteAll) {
-            // Use deleteAll for better performance
+            // Use deleteAll when all sessions are selected
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirm Delete All");
             alert.setHeaderText("Delete ALL Sessions");
@@ -335,7 +365,6 @@ public class SessionController {
                 }
             }
         } else {
-            // Original logic for individual deletions
             // Check if any open sessions are selected
             boolean hasOpenSessions = selectedSessions.stream()
                     .anyMatch(s -> "Open".equals(s.getStatus()));
@@ -356,6 +385,7 @@ public class SessionController {
             
             alert.setContentText("Are you sure you want to delete the selected session(s)?\n" + sessionIds);
 
+            // Use deleteSession when some sessions are selected
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 try {
@@ -379,7 +409,5 @@ public class SessionController {
 // if there is error, alert using notification bar instead of SessionInfo (currently, tooltips cannot work)
 // Cannot remove the selection effect?
 // when course entered does not have any student enrolled, don't allow to create?
-// when session is fetched, check if status is correct, if not update
 // expand to see student roster (Attendance Record)
-// automate open and closing of sessions
 // add user_id
