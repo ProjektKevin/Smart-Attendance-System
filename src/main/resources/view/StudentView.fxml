@@ -6,7 +6,7 @@
         <columns>
             <TableColumn fx:id="colId" text="Student ID" prefWidth="120"/>
             <TableColumn fx:id="colName" text="Name" prefWidth="180"/>
-            <TableColumn fx:id="colGroup" text="Group" prefWidth="100"/>
+            <TableColumn fx:id="colCourse" text="Course" prefWidth="100"/>
         </columns>
     </TableView>
     <HBox spacing="10">

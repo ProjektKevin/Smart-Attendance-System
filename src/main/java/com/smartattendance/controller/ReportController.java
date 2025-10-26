@@ -366,11 +366,12 @@
 
 package com.smartattendance.controller;
 
+import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.AttendanceRecord;
 import com.smartattendance.model.Session;
 import com.smartattendance.model.Student;
 import com.smartattendance.service.AttendanceService;
-import com.smartattendance.util.AppContext;
+import com.smartattendance.service.StudentService;
 import com.smartattendance.util.EmailService;
 import com.smartattendance.util.EmailSettings;
 import javafx.application.Platform;
@@ -402,7 +403,8 @@ public class ReportController {
   @FXML private TextField emailSubject;
   @FXML private TextArea  emailBody;
 
-  private final AttendanceService attendance = AppContext.getAttendanceService();
+  private final AttendanceService attendance = ApplicationContext.getAttendanceService();
+  private final StudentService studentService = ApplicationContext.getStudentService();
 
   // keep track of the last exports to attach easily
   private File lastExportedPdf;
@@ -446,7 +448,7 @@ public class ReportController {
             esc(String.valueOf(s.getSessionId())), // convert int to String
             esc(s.getCourse()),
             esc(st.getStudentId()),
-            esc(st.getName()),
+            esc(st.getUserName()),
             esc(r.getStatus()),
             esc(r.getMethod()),
             String.format("%.2f", r.getConfidence()),
@@ -527,7 +529,7 @@ public class ReportController {
               r.getTimestamp().toLocalTime().format(tf),
               String.valueOf(r.getSession().getSessionId()), // convert int to String
               r.getSession().getCourse(),
-              r.getStudent().getName() + " (" + r.getStudent().getStudentId() + ")",
+              r.getStudent().getUserName() + " (" + r.getStudent().getStudentId() + ")",
               r.getStatus(),
               r.getMethod(),
               String.format("%.2f", r.getConfidence())
@@ -614,10 +616,9 @@ public class ReportController {
         String course = parts[2].trim();
         if (id.isEmpty() || name.isEmpty()) continue;
 
-        var svc = AppContext.getStudentService();
-        var found = svc.findById(id);
+        var found = studentService.findById(id);
         if (found == null) {
-          svc.addStudent(new Student(id, name, course));
+          studentService.addStudent(new Student(id, name, course));
           imported++;
         }
       }
@@ -667,10 +668,10 @@ public class ReportController {
             }
         }
 
-        Student st = AppContext.getStudentService().findById(stuId);
+        Student st = studentService.findById(stuId);
         if (st == null) {
           st = new Student(stuId, stuName.isEmpty() ? stuId : stuName, "CS?");
-          AppContext.getStudentService().addStudent(st);
+          studentService.addStudent(st);
         }
         // Create session - sessId will be auto-generated if 0
         Session sess = new Session(sessionId,
@@ -682,7 +683,7 @@ public class ReportController {
             (method.isEmpty() ? "Import" : method),
             conf, LocalDateTime.of(date, time));
         rec.setNote(note);
-        AppContext.getAttendanceService().markAttendance(rec);
+        ApplicationContext.getAttendanceService().markAttendance(rec);
         imported++;
       }
       reportStatus.setText("Imported attendance rows: " + imported);

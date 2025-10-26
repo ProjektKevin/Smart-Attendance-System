@@ -87,9 +87,9 @@ public class StudentRepository {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, s.getStudentId());
-            ps.setString(2, s.getName());
+            ps.setString(2, s.getUserName());
             ps.setString(3, s.getCourse());
-            ps.setString(4, s.getName());
+            ps.setString(4, s.getUserName());
             ps.setString(5, s.getCourse());
 
             ps.executeUpdate();

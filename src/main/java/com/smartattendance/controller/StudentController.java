@@ -1,5 +1,6 @@
 package com.smartattendance.controller;
 
+import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.Student;
 import com.smartattendance.service.StudentService;
 import javafx.collections.*;
@@ -15,14 +16,14 @@ public class StudentController {
   @FXML
   private TableColumn<Student, String> colName;
   @FXML
-  private TableColumn<Student, String> colGroup;
-  private final StudentService svc = new StudentService();
+  private TableColumn<Student, String> colCourse;
+  private final StudentService svc = ApplicationContext.getStudentService();
 
   @FXML
   public void initialize() {
     colId.setCellValueFactory(new PropertyValueFactory<>("studentId"));
-    colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-    colGroup.setCellValueFactory(new PropertyValueFactory<>("course"));
+    colName.setCellValueFactory(new PropertyValueFactory<>("userName"));
+    colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
     ObservableList<Student> data = FXCollections.observableArrayList(svc.getAllStudents());
     studentTable.setItems(data);
   }
