@@ -5,6 +5,7 @@ import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.StudentService;
+import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.LoggerUtil;
 
 public final class ApplicationContext {
@@ -68,7 +69,7 @@ public final class ApplicationContext {
     private static void loadOpenCVServices() {
         try {
             // Cascade file variables
-            String cascadePath = "../resources/haarcascades/haarcascade_frontalface_default.xml";
+            String cascadePath = FileLoader.loadToTempFile("/haarcascades/haarcascade_frontalface_default.xml");
 
             // Initialize face detection service
             faceDetectionService = new FaceDetectionService(cascadePath);

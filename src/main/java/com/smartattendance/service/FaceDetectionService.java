@@ -66,6 +66,6 @@ public class FaceDetectionService {
      * @return MatOfRect containing detected face rectangles
      */
     public MatOfRect detectFaces(Mat gray) {
-        return detectFaces(gray, DEFAULT_MIN_SIZE, DEFAULT_MIN_NEIGHBORS);
+        return detectFaces(gray, DEFAULT_SCALE_FACTOR, DEFAULT_MIN_NEIGHBORS);
     }
 }

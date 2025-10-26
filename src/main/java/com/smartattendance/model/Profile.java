@@ -6,7 +6,6 @@ public class Profile {
     private String firstName;
     private String lastName;
     private String phoneNo;
-    private String email;
 
     // Address (Optional)
     // chore(), Harry: make a separate class if got time later on.
@@ -19,22 +18,19 @@ public class Profile {
      * @param firstName The first name of the user
      * @param lastName  the last name of the user
      * @param phoneNo   The phone number of the user
-     * @param email     The email of the user
      */
     public Profile(
             String profileId,
             String studentId,
             String firstName,
             String lastName,
-            String phoneNo,
-            String email) {
+            String phoneNo) {
 
         this.profileId = profileId;
         this.studentId = studentId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNo = phoneNo;
-        this.email = email;
     }
 
     public String getProfileId() {
@@ -75,13 +71,5 @@ public class Profile {
 
     public void setPhoneNo(String phoneNo) {
         this.phoneNo = phoneNo;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 }
