@@ -2,7 +2,7 @@ package com.smartattendance.model;
 
 public class Profile {
     private String profileId;
-    private String studentId;
+    private String userId;
     private String firstName;
     private String lastName;
     private String phoneNo;
@@ -13,21 +13,18 @@ public class Profile {
     /**
      * Custom constructor which sets student profile
      * 
-     * @param profileId The id of the profile
-     * @param studentId The id of the student (FK)
+     * @param profileId The id of the profile 
      * @param firstName The first name of the user
      * @param lastName  the last name of the user
      * @param phoneNo   The phone number of the user
      */
     public Profile(
             String profileId,
-            String studentId,
             String firstName,
             String lastName,
             String phoneNo) {
 
         this.profileId = profileId;
-        this.studentId = studentId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phoneNo = phoneNo;
@@ -41,12 +38,12 @@ public class Profile {
         this.profileId = profileId;
     }
 
-    public String getStudentId() {
-        return studentId;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getFirstName() {

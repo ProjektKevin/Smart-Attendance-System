@@ -1,20 +1,29 @@
 package com.smartattendance;
 
+import com.smartattendance.service.AuthService;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.StudentService;
+
+import com.smartattendance.repository.PostgresUserRepository;
+
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.LoggerUtil;
 
 public final class ApplicationContext {
 
     private static boolean initialized = false;
+    private static String userId;
 
     // Business Services
+    private static AuthService authService;
     private static StudentService studentService;
     private static AttendanceService attendanceService;
+
+    // DB Repositories
+    private static PostgresUserRepository userRepository;
 
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
@@ -43,8 +52,10 @@ public final class ApplicationContext {
         // chore(), William: Add database initialization here after implementation
 
         // chore(), All: Add repositories here after implementation
+        userRepository = new PostgresUserRepository();
 
         // Initialize services
+        authService = new AuthService(userRepository);
         studentService = new StudentService();
         attendanceService = new AttendanceService();
 
@@ -87,6 +98,25 @@ public final class ApplicationContext {
             System.out.println("Error loading opencv: " + e.getMessage());
             // chore(), Harry: Add custom throw error or built in error
         }
+    }
+
+    public static String getUserId() {
+        return userId;
+    }
+
+    public static void setUserId(String id) {
+        userId = id;
+    }
+
+    /**
+     * Get the AuthService instance.
+     *
+     * @return AuthService
+     * @throws IllegalStateException if not initialized
+     */
+    public static AuthService getAuthService() {
+        checkInitialized();
+        return authService;
     }
 
     /**

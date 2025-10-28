@@ -1,6 +1,7 @@
 package com.smartattendance.model;
 
 public class User {
+  private String id;
   private String email;
   private String userName;
   private String role;
@@ -8,12 +9,29 @@ public class User {
   private boolean isEmailVerified;
 
   /**
-   * Temp constructor (Delete after all compile)
+   * Temp constructor (Delete after done)
    * 
-   * @param email The email of the user
+   * @param userName     The username of the user
+   * @param passwordHash The hashed password of the user
+   * @param role         The role of the user
    */
   public User(String userName, String passwordHash, String role) {
     this.userName = userName;
+    this.passwordHash = passwordHash;
+    this.role = role;
+  }
+
+  /**
+   * Custom default constructor (Auth model)
+   * 
+   * @param id              The id of the user
+   * @param isEmailVerified The email verification of the user
+   * @param passwordHash    The hashed password of the user
+   * @param role            The role of the user
+   */
+  public User(String id, boolean isEmailVerified, String passwordHash, String role) {
+    this.id = id;
+    this.isEmailVerified = isEmailVerified;
     this.passwordHash = passwordHash;
     this.role = role;
   }
@@ -28,22 +46,12 @@ public class User {
     this.isEmailVerified = isEmailVerified;
   }
 
-  /**
-   * Custom default constructor which sets the user (For user registration by
-   * admin)
-   * 
-   * @param email           The email of the user
-   * @param userName        The username of the user
-   * @param passwordHash    The hashed password of the user
-   * @param role            The role of the user
-   * @param isEmailVerified Email verification of the user
-   */
-  public User(String email, String userName, String role, String passwordHash, boolean isEmailVerified) {
-    this.email = email;
-    this.userName = userName;
-    this.passwordHash = passwordHash;
-    this.role = role;
-    this.isEmailVerified = isEmailVerified;
+  public String getId() {
+    return id;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 
   public String getEmail() {
