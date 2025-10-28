@@ -1,6 +1,6 @@
 package com.smartattendance.model;
 
-public class Profile {
+public class Profile extends AbstractEntity {
     private String profileId;
     private String userId;
     private String firstName;

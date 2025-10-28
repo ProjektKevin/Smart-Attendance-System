@@ -6,7 +6,7 @@ import com.smartattendance.util.DatabaseUtil;
 import java.sql.*;
 
 public class ProfileRepository {
-    public Profile getProfileById(String userId) {
+    public Profile getProfileByUserId(String userId) {
         String sql = "SELECT * FROM profile WHERE user_id = ?";
         try (Connection conn = DatabaseUtil.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -16,7 +16,7 @@ public class ProfileRepository {
 
             if (rs.next()) {
                 return new Profile(
-                        rs.getString("id"),
+                        rs.getString("profile_id"),
                         rs.getString("first_name"),
                         rs.getString("last_name"),
                         rs.getString("phone_no"));

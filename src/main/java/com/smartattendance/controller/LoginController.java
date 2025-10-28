@@ -1,6 +1,7 @@
 package com.smartattendance.controller;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.AuthSession;
 import com.smartattendance.model.User;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.util.PasswordUtil;
@@ -17,13 +18,14 @@ import javafx.stage.Stage;
 public class LoginController {
 
     @FXML
-    private TextField usernameField; // Admin username OR Student ID
+    private TextField usernameField;
     @FXML
-    private PasswordField passwordField; // Admin password OR "student123"
+    private PasswordField passwordField;
     @FXML
     private Label errorLabel;
 
     private final AuthService authService = ApplicationContext.getAuthService();
+    private final AuthSession session = ApplicationContext.getAuthSession();
 
     // ===== Login =====
     @FXML
@@ -58,7 +60,7 @@ public class LoginController {
                 Parent mainRoot = FXMLLoader.load(getClass().getResource("/view/MainView.fxml"));
                 Stage stage = (Stage) usernameField.getScene().getWindow();
                 stage.setScene(new Scene(mainRoot));
-                stage.setTitle("Smart Attendance - " + user.getRole());
+                stage.setTitle("Admin System");
                 errorLabel.setText("");
             }
 
@@ -66,12 +68,12 @@ public class LoginController {
                 Parent studentRoot = FXMLLoader.load(getClass().getResource("/view/StudentRootView.fxml"));
                 Stage stage = (Stage) usernameField.getScene().getWindow();
                 stage.setScene(new Scene(studentRoot));
-                stage.setTitle("Student Portal - " + studentId);
+                stage.setTitle("Student Portal");
                 errorLabel.setText("");
             }
 
-            // Save current student ID for the student pages
-            ApplicationContext.setUserId(studentId);
+            // Save user in Application Context
+            session.login(new User(user.getId(), user.getRole()));
 
         } catch (Exception e) {
             errorLabel.setText("Unable to open student portal: " + e.getMessage());

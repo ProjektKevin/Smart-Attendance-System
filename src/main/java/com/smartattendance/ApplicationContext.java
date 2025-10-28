@@ -1,5 +1,6 @@
 package com.smartattendance;
 
+import com.smartattendance.model.AuthSession;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
@@ -15,7 +16,7 @@ import com.smartattendance.util.LoggerUtil;
 public final class ApplicationContext {
 
     private static boolean initialized = false;
-    private static String userId;
+    private static AuthSession session;
 
     // Business Services
     private static AuthService authService;
@@ -40,6 +41,9 @@ public final class ApplicationContext {
         if (initialized) {
             throw new IllegalStateException("ApplicationContext already initialized");
         }
+
+        // Set session
+        session = new AuthSession();
 
         // Load Opencv
         loadOpenCV();
@@ -100,12 +104,15 @@ public final class ApplicationContext {
         }
     }
 
-    public static String getUserId() {
-        return userId;
-    }
-
-    public static void setUserId(String id) {
-        userId = id;
+    /**
+     * Get the AuthSessioon instance.
+     *
+     * @return AuthSession
+     * @throws IllegalStateException if not initialized
+     */
+    public static AuthSession getAuthSession() {
+        checkInitialized();
+        return session;
     }
 
     /**
@@ -196,6 +203,7 @@ public final class ApplicationContext {
 
         // chore(), Harry: Add cleanup logic here (close database connections, release
         // resources, etc.)
+        session.logout();
         initialized = false;
     }
 }
