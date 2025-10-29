@@ -4,7 +4,7 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.AuthSession;
 import com.smartattendance.model.User;
 import com.smartattendance.service.AuthService;
-import com.smartattendance.util.PasswordUtil;
+import com.smartattendance.util.security.PasswordUtil;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

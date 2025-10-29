@@ -12,13 +12,17 @@ import com.smartattendance.model.AuthSession;
 import com.smartattendance.model.Profile;
 import com.smartattendance.model.User;
 import com.smartattendance.service.ProfileService;
-import com.smartattendance.service.AuthService;
+import com.smartattendance.util.validation.ProfileValidator;
+import com.smartattendance.util.validation.ValidationResult;
+
+import java.util.Map;
 
 /**
  * Controller for Profile view.
  * Handles displaying and editing user profile information.
  * Shows conditional UI: "Create Profile" button if no profile exists,
  * or "Edit Profile" button if profile exists.
+ * @author Thiha Swan Htet
  */
 public class ProfileController {
 
@@ -42,8 +46,15 @@ public class ProfileController {
     @FXML
     private TextField phoneField;
 
+    // Error Labels (displayed under each field)
     @FXML
-    private Label emailLabel;
+    private Label firstNameError;
+
+    @FXML
+    private Label lastNameError;
+
+    @FXML
+    private Label phoneError;
 
     // View Mode Buttons
     @FXML
@@ -80,14 +91,12 @@ public class ProfileController {
 
     /**
      * Initialize the controller.
-     * Called automatically by JavaFX after FXML loading.
+     * Called automatically after UI loads.
      */
     @FXML
     public void initialize() {
         // Get current logged-in user
         currentUser = session.getCurrentUser();
-
-        System.out.println("Logged In User: " + currentUser.getId());
 
         if (currentUser == null) {
             showError("No user logged in");
@@ -112,15 +121,17 @@ public class ProfileController {
             currentProfile = profileService.getUserProfile(currentUser.getId());
 
             if (currentProfile == null) {
-                // No profile exists - show create profile UI
+                // Show create profile UI
                 showNoProfileState();
             } else {
-                // Profile exists - show profile details UI
+                // Show profile details UI
                 showProfileState();
                 displayProfileDetails();
             }
         } catch (Exception e) {
-            showError("Failed to load profile: " + e.getMessage());
+            // chore(), Harry: Change back to logger with a different log level
+            System.out.println("Error loading profile: " + e.getMessage());
+            showError("Failed to load profile: ");
         }
     }
 
@@ -159,7 +170,6 @@ public class ProfileController {
         phoneField.setText(currentProfile.getPhoneNo() != null
                 ? currentProfile.getPhoneNo()
                 : "");
-        emailLabel.setText(currentUser.getEmail());
     }
 
     /**
@@ -196,6 +206,9 @@ public class ProfileController {
     private void enterEditMode() {
         isEditMode = true;
 
+        // Clear all error messages
+        clearFieldErrors();
+
         // Enable field editing
         firstNameField.setEditable(true);
         lastNameField.setEditable(true);
@@ -220,35 +233,39 @@ public class ProfileController {
     @FXML
     private void onSaveProfile() {
         try {
-            // Validate inputs
-            String firstName = firstNameField.getText().trim();
-            String lastName = lastNameField.getText().trim();
-            String phone = phoneField.getText().trim();
+            // Get input values
+            String firstName = firstNameField.getText();
+            String lastName = lastNameField.getText();
+            String phone = phoneField.getText();
 
-            if (firstName.isEmpty() || lastName.isEmpty()) {
-                showError("First name and last name are required");
+            // Validate all fields using ProfileValidator
+            // This returns a ValidationResult with field errors
+            ValidationResult validationResult = ProfileValidator.validateProfile(
+                    firstName, lastName, phone);
+
+            // If validation failed, display errors under each field
+            if (!validationResult.isValid()) {
+                displayFieldErrors(validationResult);
                 return;
             }
 
-            // Update profile object
-            currentProfile.setFirstName(firstName);
-            currentProfile.setLastName(lastName);
-            currentProfile.setPhoneNo(phone);
+            // All validations passed - clear field errors
+            clearFieldErrors();
 
             // Save to database
-            if (currentProfile.getProfileId() == null) {
+            if (currentProfile == null) {
                 // New profile - insert
                 profileService.createUserProfile(
-                        firstName,
-                        lastName,
-                        phone,
+                        firstName.trim(),
+                        lastName.trim(),
+                        phone.trim(),
                         currentUser.getId());
             } else {
                 // Existing profile - update
                 profileService.updateUserProfile(
-                        firstName,
-                        lastName,
-                        phone,
+                        firstName.trim(),
+                        lastName.trim(),
+                        phone.trim(),
                         currentUser.getId());
             }
 
@@ -267,7 +284,7 @@ public class ProfileController {
      */
     @FXML
     private void onCancelEdit() {
-        if (currentProfile != null && currentProfile.getProfileId() != null) {
+        if (currentProfile != null) {
             // Reload original profile data
             displayProfileDetails();
             exitEditMode();
@@ -290,6 +307,9 @@ public class ProfileController {
         firstNameField.setEditable(false);
         lastNameField.setEditable(false);
         phoneField.setEditable(false);
+
+        // Clear error messages
+        clearFieldErrors();
 
         // Toggle button visibility
         editButton.setVisible(true);
@@ -338,6 +358,47 @@ public class ProfileController {
         firstNameField.clear();
         lastNameField.clear();
         phoneField.clear();
+        clearFieldErrors();
+    }
+
+    /**
+     * Display field-specific validation errors under each input field.
+     * Maps ValidationResult errors to their corresponding error labels.
+     * Works like Zod in React - each field shows its own error.
+     *
+     * @param validationResult the ValidationResult from ProfileValidator
+     */
+    private void displayFieldErrors(ValidationResult validationResult) {
+        // Clear all errors first
+        clearFieldErrors();
+
+        // Get the error map (field name -> error message)
+        Map<String, String> fieldErrors = validationResult.getAllFieldErrors();
+
+        // Display error under firstName field if it exists
+        if (fieldErrors.containsKey("firstName")) {
+            firstNameError.setText(fieldErrors.get("firstName"));
+        }
+
+        // Display error under lastName field if it exists
+        if (fieldErrors.containsKey("lastName")) {
+            lastNameError.setText(fieldErrors.get("lastName"));
+        }
+
+        // Display error under phone field if it exists
+        if (fieldErrors.containsKey("phone")) {
+            phoneError.setText(fieldErrors.get("phone"));
+        }
+    }
+
+    /**
+     * Clear all field-specific error messages.
+     * Hides all error labels under input fields.
+     */
+    private void clearFieldErrors() {
+        firstNameError.setText("");
+        lastNameError.setText("");
+        phoneError.setText("");
     }
 
     /**

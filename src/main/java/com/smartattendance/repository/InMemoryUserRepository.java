@@ -1,7 +1,7 @@
 package com.smartattendance.repository;
 
 import com.smartattendance.model.User;
-import com.smartattendance.util.PasswordUtil;
+import com.smartattendance.util.security.PasswordUtil;
 import java.util.*;
 
 public class InMemoryUserRepository implements UserRepository {

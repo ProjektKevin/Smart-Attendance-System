@@ -1,14 +1,15 @@
 package com.smartattendance.repository;
 
+import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.Profile;
-import com.smartattendance.util.DatabaseUtil;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 
 public class ProfileRepository {
 
     public boolean createProfile(String firstName, String lastName, String phoneNo, Integer userId) {
-        String sql = "INSERT INTO profile(first_name, last_name, phone_no, user_id) VALUES(?,?,?,?)";
+        String sql = "INSERT INTO profile(first_name, last_name, phone_number, user_id) VALUES(?,?,?,?)";
         int rowsAffected = 0;
         try (Connection conn = DatabaseUtil.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -38,7 +39,7 @@ public class ProfileRepository {
                         rs.getInt("profile_id"),
                         rs.getString("first_name"),
                         rs.getString("last_name"),
-                        rs.getString("phone_no"));
+                        rs.getString("phone_number"));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -47,7 +48,7 @@ public class ProfileRepository {
     }
 
     public boolean updateProfileById(String firstName, String lastName, String phoneNo, Integer userId) {
-        String sql = "UPDATE profile SET first_name = ?, last_name=?, phone_no=? WHERE user_id = ?";
+        String sql = "UPDATE profile SET first_name = ?, last_name=?, phone_number=?, updated_at = ? WHERE user_id = ?";
         int rowsAffected = 0;
         try (Connection conn = DatabaseUtil.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -55,7 +56,9 @@ public class ProfileRepository {
             pstmt.setString(1, firstName);
             pstmt.setString(2, lastName);
             pstmt.setString(3, phoneNo);
-            pstmt.setInt(4, userId);
+            pstmt.setObject(4, LocalDateTime.now());
+            pstmt.setInt(5, userId);
+
             rowsAffected = pstmt.executeUpdate();
 
         } catch (Exception e) {

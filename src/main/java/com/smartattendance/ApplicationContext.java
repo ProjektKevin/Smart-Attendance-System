@@ -14,7 +14,7 @@ import com.smartattendance.repository.PostgresUserRepository;
 import com.smartattendance.repository.ProfileRepository;
 
 import com.smartattendance.util.FileLoader;
-import com.smartattendance.util.LoggerUtil;
+import com.smartattendance.util.security.LoggerUtil;
 
 public final class ApplicationContext {
 

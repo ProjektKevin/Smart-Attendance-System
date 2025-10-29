@@ -1,4 +1,4 @@
-package com.smartattendance.util;
+package com.smartattendance.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import java.sql.Connection;

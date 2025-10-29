@@ -1,4 +1,4 @@
-package com.smartattendance.util;
+package com.smartattendance.util.security;
 
 import java.io.IOException;
 import java.util.logging.*;

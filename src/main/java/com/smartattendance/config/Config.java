@@ -1,4 +1,4 @@
-package com.smartattendance.util;
+package com.smartattendance.config;
 
 import java.io.FileInputStream;
 import java.io.IOException;

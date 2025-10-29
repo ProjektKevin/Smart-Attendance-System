@@ -1,9 +1,10 @@
 package com.smartattendance.repository;
 
+import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.AttendanceRecord;
 import com.smartattendance.model.Session;
 import com.smartattendance.model.Student;
-import com.smartattendance.util.DatabaseUtil;
+
 import java.util.*;
 import java.sql.*;
 
