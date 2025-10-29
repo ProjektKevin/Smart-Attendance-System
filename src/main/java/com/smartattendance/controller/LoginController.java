@@ -56,8 +56,7 @@ public class LoginController {
             String role = user.getRole();
 
             // Save user in Application Context BEFORE loading UI
-            // This ensures child controllers can access the current user during initialize()
-            session.login(new User(user.getId(), user.getRole()));
+            session.login(user);
 
             // Load UI based on the role
             if (role.equals("ADMIN")) {

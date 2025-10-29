@@ -22,29 +22,23 @@ public class User extends AbstractEntity {
   }
 
   /**
-   * Custom constructor for application context
-   * 
-   * @param id   The id of the user
-   * @param role The role of the user
-   */
-  public User(Integer id, String role) {
-    this.id = id;
-    this.role = role;
-  }
-
-  /**
-   * Custom default constructor (Auth model)
+   * Custom default constructor
    * 
    * @param id              The id of the user
-   * @param isEmailVerified The email verification of the user
+   * @param username        The username of the user
+   * @param email           The email of the user
    * @param passwordHash    The hashed password of the user
    * @param role            The role of the user
+   * @param isEmailVerified The email verification of the user
+   * 
    */
-  public User(Integer id, boolean isEmailVerified, String passwordHash, String role) {
+  public User(Integer id, String username, String email, String passwordHash, String role, boolean isEmailVerified) {
     this.id = id;
-    this.isEmailVerified = isEmailVerified;
+    this.userName = username;
+    this.email = email;
     this.passwordHash = passwordHash;
     this.role = role;
+    this.isEmailVerified = isEmailVerified;
   }
 
   /**
