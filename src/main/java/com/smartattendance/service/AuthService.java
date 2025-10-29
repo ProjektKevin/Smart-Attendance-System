@@ -1,6 +1,6 @@
 package com.smartattendance.service;
 
-import com.smartattendance.model.User;
+import com.smartattendance.model.entity.User;
 import com.smartattendance.repository.PostgresUserRepository;
 
 public class AuthService {
@@ -17,7 +17,7 @@ public class AuthService {
   // }
 
   public User authenticate(String userName) {
-    return userRepo.findByUsername(userName);
+    return userRepo.findUserByUsername(userName);
   }
 
 }

@@ -1,4 +1,4 @@
-package com.smartattendance.model;
+package com.smartattendance.model.entity;
 
 public class User extends AbstractEntity {
   private Integer id;
@@ -37,6 +37,24 @@ public class User extends AbstractEntity {
     this.userName = username;
     this.email = email;
     this.passwordHash = passwordHash;
+    this.role = role;
+    this.isEmailVerified = isEmailVerified;
+  }
+
+  /**
+   * Custom default constructor
+   * 
+   * @param id              The id of the user
+   * @param username        The username of the user
+   * @param email           The email of the user
+   * @param role            The role of the user
+   * @param isEmailVerified The email verification of the user
+   * 
+   */
+  public User(Integer id, String username, String email, String role, boolean isEmailVerified) {
+    this.id = id;
+    this.userName = username;
+    this.email = email;
     this.role = role;
     this.isEmailVerified = isEmailVerified;
   }

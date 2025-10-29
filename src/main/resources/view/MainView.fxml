@@ -29,7 +29,7 @@
                 </Tab>
                 <Tab fx:id="tabStudents" text="Students">
                     <content>
-                        <fx:include source="StudentView.fxml" />
+                        <fx:include source="StudentListView.fxml" />
                     </content>
                 </Tab>
                 <Tab fx:id="tabSessions" text="Sessions">

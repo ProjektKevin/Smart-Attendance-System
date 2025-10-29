@@ -1,7 +1,7 @@
 package com.smartattendance.repository;
 
 import com.smartattendance.config.DatabaseUtil;
-import com.smartattendance.model.Session;
+import com.smartattendance.model.entity.Session;
 
 import java.util.*;
 import java.sql.*;

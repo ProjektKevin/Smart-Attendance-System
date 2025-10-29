@@ -111,7 +111,7 @@ public class ProfileValidator {
      * @param result the ValidationResult to add errors to
      */
     private static void validatePhone(String phone, ValidationResult result) {
-        // Phone is optional - if empty, that's fine
+        // Phone (Optional)
         if (Validator.validateEmptyInput(phone)) {
             return;
         }

@@ -8,9 +8,9 @@ import javafx.scene.layout.VBox;
 import javafx.application.Platform;
 
 import com.smartattendance.ApplicationContext;
-import com.smartattendance.model.AuthSession;
-import com.smartattendance.model.Profile;
-import com.smartattendance.model.User;
+import com.smartattendance.model.entity.AuthSession;
+import com.smartattendance.model.entity.Profile;
+import com.smartattendance.model.entity.User;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.util.validation.ProfileValidator;
 import com.smartattendance.util.validation.ValidationResult;

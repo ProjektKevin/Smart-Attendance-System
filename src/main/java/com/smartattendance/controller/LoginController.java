@@ -1,8 +1,8 @@
 package com.smartattendance.controller;
 
 import com.smartattendance.ApplicationContext;
-import com.smartattendance.model.AuthSession;
-import com.smartattendance.model.User;
+import com.smartattendance.model.entity.AuthSession;
+import com.smartattendance.model.entity.User;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.util.security.PasswordUtil;
 

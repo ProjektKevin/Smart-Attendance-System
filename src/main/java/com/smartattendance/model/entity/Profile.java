@@ -1,4 +1,4 @@
-package com.smartattendance.model;
+package com.smartattendance.model.entity;
 
 public class Profile extends AbstractEntity {
     private Integer profileId;

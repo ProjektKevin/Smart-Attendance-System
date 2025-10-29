@@ -1,7 +1,7 @@
 package com.smartattendance.controller;
 
 import com.smartattendance.ApplicationContext;
-import com.smartattendance.model.Student;
+import com.smartattendance.model.entity.Student;
 import com.smartattendance.service.StudentService;
 import javafx.collections.*;
 import javafx.fxml.FXML;

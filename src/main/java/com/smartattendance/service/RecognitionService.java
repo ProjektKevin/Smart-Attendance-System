@@ -4,10 +4,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import com.smartattendance.model.AttendanceRecord;
-import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.Session;
+import com.smartattendance.model.entity.Student;
 
 public class RecognitionService {
   // Use shared attendance service so Reports can see the records

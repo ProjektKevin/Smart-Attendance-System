@@ -1,4 +1,4 @@
-package com.smartattendance.model;
+package com.smartattendance.model.entity;
 
 public class AuthSession {
     private User currentUser;

@@ -14,7 +14,7 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
-import com.smartattendance.model.Student;
+import com.smartattendance.model.entity.Student;
 import com.smartattendance.service.StudentService;
 
 import javafx.application.Platform;

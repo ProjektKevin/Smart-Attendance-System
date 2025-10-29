@@ -1,15 +1,14 @@
 package com.smartattendance;
 
-import com.smartattendance.model.AuthSession;
-
 import com.smartattendance.service.AuthService;
+import com.smartattendance.service.UserService;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.StudentService;
-
+import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.repository.PostgresUserRepository;
 import com.smartattendance.repository.ProfileRepository;
 
@@ -23,6 +22,7 @@ public final class ApplicationContext {
 
     // Business Services
     private static AuthService authService;
+    private static UserService userService;
     private static StudentService studentService;
     private static AttendanceService attendanceService;
     private static ProfileService profileService;
@@ -66,6 +66,7 @@ public final class ApplicationContext {
 
         // Initialize services
         authService = new AuthService(userRepository);
+        userService = new UserService(userRepository);
         studentService = new StudentService();
         attendanceService = new AttendanceService();
         profileService = new ProfileService(profileRepository);
@@ -131,6 +132,17 @@ public final class ApplicationContext {
     public static AuthService getAuthService() {
         checkInitialized();
         return authService;
+    }
+
+    /**
+     * Get the UserService instance.
+     *
+     * @return UserService
+     * @throws IllegalStateException if not initialized
+     */
+    public static UserService getUserService() {
+        checkInitialized();
+        return userService;
     }
 
     /**

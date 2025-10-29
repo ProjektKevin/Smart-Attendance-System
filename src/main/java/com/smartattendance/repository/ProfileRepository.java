@@ -1,7 +1,7 @@
 package com.smartattendance.repository;
 
 import com.smartattendance.config.DatabaseUtil;
-import com.smartattendance.model.Profile;
+import com.smartattendance.model.entity.Profile;
 
 import java.sql.*;
 import java.time.LocalDateTime;
