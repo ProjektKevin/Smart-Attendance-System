@@ -1,7 +1,7 @@
 package com.smartattendance.model;
 
-public class User extends AbstractEntity{
-  private String id;
+public class User extends AbstractEntity {
+  private Integer id;
   private String email;
   private String userName;
   private String role;
@@ -27,7 +27,7 @@ public class User extends AbstractEntity{
    * @param id   The id of the user
    * @param role The role of the user
    */
-  public User(String id, String role) {
+  public User(Integer id, String role) {
     this.id = id;
     this.role = role;
   }
@@ -40,7 +40,7 @@ public class User extends AbstractEntity{
    * @param passwordHash    The hashed password of the user
    * @param role            The role of the user
    */
-  public User(String id, boolean isEmailVerified, String passwordHash, String role) {
+  public User(Integer id, boolean isEmailVerified, String passwordHash, String role) {
     this.id = id;
     this.isEmailVerified = isEmailVerified;
     this.passwordHash = passwordHash;
@@ -56,11 +56,11 @@ public class User extends AbstractEntity{
     this.email = email;
   }
 
-  public String getId() {
+  public Integer getId() {
     return id;
   }
 
-  public void setId(String id) {
+  public void setId(Integer id) {
     this.id = id;
   }
 

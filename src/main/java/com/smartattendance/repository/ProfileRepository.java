@@ -6,17 +6,36 @@ import com.smartattendance.util.DatabaseUtil;
 import java.sql.*;
 
 public class ProfileRepository {
-    public Profile getProfileByUserId(String userId) {
+
+    public boolean createProfile(String firstName, String lastName, String phoneNo, Integer userId) {
+        String sql = "INSERT INTO profile(first_name, last_name, phone_no, user_id) VALUES(?,?,?,?)";
+        int rowsAffected = 0;
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, firstName);
+            pstmt.setString(2, lastName);
+            pstmt.setString(3, phoneNo);
+            pstmt.setInt(4, userId);
+            rowsAffected = pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rowsAffected == 1;
+    }
+
+    public Profile getProfileById(Integer userId) {
         String sql = "SELECT * FROM profile WHERE user_id = ?";
         try (Connection conn = DatabaseUtil.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, userId);
+            pstmt.setInt(1, userId);
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
                 return new Profile(
-                        rs.getString("profile_id"),
+                        rs.getInt("profile_id"),
                         rs.getString("first_name"),
                         rs.getString("last_name"),
                         rs.getString("phone_no"));
@@ -27,20 +46,36 @@ public class ProfileRepository {
         return null;
     }
 
-    public void updateProfileById(String firstName, String lastName, String phoneNo, String userId) {
+    public boolean updateProfileById(String firstName, String lastName, String phoneNo, Integer userId) {
         String sql = "UPDATE profile SET first_name = ?, last_name=?, phone_no=? WHERE user_id = ?";
+        int rowsAffected = 0;
         try (Connection conn = DatabaseUtil.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, firstName);
             pstmt.setString(2, lastName);
             pstmt.setString(3, phoneNo);
-            pstmt.setString(4, userId);
-            pstmt.executeUpdate();
+            pstmt.setInt(4, userId);
+            rowsAffected = pstmt.executeUpdate();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return rowsAffected == 1;
+    }
 
+    public boolean deleteProfileById(Integer userId) {
+        String sql = "DELETE FROM profile WHERE user_id = ?";
+        int rowsAffected = 0;
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            rowsAffected = pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rowsAffected == 1;
     }
 }

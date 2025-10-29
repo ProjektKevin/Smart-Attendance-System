@@ -55,6 +55,10 @@ public class LoginController {
             // Get user role
             String role = user.getRole();
 
+            // Save user in Application Context BEFORE loading UI
+            // This ensures child controllers can access the current user during initialize()
+            session.login(new User(user.getId(), user.getRole()));
+
             // Load UI based on the role
             if (role.equals("ADMIN")) {
                 Parent mainRoot = FXMLLoader.load(getClass().getResource("/view/MainView.fxml"));
@@ -71,9 +75,6 @@ public class LoginController {
                 stage.setTitle("Student Portal");
                 errorLabel.setText("");
             }
-
-            // Save user in Application Context
-            session.login(new User(user.getId(), user.getRole()));
 
         } catch (Exception e) {
             errorLabel.setText("Unable to open student portal: " + e.getMessage());

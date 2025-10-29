@@ -1,7 +1,7 @@
 package com.smartattendance.model;
 
 public class Profile extends AbstractEntity {
-    private String profileId;
+    private Integer profileId;
     private String userId;
     private String firstName;
     private String lastName;
@@ -19,7 +19,7 @@ public class Profile extends AbstractEntity {
      * @param phoneNo   The phone number of the user
      */
     public Profile(
-            String profileId,
+            Integer profileId,
             String firstName,
             String lastName,
             String phoneNo) {
@@ -30,11 +30,11 @@ public class Profile extends AbstractEntity {
         this.phoneNo = phoneNo;
     }
 
-    public String getProfileId() {
+    public Integer getProfileId() {
         return profileId;
     }
 
-    public void setProfileId(String profileId) {
+    public void setProfileId(Integer profileId) {
         this.profileId = profileId;
     }
 

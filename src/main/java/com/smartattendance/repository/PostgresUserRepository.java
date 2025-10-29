@@ -18,7 +18,7 @@ public class PostgresUserRepository {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new User(
-                            rs.getString("user_id"),
+                            rs.getInt("user_id"),
                             rs.getBoolean("is_email_verified"),
                             rs.getString("password_hash"),
                             rs.getString("role"));

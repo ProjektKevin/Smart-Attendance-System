@@ -1,7 +1,9 @@
 package com.smartattendance;
 
 import com.smartattendance.model.AuthSession;
+
 import com.smartattendance.service.AuthService;
+import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceProcessingService;
@@ -9,6 +11,7 @@ import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.StudentService;
 
 import com.smartattendance.repository.PostgresUserRepository;
+import com.smartattendance.repository.ProfileRepository;
 
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.LoggerUtil;
@@ -22,9 +25,11 @@ public final class ApplicationContext {
     private static AuthService authService;
     private static StudentService studentService;
     private static AttendanceService attendanceService;
+    private static ProfileService profileService;
 
     // DB Repositories
     private static PostgresUserRepository userRepository;
+    private static ProfileRepository profileRepository;
 
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
@@ -57,11 +62,13 @@ public final class ApplicationContext {
 
         // chore(), All: Add repositories here after implementation
         userRepository = new PostgresUserRepository();
+        profileRepository = new ProfileRepository();
 
         // Initialize services
         authService = new AuthService(userRepository);
         studentService = new StudentService();
         attendanceService = new AttendanceService();
+        profileService = new ProfileService(profileRepository);
 
         initialized = true;
     }
@@ -146,6 +153,17 @@ public final class ApplicationContext {
     public static AttendanceService getAttendanceService() {
         checkInitialized();
         return attendanceService;
+    }
+
+    /**
+     * Get the ProfileService instance.
+     *
+     * @return ProfileService
+     * @throws IllegalStateException if not initialized
+     */
+    public static ProfileService getProfileService() {
+        checkInitialized();
+        return profileService;
     }
 
     /**
