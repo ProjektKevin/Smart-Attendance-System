@@ -32,6 +32,11 @@
                         <fx:include source="StudentListView.fxml" />
                     </content>
                 </Tab>
+                <Tab fx:id="tabEnrollments" text="Enrollments">
+                    <content>
+                        <fx:include source="StudentView.fxml" />
+                    </content>
+                </Tab>
                 <Tab fx:id="tabSessions" text="Sessions">
                     <content>
                         <fx:include source="SessionView.fxml" />

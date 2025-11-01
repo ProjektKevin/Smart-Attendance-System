@@ -14,7 +14,7 @@ public class RootController {
 
     // Admin tabs (may be null on student view)
     @FXML
-    private Tab tabDashboard, tabStudents, tabSessions, tabLive, tabReports, tabSettings;
+    private Tab tabDashboard, tabStudents, tabEnrollments, tabSessions, tabLive, tabReports, tabSettings;
     // Student tabs (may be null on admin view)
     @FXML
     private Tab tabCapture, tabAttendance, tabProfile;
@@ -46,6 +46,7 @@ public class RootController {
         safeSetTabIcon(tabReports, "\uD83D\uDCCA"); // 📊
         safeSetTabIcon(tabSettings, "\u2699"); // ⚙
         safeSetTabIcon(tabProfile, "\uD83D\uDC64");
+        safeSetTabIcon(tabEnrollments, "\uD83D\uDCCB");
 
         // Student icons (null-safe)
         safeSetTabIcon(tabCapture, "\uD83D\uDCF7"); // 📷 Face Capture

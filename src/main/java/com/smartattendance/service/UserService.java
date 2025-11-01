@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class UserService {
-    public final PostgresUserRepository userRepository;
-    public final ProfileRepository profileRepository;
+    private final PostgresUserRepository userRepository;
+    private final ProfileRepository profileRepository;
 
     public UserService(PostgresUserRepository userRepository) {
         this.userRepository = userRepository;

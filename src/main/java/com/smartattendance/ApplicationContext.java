@@ -1,6 +1,7 @@
 package com.smartattendance;
 
 import com.smartattendance.service.AuthService;
+import com.smartattendance.service.CourseService;
 import com.smartattendance.service.UserService;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.AttendanceService;
@@ -9,6 +10,9 @@ import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.model.entity.AuthSession;
+
+import com.smartattendance.repository.AuthRepository;
+import com.smartattendance.repository.CourseRepository;
 import com.smartattendance.repository.PostgresUserRepository;
 import com.smartattendance.repository.ProfileRepository;
 
@@ -26,10 +30,13 @@ public final class ApplicationContext {
     private static StudentService studentService;
     private static AttendanceService attendanceService;
     private static ProfileService profileService;
+    private static CourseService courseService;
 
     // DB Repositories
+    private static AuthRepository authRepository;
     private static PostgresUserRepository userRepository;
     private static ProfileRepository profileRepository;
+    private static CourseRepository courseRepository;
 
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
@@ -61,15 +68,18 @@ public final class ApplicationContext {
         // chore(), William: Add database initialization here after implementation
 
         // chore(), All: Add repositories here after implementation
+        authRepository = new AuthRepository();
         userRepository = new PostgresUserRepository();
         profileRepository = new ProfileRepository();
+        courseRepository = new CourseRepository();
 
         // Initialize services
-        authService = new AuthService(userRepository);
+        authService = new AuthService(authRepository);
         userService = new UserService(userRepository);
         studentService = new StudentService();
         attendanceService = new AttendanceService();
         profileService = new ProfileService(profileRepository);
+        courseService = new CourseService(courseRepository);
 
         initialized = true;
     }
@@ -176,6 +186,17 @@ public final class ApplicationContext {
     public static ProfileService getProfileService() {
         checkInitialized();
         return profileService;
+    }
+
+    /**
+     * Get the CourseService instance.
+     *
+     * @return CourseService
+     * @throws IllegalStateException if not initialized
+     */
+    public static CourseService getCourseService() {
+        checkInitialized();
+        return courseService;
     }
 
     /**
