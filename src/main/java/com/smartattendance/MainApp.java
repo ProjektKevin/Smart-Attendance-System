@@ -1,6 +1,7 @@
 package com.smartattendance;
 
-import com.smartattendance.util.LoggerUtil;
+import com.smartattendance.util.security.LoggerUtil;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;

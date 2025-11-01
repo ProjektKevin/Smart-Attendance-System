@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.smartattendance.model.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.util.AttendanceObserver;
 
 public class AttendanceService {
