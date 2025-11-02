@@ -1,31 +1,25 @@
 package com.smartattendance.controller;
 
-import com.smartattendance.model.AttendanceRecord;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
 import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
-import com.smartattendance.repository.StudentRepository;
 import com.smartattendance.service.SessionService;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.util.Duration;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import org.controlsfx.control.table.TableRowExpanderColumn;
-
-import java.time.*;
-import java.util.List;
+import javafx.util.Duration;
 
 public class SessionController {
     @FXML
