@@ -9,9 +9,9 @@
     <TableView fx:id="sessionTable" prefHeight="300" prefWidth="700">
         <columns>
             <TableColumn fx:id="colSelect" prefWidth="50">
-                <graphic>
+                <!-- <graphic>
                     <CheckBox fx:id="selectAllCheckBox" onAction="#onSelectAll"/>
-                </graphic>
+                </graphic> -->
             </TableColumn>
             <TableColumn fx:id="colId" text="Session ID" prefWidth="100"/>
             <TableColumn fx:id="colCourse" text="Course" prefWidth="100"/>
