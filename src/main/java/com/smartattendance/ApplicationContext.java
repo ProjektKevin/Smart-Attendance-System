@@ -1,20 +1,42 @@
 package com.smartattendance;
 
+import com.smartattendance.service.AuthService;
+import com.smartattendance.service.CourseService;
+import com.smartattendance.service.UserService;
+import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.StudentService;
+import com.smartattendance.model.entity.AuthSession;
+
+import com.smartattendance.repository.AuthRepository;
+import com.smartattendance.repository.CourseRepository;
+import com.smartattendance.repository.PostgresUserRepository;
+import com.smartattendance.repository.ProfileRepository;
+
 import com.smartattendance.util.FileLoader;
-import com.smartattendance.util.LoggerUtil;
+import com.smartattendance.util.security.LoggerUtil;
 
 public final class ApplicationContext {
 
     private static boolean initialized = false;
+    private static AuthSession session;
 
     // Business Services
+    private static AuthService authService;
+    private static UserService userService;
     private static StudentService studentService;
     private static AttendanceService attendanceService;
+    private static ProfileService profileService;
+    private static CourseService courseService;
+
+    // DB Repositories
+    private static AuthRepository authRepository;
+    private static PostgresUserRepository userRepository;
+    private static ProfileRepository profileRepository;
+    private static CourseRepository courseRepository;
 
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
@@ -32,6 +54,9 @@ public final class ApplicationContext {
             throw new IllegalStateException("ApplicationContext already initialized");
         }
 
+        // Set session
+        session = new AuthSession();
+
         // Load Opencv
         loadOpenCV();
 
@@ -43,10 +68,18 @@ public final class ApplicationContext {
         // chore(), William: Add database initialization here after implementation
 
         // chore(), All: Add repositories here after implementation
+        authRepository = new AuthRepository();
+        userRepository = new PostgresUserRepository();
+        profileRepository = new ProfileRepository();
+        courseRepository = new CourseRepository();
 
         // Initialize services
+        authService = new AuthService(authRepository);
+        userService = new UserService(userRepository);
         studentService = new StudentService();
         attendanceService = new AttendanceService();
+        profileService = new ProfileService(profileRepository);
+        courseService = new CourseService(courseRepository);
 
         initialized = true;
     }
@@ -90,6 +123,39 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the AuthSessioon instance.
+     *
+     * @return AuthSession
+     * @throws IllegalStateException if not initialized
+     */
+    public static AuthSession getAuthSession() {
+        checkInitialized();
+        return session;
+    }
+
+    /**
+     * Get the AuthService instance.
+     *
+     * @return AuthService
+     * @throws IllegalStateException if not initialized
+     */
+    public static AuthService getAuthService() {
+        checkInitialized();
+        return authService;
+    }
+
+    /**
+     * Get the UserService instance.
+     *
+     * @return UserService
+     * @throws IllegalStateException if not initialized
+     */
+    public static UserService getUserService() {
+        checkInitialized();
+        return userService;
+    }
+
+    /**
      * Get the StudentService instance.
      *
      * @return StudentService
@@ -109,6 +175,28 @@ public final class ApplicationContext {
     public static AttendanceService getAttendanceService() {
         checkInitialized();
         return attendanceService;
+    }
+
+    /**
+     * Get the ProfileService instance.
+     *
+     * @return ProfileService
+     * @throws IllegalStateException if not initialized
+     */
+    public static ProfileService getProfileService() {
+        checkInitialized();
+        return profileService;
+    }
+
+    /**
+     * Get the CourseService instance.
+     *
+     * @return CourseService
+     * @throws IllegalStateException if not initialized
+     */
+    public static CourseService getCourseService() {
+        checkInitialized();
+        return courseService;
     }
 
     /**
@@ -166,6 +254,7 @@ public final class ApplicationContext {
 
         // chore(), Harry: Add cleanup logic here (close database connections, release
         // resources, etc.)
+        session.logout();
         initialized = false;
     }
 }

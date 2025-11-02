@@ -1,7 +1,7 @@
 package com.smartattendance.repository;
 
-import com.smartattendance.model.Student;
-import com.smartattendance.util.DatabaseUtil;
+import com.smartattendance.config.DatabaseUtil;
+import com.smartattendance.model.entity.Student;
 
 import java.sql.*;
 import java.util.ArrayList;

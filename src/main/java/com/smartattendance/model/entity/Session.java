@@ -1,7 +1,6 @@
-package com.smartattendance.model;
+package com.smartattendance.model.entity;
 
 import java.time.*;
-import java.util.*;
 
 public class Session extends AbstractEntity {
 
@@ -12,12 +11,14 @@ public class Session extends AbstractEntity {
   private int sessionId;
   private String status;
 
+  // For session creation using form
   public Session(String course, LocalDate sessionDate,
       LocalTime startTime, LocalTime endTime, String location, int late) {
       this(0, course, sessionDate, startTime, endTime, location, late, "Pending");
       this.status = determineStatus(sessionDate, startTime, endTime);
   }
 
+  // For session creation when fetching from database
   public Session(int sessionId, String course, LocalDate sessionDate,
       LocalTime startTime, LocalTime endTime, String location, int late, String status) {
     this.sessionId = sessionId;
@@ -30,26 +31,22 @@ public class Session extends AbstractEntity {
     this.status = status;
   }
 
-  // ---------------------------------------------------------
   // Determine initial status based on current date/time
-  // ---------------------------------------------------------
-  private String determineStatus(LocalDate sessionDate, LocalTime startTime, LocalTime endTime) {
+  public String determineStatus(LocalDate sessionDate, LocalTime startTime, LocalTime endTime) {
     LocalDateTime now = LocalDateTime.now();
     LocalDateTime start = LocalDateTime.of(sessionDate, startTime);
     LocalDateTime end = LocalDateTime.of(sessionDate, endTime);
 
     if (now.isBefore(start)) {
       return status = "Pending"; // not started yet
-    } else if (now.isAfter(end)) {
+    } else if (now.isAfter(end) || now.isEqual(end)) {
       return status = "Closed"; // already ended
     } else {
       return status = "Open"; // currently active
     }
   }
 
-  // ---------------------------------------------------------
   // Getters & utility methods
-  // ---------------------------------------------------------
   public int getSessionId() {
     return sessionId;
   }
@@ -98,7 +95,7 @@ public class Session extends AbstractEntity {
     this.status = "Pending";
   }
 
-  public boolean isOpen() {
-    return status == "Open";
+  public void setStatus(String status){
+    this.status = status;
   }
 }

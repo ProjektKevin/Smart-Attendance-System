@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import java.net.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.util.Callback?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+    fx:controller="com.smartattendance.controller.admin.StudentListController"
+    spacing="12" fillWidth="true">
+
+    <stylesheets>
+        <URL value="@styles/styles.css" />
+    </stylesheets>
+
+    <!-- Student List Table -->
+    <TableView fx:id="table" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="Student ID" prefWidth="100">
+                <cellValueFactory>
+                    <PropertyValueFactory property="id" />
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn text="Email" prefWidth="220">
+                <cellValueFactory>
+                    <PropertyValueFactory property="email" />
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn text="Email Verified" prefWidth="120">
+                <cellValueFactory>
+                    <PropertyValueFactory property="isEmailVerified" />
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn text="Role" prefWidth="100">
+                <cellValueFactory>
+                    <PropertyValueFactory property="role" />
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn fx:id="actionsColumn" text="Actions" prefWidth="150" sortable="false">
+                <cellValueFactory>
+                    <PropertyValueFactory property="id" />
+                </cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+    <!-- <HBox spacing="10">
+        <Button text="Add" onAction="#onAddStudent" />
+    </HBox> -->
+</VBox>

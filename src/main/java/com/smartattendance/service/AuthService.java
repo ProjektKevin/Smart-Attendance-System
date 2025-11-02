@@ -1,18 +1,23 @@
 package com.smartattendance.service;
 
-import com.smartattendance.model.User;
-import com.smartattendance.repository.UserRepository;
-import com.smartattendance.util.PasswordUtil;
+import com.smartattendance.model.entity.User;
+import com.smartattendance.repository.AuthRepository;
 
 public class AuthService {
-  private final UserRepository userRepo;
+  private final AuthRepository authRepo;
 
-  public AuthService(UserRepository r) {
-    this.userRepo = r;
+  public AuthService(AuthRepository authRepo){
+    this.authRepo = authRepo;
   }
 
-  public User authenticate(String u, String p) {
-    User user = userRepo.findByUsername(u);
-    return (user != null && PasswordUtil.matches(p, user.getPasswordHash())) ? user : null;
+  // public User authenticate(String u, String p) {
+  // User user = authRepo.findByUsername(u);
+  // return (user != null && PasswordUtil.matches(p, user.getPasswordHash())) ?
+  // user : null;
+  // }
+
+  public User authenticate(String userName) {
+    return authRepo.findUserByUsername(userName);
   }
+
 }

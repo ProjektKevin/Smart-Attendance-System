@@ -54,17 +54,11 @@
         <!-- Actions -->
         <HBox spacing="12" alignment="CENTER_RIGHT"
               GridPane.rowIndex="4" GridPane.columnIndex="1">
-            <!-- Existing Admin login -->
-            <Button fx:id="loginButton"
-                    text="Admin Login"
-                    onAction="#onLoginButtonClick"
-                    defaultButton="true"
-                    styleClass="primary-btn"/>
 
-            <!-- New Student login -->
-            <Button fx:id="studentLoginButton"
-                    text="Student Login"
-                    onAction="#handleStudentLogin"
+            <!-- login -->
+            <Button fx:id="loginButton"
+                    text="Login"
+                    onAction="#handleLogin"
                     styleClass="primary-btn"/>
         </HBox>
     </children>

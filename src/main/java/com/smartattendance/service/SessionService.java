@@ -1,15 +1,11 @@
 package com.smartattendance.service;
 
-import com.smartattendance.model.AttendanceRecord;
-import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
+import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.Session;
+import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.repository.StudentRepository;
-
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,12 +13,10 @@ import java.time.LocalTime;
 import java.util.*;
 
 public class SessionService {
-    private final Map<String, Session> sessions = new HashMap<>();
     private final SessionRepository repo;
 
     public SessionService() {
         this.repo = new SessionRepository();
-        // startLifecycleChecker();
     }
 
     // Return all sessions
@@ -30,11 +24,12 @@ public class SessionService {
         return repo.findAll();
     }
 
-    /** Find a student by ID, or null if not found. */
+    // Find a student by ID
     public Session findById(int id) {
         return repo.findById(id);
     }
 
+    // Creation of session using form
     public Session createSession(String courseId, LocalDate date, LocalTime start,
                                  LocalTime end, String loc, int lateThreshold) {
         Session session = new Session(courseId.toUpperCase(), date, start, end, loc, lateThreshold);
@@ -43,27 +38,17 @@ public class SessionService {
         return session;
     }
 
-    public void createSession(Session s) {
-        repo.save(s);
-    }
-
-    public boolean deleteSession(String id) {
-        Session s = sessions.get(id);
-        if (s != null && !s.isOpen()) {
-            sessions.remove(id);
-            return true;
-        }
-        return false; // can't delete active session
-    }
-
+    // Deletion of session by id
     public void deleteSession(int id) {
         repo.deleteById(id);
     }
 
+    // Update session status
     public void updateSessionStatus(Session s){
         repo.updateStatus(s.getSessionId(), s.getStatus());
     }
 
+    // Create Attendance Record for each student enrolled under the session created based on matching course
     private void createAttendanceRecordsForSession(Session s) {
         StudentRepository studentRepo = new StudentRepository();
         AttendanceRecordRepository attendanceRepo = new AttendanceRecordRepository();
@@ -77,7 +62,7 @@ public class SessionService {
                 s,
                 "Pending", // Default status
                 "-", // Default method
-                0.0,      // Default confidence
+                0.0, // Default confidence
                 LocalDateTime.now() // Default LocalDateTime
             );
             record.setNote("Auto-created with session"); // Default note
@@ -85,35 +70,4 @@ public class SessionService {
             attendanceRepo.save(record);
         }
     }
-
-    // private void startLifecycleChecker() {
-    //     Timeline lifecycleChecker = new Timeline(
-    //             new KeyFrame(Duration.seconds(30), e -> {
-    //                 LocalDateTime now = LocalDateTime.now();
-
-    //                 for (Session s : repo.findAll()) {
-    //                     LocalDateTime start = LocalDateTime.of(s.getSessionDate(), s.getStartTime());
-    //                     LocalDateTime end = LocalDateTime.of(s.getSessionDate(), s.getEndTime());
-
-    //                     // Session should open if within time range
-    //                     if (now.isAfter(start) && now.isBefore(end)
-    //                             && s.getStatusEnum() != Session.SessionStatus.OPEN) {
-    //                         s.open();
-    //                         System.out.println("[Auto OPEN] Session " + s.getSessionId());
-    //                     }
-    //                     // Session should close if time has passed
-    //                     else if (now.isAfter(end) && s.getStatusEnum() != Session.SessionStatus.CLOSED) {
-    //                         s.close();
-    //                         System.out.println("[Auto CLOSE] Session " + s.getSessionId());
-    //                     }
-    //                     // Otherwise keep pending
-    //                     else if (now.isBefore(start) && s.getStatusEnum() != Session.SessionStatus.PENDING) {
-    //                         s.setPending();
-    //                         System.out.println("[Pending] Session " + s.getSessionId());
-    //                     }
-    //                 }
-    //             }));
-    //     lifecycleChecker.setCycleCount(Timeline.INDEFINITE);
-    //     lifecycleChecker.play();
-    // }
 }

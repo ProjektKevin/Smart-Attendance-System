@@ -1,6 +1,6 @@
 package com.smartattendance.controller;
 
-import com.smartattendance.model.Session;
+import com.smartattendance.model.entity.Session;
 import com.smartattendance.service.SessionService;
 
 import javafx.fxml.FXML;

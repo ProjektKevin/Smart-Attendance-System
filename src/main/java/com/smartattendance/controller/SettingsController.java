@@ -1,6 +1,7 @@
 package com.smartattendance.controller;
 
-import com.smartattendance.util.Config;
+import com.smartattendance.config.Config;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 

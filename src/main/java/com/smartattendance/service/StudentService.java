@@ -1,6 +1,6 @@
 package com.smartattendance.service;
 
-import com.smartattendance.model.Student;
+import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
 
 import java.util.List;
