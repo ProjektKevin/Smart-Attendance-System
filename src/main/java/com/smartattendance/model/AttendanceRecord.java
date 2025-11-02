@@ -5,10 +5,10 @@ import java.time.*;
 public class AttendanceRecord {
   private final Student student;
   private final Session session;
-  private final String status, method;
+  private final String method;
   private final double confidence;
   private final LocalDateTime timestamp;
-  private String note;
+  private String status, note;
 
   public AttendanceRecord(Student s, Session sess, String st, String m, double c, LocalDateTime ts) {
     this.student = s;
@@ -49,5 +49,9 @@ public class AttendanceRecord {
 
   public void setNote(String n) {
     note = n;
+  }
+
+  public void setStatus(String s){
+    status = s;
   }
 }

@@ -1,8 +1,8 @@
 package com.smartattendance.model;
 
 public class Student {
-  private String studentId;
-  private String userName;
+  private int studentId;
+  private String name;
 
   // this might become course object when implemented
   // chore(): Link back to course id if done
@@ -15,26 +15,26 @@ public class Student {
    * @param user      The user object to set authentication
    * @param course     The course the student is enrolled in
    */
-  public Student(String studentId, String userName, String course) {
+  public Student(int studentId, String name, String course) {
     this.studentId = studentId;
-    this.userName = userName;
+    this.name = name;
     this.course = course;
   }
 
-  public String getStudentId() {
+  public int getStudentId() {
     return studentId;
   }
 
-  public void setStudentId(String studentId) {
+  public void setStudentId(int studentId) {
     this.studentId = studentId;
   }
 
-  public String getUserName() {
-    return userName;
+  public String getName() {
+    return name;
   }
 
-  public void setUserName(String userName) {
-    this.userName = userName;
+  public void setname(String name) {
+    this.name = name;
   }
 
   public String getCourse() {

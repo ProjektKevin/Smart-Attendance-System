@@ -447,8 +447,8 @@ public class ReportController {
             esc(time),
             esc(String.valueOf(s.getSessionId())), // convert int to String
             esc(s.getCourse()),
-            esc(st.getStudentId()),
-            esc(st.getUserName()),
+            esc(String.valueOf(st.getStudentId())),
+            esc(st.getName()),
             esc(r.getStatus()),
             esc(r.getMethod()),
             String.format("%.2f", r.getConfidence()),
@@ -529,7 +529,7 @@ public class ReportController {
               r.getTimestamp().toLocalTime().format(tf),
               String.valueOf(r.getSession().getSessionId()), // convert int to String
               r.getSession().getCourse(),
-              r.getStudent().getUserName() + " (" + r.getStudent().getStudentId() + ")",
+              r.getStudent().getName() + " (" + r.getStudent().getStudentId() + ")",
               r.getStatus(),
               r.getMethod(),
               String.format("%.2f", r.getConfidence())
@@ -616,9 +616,9 @@ public class ReportController {
         String course = parts[2].trim();
         if (id.isEmpty() || name.isEmpty()) continue;
 
-        var found = studentService.findById(id);
+        var found = studentService.findById(Integer.parseInt(id));
         if (found == null) {
-          studentService.addStudent(new Student(id, name, course));
+          studentService.addStudent(new Student(Integer.parseInt(id), name, course));
           imported++;
         }
       }
@@ -650,7 +650,7 @@ public class ReportController {
         LocalTime time = LocalTime.parse(p[1].trim(), tf);
         String sessId = p[2].trim();
         String courseId = p[3].trim();
-        String stuId = p[4].trim();
+        int stuId = Integer.parseInt(p[4].trim());
         String stuName = p[5].trim();
         String status = p[6].trim();
         String method = p[7].trim();
@@ -670,8 +670,13 @@ public class ReportController {
 
         Student st = studentService.findById(stuId);
         if (st == null) {
-          st = new Student(stuId, stuName.isEmpty() ? stuId : stuName, "CS?");
-          studentService.addStudent(st);
+            // Validate required fields before creating student
+            if (stuName == null || stuName.trim().isEmpty()) {
+                stuName = "Unknown Student"; // Better default
+            }
+            String actualCourse = courseId != null && !courseId.isEmpty() ? courseId : "Unknown Course";
+            st = new Student(stuId, stuName.trim(), actualCourse);
+            studentService.addStudent(st);
         }
         // Create session - sessId will be auto-generated if 0
         Session sess = new Session(sessionId,

@@ -17,6 +17,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -48,6 +49,8 @@ public class SessionController {
     @FXML
     private TableColumn<Session, String> colStatus;
     @FXML
+    private TableColumn<Session, Void> colViewMore;
+    @FXML
     private Button deleteButton;
     @FXML
     private Button startButton;
@@ -55,6 +58,10 @@ public class SessionController {
     private Button stopButton;
     @FXML
     private CheckBox selectAllCheckBox;
+    @FXML 
+    private VBox sessionListContainer;
+    @FXML 
+    private VBox attendanceViewContainer;
 
     private final SessionService sm = new SessionService();
     private final ObservableList<Session> sessionList = FXCollections.observableArrayList();
@@ -62,6 +69,9 @@ public class SessionController {
 
     @FXML
     public void initialize() {
+        attendanceViewContainer.setVisible(false);
+        attendanceViewContainer.setManaged(false);
+        
         // Initialise columns
         colId.setCellValueFactory(new PropertyValueFactory<>("sessionId"));
         colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
@@ -74,6 +84,9 @@ public class SessionController {
 
         // Setup checkbox column
         setupCheckBoxColumn();
+
+        // Setup view more button 
+        setUpViewMoreButton();
 
         // Load sessions from database
         loadSessionsFromDatabase();
@@ -131,6 +144,67 @@ public class SessionController {
         // Ensures the checkbox column does not try to bind to a property
         colSelect.setCellValueFactory(cellData -> null);
     }
+
+    private void setUpViewMoreButton() {
+        colViewMore.setCellFactory(param -> new TableCell<>() {
+            private final Button btn = new Button("View More");
+
+            {
+                btn.setOnAction(event -> {
+                    Session session = getTableView().getItems().get(getIndex());
+                    openAttendancePage(session);
+                });
+                btn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(btn);
+                }
+            }
+        });
+    }
+
+    private void openAttendancePage(Session session) {
+        try {
+            // Load the Attendance view fresh and get its controller
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceView.fxml"));
+            Parent attendanceRoot = loader.load();
+            AttendanceController attendanceCtrl = loader.getController();
+
+            // Pass session to the attendance controller
+            attendanceCtrl.setSession(session);
+
+            // Provide a callback so AttendanceController can go back to the sessions list
+            attendanceCtrl.setBackHandler(() -> {
+                // hide attendance view and show session list
+                attendanceViewContainer.getChildren().clear();
+                attendanceViewContainer.setVisible(false);
+                attendanceViewContainer.setManaged(false);
+
+                sessionListContainer.setVisible(true);
+                sessionListContainer.setManaged(true);
+            });
+
+            // Hide session list
+            sessionListContainer.setVisible(false);
+            sessionListContainer.setManaged(false);
+
+            // Put attendance UI into placeholder and show it
+            attendanceViewContainer.getChildren().setAll(attendanceRoot);
+            attendanceViewContainer.setVisible(true);
+            attendanceViewContainer.setManaged(true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            sessionsInfo.setText("Error opening attendance page: " + e.getMessage());
+        }
+    }
+
 
     private void loadSessionsFromDatabase() {
         try {
@@ -407,7 +481,9 @@ public class SessionController {
 }
 
 // if there is error, alert using notification bar instead of SessionInfo (currently, tooltips cannot work)
-// Cannot remove the selection effect?
+// Cannot remove the selection effect? Should I also remove the automation of opening/closing of sessions?
 // when course entered does not have any student enrolled, don't allow to create?
-// expand to see student roster (Attendance Record)
-// add user_id
+// expand to see student roster (Attendance Record)?
+// implement edit session function?
+// add user_id so view for each type of user is different
+// implement gui for attendance record under each session (why the tabs and everything missing? also test select one session update status / delete)

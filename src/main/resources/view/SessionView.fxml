@@ -1,33 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" style="-fx-padding: 10;" 
-      fx:controller="com.smartattendance.controller.SessionController">
 
-    <Label fx:id="sessionsInfo" text="Sessions info (stub)"/>
+<StackPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.smartattendance.controller.SessionController"
+            style="-fx-padding: 10;">
 
-    <TableView fx:id="sessionTable" prefHeight="300" prefWidth="700">
-        <columns>
-            <TableColumn fx:id="colSelect" prefWidth="50">
-                <graphic>
-                    <CheckBox fx:id="selectAllCheckBox" onAction="#onSelectAll"/>
-                </graphic>
-            </TableColumn>
-            <TableColumn fx:id="colId" text="Session ID" prefWidth="100"/>
-            <TableColumn fx:id="colCourse" text="Course" prefWidth="100"/>
-            <TableColumn fx:id="colDate" text="Date" prefWidth="100"/>
-            <TableColumn fx:id="colStart" text="Start" prefWidth="100"/>
-            <TableColumn fx:id="colEnd" text="End" prefWidth="100"/>
-            <TableColumn fx:id="colLoc" text="Location" prefWidth="100"/>
-            <TableColumn fx:id="colLate" text="Late Threshold" prefWidth="100"/>
-            <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
-        </columns>
-    </TableView>
+    <VBox fx:id="sessionListContainer" spacing="10">
+        <Label fx:id="sessionsInfo" text="Sessions info (stub)"/>
 
-    <HBox spacing="10">
-        <Button text="Create Session" onAction="#onCreateSession"/>
-        <Button text="Start" onAction="#onStartSession"/>
-        <Button text="Stop" onAction="#onStopSession"/>
-        <Button fx:id="deleteButton" text="Delete" onAction="#onDeleteSession"/>
-    </HBox>
-</VBox>
+        <TableView fx:id="sessionTable" prefHeight="300" prefWidth="700">
+            <columns>
+                <TableColumn fx:id="colSelect" prefWidth="50">
+                    <graphic>
+                        <CheckBox fx:id="selectAllCheckBox" onAction="#onSelectAll"/>
+                    </graphic>
+                </TableColumn>
+                <TableColumn fx:id="colId" text="Session ID" prefWidth="100"/>
+                <TableColumn fx:id="colCourse" text="Course" prefWidth="100"/>
+                <TableColumn fx:id="colDate" text="Date" prefWidth="100"/>
+                <TableColumn fx:id="colStart" text="Start" prefWidth="100"/>
+                <TableColumn fx:id="colEnd" text="End" prefWidth="100"/>
+                <TableColumn fx:id="colLoc" text="Location" prefWidth="100"/>
+                <TableColumn fx:id="colLate" text="Late Threshold" prefWidth="100"/>
+                <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
+                <TableColumn fx:id="colViewMore" text="Action" prefWidth="120"/>
+            </columns>
+        </TableView>
+
+        <HBox spacing="10">
+            <Button text="Create Session" onAction="#onCreateSession"/>
+            <Button text="Start" onAction="#onStartSession"/>
+            <Button text="Stop" onAction="#onStopSession"/>
+            <Button fx:id="deleteButton" text="Delete" onAction="#onDeleteSession"/>
+        </HBox>
+    </VBox>
+
+    <VBox fx:id="attendanceViewContainer" visible="false" managed="false" />
+</StackPane>
