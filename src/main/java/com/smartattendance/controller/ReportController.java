@@ -366,29 +366,45 @@
 
 package com.smartattendance.controller;
 
-import com.smartattendance.service.AttendanceService;
-import com.smartattendance.service.StudentService;
-import com.smartattendance.util.EmailService;
-import com.smartattendance.util.EmailSettings;
-// F_MA: modified by felicia handling marking attendance
-import com.smartattendance.model.*;
-import javafx.application.Platform;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.stage.FileChooser;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+
+import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceStatus;
+import com.smartattendance.model.entity.MarkMethod;
+import com.smartattendance.model.entity.Session;
+import com.smartattendance.model.entity.Student;
+import com.smartattendance.service.AttendanceService;
+import com.smartattendance.service.StudentService;
+import com.smartattendance.util.EmailService;
+import com.smartattendance.util.EmailSettings;
+
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 
 public class ReportController {
 
@@ -440,15 +456,14 @@ public class ReportController {
         String time = r.getTimestamp().toLocalTime().format(tf);
         Session s = r.getSession();
         Student st = r.getStudent();
-        // F_MA: modified by felicia handling marking attendance
         w.write(String.join(",",
             esc(date),
             esc(time),
-            esc(Integer.toString((s.getSessionId()))),
+            esc(String.valueOf(s.getSessionId())), // convert int to String
             esc(s.getCourse()),
             esc(st.getStudentId()),
-            esc(st.getName()),
-            esc(r.getStatus().toString()),
+            esc(st.getUserName()),
+            esc((r.getStatus()).toString()),
             esc(r.getMethod().toString()),
             String.format("%.2f", r.getConfidence()),
             esc(r.getNote() == null ? "" : r.getNote())
@@ -523,23 +538,14 @@ public class ReportController {
             y = drawRow(cs, x, y, leading, headers, widths);
             cs.setFont(PDType1Font.HELVETICA, 10);
           }
-          // F_MA: modified by felicia handling marking attendance
           String[] row = {
               r.getTimestamp().toLocalDate().format(df),
               r.getTimestamp().toLocalTime().format(tf),
-<<<<<<< HEAD
-              Integer.toString(r.getSession().getSessionId()),
-              r.getSession().getCourse(),
-              r.getStudent().getName() + " (" + r.getStudent().getStudentId() + ")",
-              r.getStatus().toString(),
-              r.getMethod().toString(),
-=======
               String.valueOf(r.getSession().getSessionId()), // convert int to String
               r.getSession().getCourse(),
               r.getStudent().getUserName() + " (" + r.getStudent().getStudentId() + ")",
-              r.getStatus(),
-              r.getMethod(),
->>>>>>> origin/dev
+              r.getStatus().toString(),
+              r.getMethod().toString(),
               String.format("%.2f", r.getConfidence())
           };
           y = drawRow(cs, x, y, leading, row, widths);
@@ -675,12 +681,6 @@ public class ReportController {
                 sessionId = 0; 
             }
         }
-<<<<<<< HEAD
-        // F_MA: modified by felicia handling marking attendance
-        Session sess = new Session(sessId.isEmpty() ? 123 : Integer.parseInt(sessId),
-            courseId.isEmpty() ? "COURSE?" : courseId,
-            date, LocalTime.of(9,0), LocalTime.of(10,0), "Imported", 15, "pending");
-=======
 
         Student st = studentService.findById(stuId);
         if (st == null) {
@@ -691,7 +691,6 @@ public class ReportController {
         Session sess = new Session(sessionId,
             courseId.isEmpty() ? "COURSE?" : courseId,
             date, LocalTime.of(9,0), LocalTime.of(10,0), "Room D", 15, "PENDING");
->>>>>>> origin/dev
 
         AttendanceRecord rec = new AttendanceRecord(st, sess,
             (status.isEmpty() ? AttendanceStatus.ABSENT : AttendanceStatus.valueOf(status)),
