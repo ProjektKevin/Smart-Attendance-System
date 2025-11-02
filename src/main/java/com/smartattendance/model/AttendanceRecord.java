@@ -8,15 +8,17 @@ public class AttendanceRecord {
   private final String method;
   private final double confidence;
   private final LocalDateTime timestamp;
+  private final LocalDateTime last_seen;
   private String status, note;
 
-  public AttendanceRecord(Student s, Session sess, String st, String m, double c, LocalDateTime ts) {
+  public AttendanceRecord(Student s, Session sess, String st, String m, double c, LocalDateTime ts, LocalDateTime ls) {
     this.student = s;
     this.session = sess;
     this.status = st;
     this.method = m;
     this.confidence = c;
     this.timestamp = ts;
+    this.last_seen = ls;
   }
 
   public Student getStudent() {
@@ -41,6 +43,10 @@ public class AttendanceRecord {
 
   public LocalDateTime getTimestamp() {
     return timestamp;
+  }
+
+  public LocalDateTime getLastSeen(){
+    return last_seen;
   }
 
   public String getNote() {

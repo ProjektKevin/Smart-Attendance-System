@@ -686,7 +686,7 @@ public class ReportController {
         AttendanceRecord rec = new AttendanceRecord(st, sess,
             (status.isEmpty() ? "Present" : status),
             (method.isEmpty() ? "Import" : method),
-            conf, LocalDateTime.of(date, time));
+            conf, LocalDateTime.of(date, time), LocalDateTime.of(date, time));
         rec.setNote(note);
         ApplicationContext.getAttendanceService().markAttendance(rec);
         imported++;

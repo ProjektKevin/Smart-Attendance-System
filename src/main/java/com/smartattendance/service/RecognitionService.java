@@ -26,7 +26,7 @@ public class RecognitionService {
       Student s = new Student(10, "Alice Tan", "CS102");
       Session sess = new Session(1, "CS102", LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0), "Room 1",
           15, "PENDING");
-      AttendanceRecord rec = new AttendanceRecord(s, sess, "Present", "Auto", 0.95, LocalDateTime.now());
+      AttendanceRecord rec = new AttendanceRecord(s, sess, "Present", "Auto", 0.95, LocalDateTime.now(), LocalDateTime.now());
       attendanceService.markAttendance(rec);
     }).start();
   }

@@ -63,6 +63,7 @@ public class SessionService {
                 "Pending", // Default status
                 "-", // Default method
                 0.0, // Default confidence
+                LocalDateTime.now(), // Default LocalDateTime
                 LocalDateTime.now() // Default LocalDateTime
             );
             record.setNote("Auto-created with session"); // Default note

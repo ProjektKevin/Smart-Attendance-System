@@ -9,26 +9,41 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.beans.property.SimpleStringProperty;
 
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class AttendanceController {
-    @FXML private Label lblSessionTitle;
-    @FXML private TableView<AttendanceRecord> attendanceTable;
-    @FXML private TableColumn<AttendanceRecord, String> colStudentId;
-    @FXML private TableColumn<AttendanceRecord, String> colStudentName;
-    @FXML private TableColumn<AttendanceRecord, String> colStatus;
-    @FXML private TableColumn<AttendanceRecord, String> colMethod;
-    @FXML private TableColumn<AttendanceRecord, String> colNote;
+    @FXML 
+    private Label lblSessionTitle;
+    @FXML 
+    private TableView<AttendanceRecord> attendanceTable;
+    @FXML 
+    private TableColumn<AttendanceRecord, String> colStudentId;
+    @FXML 
+    private TableColumn<AttendanceRecord, String> colStudentName;
+    @FXML 
+    private TableColumn<AttendanceRecord, String> colStatus;
+    @FXML 
+    private TableColumn<AttendanceRecord, String> colMethod;
+    @FXML 
+    private TableColumn<AttendanceRecord, String> colNote;
+    @FXML 
+    private TableColumn<AttendanceRecord, String> colMarkedAt;
+    @FXML 
+    private TableColumn<AttendanceRecord, String> colLastSeen;
 
     private final AttendanceRecordRepository repo = new AttendanceRecordRepository();
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
     private Session currentSession;
     private Runnable backHandler;
+    private final Map<Integer, String> originalStatuses = new HashMap<>();
+    
+    // Formatter for timestamp display
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public void setBackHandler(Runnable backHandler) {
         this.backHandler = backHandler;
@@ -59,12 +74,29 @@ public class AttendanceController {
         // Configure other columns
         colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
         colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
+        
+        // Configure timestamp columns with proper formatting
+        colMarkedAt.setCellValueFactory(cellData -> {
+            if (cellData.getValue().getTimestamp() != null) {
+                return new SimpleStringProperty(cellData.getValue().getTimestamp().format(formatter));
+            } else {
+                return new SimpleStringProperty("-");
+            }
+        });
+        
+        colLastSeen.setCellValueFactory(cellData -> {
+            if (cellData.getValue().getLastSeen() != null) {
+                return new SimpleStringProperty(cellData.getValue().getLastSeen().format(formatter));
+            } else {
+                return new SimpleStringProperty("-");
+            }
+        });
 
         // Custom cell factory for status with dropdown
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colStatus.setCellFactory(column -> new TableCell<AttendanceRecord, String>() {
             private final ComboBox<String> combo = new ComboBox<>(
-                    FXCollections.observableArrayList("Present", "Absent", "Late"));
+                    FXCollections.observableArrayList("Present", "Absent", "Late", "Pending"));
 
             {
                 combo.setOnAction(event -> {
@@ -95,6 +127,12 @@ public class AttendanceController {
             List<AttendanceRecord> records = repo.findBySessionId(currentSession.getSessionId());
             attendanceList.setAll(records);
             attendanceTable.setItems(attendanceList);
+
+            // Store the original statuses for change detection
+            originalStatuses.clear();
+            for (AttendanceRecord record : records) {
+                originalStatuses.put(record.getStudent().getStudentId(), record.getStatus());
+            }
         }
     }
 
@@ -103,11 +141,21 @@ public class AttendanceController {
         try {
             int updatedCount = 0;
             for (AttendanceRecord record : attendanceList) {
-                if (record != null) {
+                String originalStatus = originalStatuses.get(record.getStudent().getStudentId());
+                String currentStatus = record.getStatus();
+
+                // Only update if status actually changed
+                if (!java.util.Objects.equals(originalStatus, currentStatus)) {
                     repo.updateStatus(record);
                     updatedCount++;
+
+                    // Update the original status map so subsequent saves work fine
+                    originalStatuses.put(record.getStudent().getStudentId(), currentStatus);
                 }
             }
+
+            // Reload data from database after saving
+            loadAttendanceRecords();
             
             Alert alert = new Alert(Alert.AlertType.INFORMATION, 
                 String.format("Successfully updated %d attendance records!", updatedCount));
@@ -121,26 +169,11 @@ public class AttendanceController {
         }
     }
 
-    // @FXML
-    // private void onBack() {
-    //     try {
-    //         Parent root = FXMLLoader.load(getClass().getResource("/view/SessionView.fxml"));
-    //         Scene currentScene = attendanceTable.getScene();
-    //         currentScene.setRoot(root);
-    //     } catch (Exception e) {
-    //         Alert alert = new Alert(Alert.AlertType.ERROR, 
-    //             "Error navigating back: " + e.getMessage());
-    //         alert.showAndWait();
-    //         e.printStackTrace();
-    //     }
-    // }
-
     @FXML
     private void onBack() {
         if (backHandler != null) {
             backHandler.run();
         } else {
-            // fallback: try to use scene navigation (optional)
             try {
                 Parent sessionRoot = FXMLLoader.load(getClass().getResource("/view/SessionView.fxml"));
                 attendanceTable.getScene().setRoot(sessionRoot);
