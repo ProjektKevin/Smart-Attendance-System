@@ -14,9 +14,6 @@ import java.util.Map;
 
 import com.smartattendance.controller.LiveRecognitionController;
 import com.smartattendance.model.AttendanceRecord;
-import com.smartattendance.model.AttendanceStatus;
-import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
 import com.smartattendance.util.AttendanceObserver;
 
 public class AttendanceService {
@@ -71,9 +68,9 @@ public class AttendanceService {
     //     return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
     // }
 
-    public AttendanceRecord getRecord(Student student, Session session) {
-        return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
-    }
+    // public AttendanceRecord getRecord(Student student, Session session) {
+    //     return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
+    // }
 
     public void updateLastSeen(String studentId, LocalDateTime time) {
         if (records.containsKey(studentId)) {

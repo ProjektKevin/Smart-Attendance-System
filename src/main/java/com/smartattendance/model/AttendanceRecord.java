@@ -66,17 +66,22 @@ public class AttendanceRecord {
         try {
             LocalDateTime lastSeen = attendanceRecordRepo.findById(this.student.getStudentId(), this.session.getSessionId()).getLastSeen();
             long diffInSeconds = Duration.between(lastSeen, this.getTimestamp()).getSeconds();
+            long diffInMinutes = Duration.between(this.timestamp, session.getStartTime()).toMinutes();
 
             // if the student is not marked as present before (still in default ABSENT status), update the student attendance
             if (this.status == AttendanceStatus.ABSENT) {
+                // if the student is late, set attendance status to LATE before update
+                if (diffInMinutes > this.session.getLateThresholdMinutes()) {
+                    this.setStatus(AttendanceStatus.LATE);
+                }
                 attendanceRecordRepo.update(this);
             } else {
                 // if still in cooldown time, too soon to update lastSeen time
                 if (diffInSeconds < 30) {
                     return;
-                } else {
-                    attendanceRecordRepo.updateLastSeen(this);
-                }
+                } 
+                
+                attendanceRecordRepo.updateLastSeen(this);
             }
 
         } catch (Exception e) {
