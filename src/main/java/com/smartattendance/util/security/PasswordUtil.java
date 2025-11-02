@@ -1,4 +1,4 @@
-package com.smartattendance.util;
+package com.smartattendance.util.security;
 
 import java.nio.charset.StandardCharsets;
 import java.security.*;

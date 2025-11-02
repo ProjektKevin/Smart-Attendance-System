@@ -7,13 +7,17 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 
 public class RootController {
-    @FXML private BorderPane root;
-    @FXML private ToggleButton themeToggle;
+    @FXML
+    private BorderPane root;
+    @FXML
+    private ToggleButton themeToggle;
 
     // Admin tabs (may be null on student view)
-    @FXML private Tab tabDashboard, tabStudents, tabSessions, tabLive, tabReports, tabSettings;
+    @FXML
+    private Tab tabDashboard, tabStudents, tabEnrollments, tabSessions, tabLive, tabReports, tabSettings;
     // Student tabs (may be null on admin view)
-    @FXML private Tab tabCapture, tabAttendance;
+    @FXML
+    private Tab tabCapture, tabAttendance, tabProfile;
 
     private Label moonGlyph;
     private Label sunGlyph;
@@ -27,7 +31,7 @@ public class RootController {
         }
 
         moonGlyph = makeGlyph("\uD83C\uDF19"); // 🌙
-        sunGlyph  = makeGlyph("\u2600");       // ☀
+        sunGlyph = makeGlyph("\u2600"); // ☀
 
         boolean isDark = root.getStyleClass().contains("dark");
         themeToggle.setSelected(isDark);
@@ -35,17 +39,21 @@ public class RootController {
         themeToggle.setGraphic(isDark ? sunGlyph : moonGlyph);
 
         // Admin icons (null-safe)
-        safeSetTabIcon(tabDashboard,  "\uD83C\uDFE0"); // 🏠
-        safeSetTabIcon(tabStudents,   "\uD83D\uDC65"); // 👥
-        safeSetTabIcon(tabSessions,   "\uD83D\uDD53"); // 🕓 (your original)
-        safeSetTabIcon(tabLive,       "\uD83C\uDFA5"); // 🎥
-        safeSetTabIcon(tabReports,    "\uD83D\uDCCA"); // 📊
-        safeSetTabIcon(tabSettings,   "\u2699");       // ⚙
+        safeSetTabIcon(tabDashboard, "\uD83C\uDFE0"); // 🏠
+        safeSetTabIcon(tabStudents, "\uD83D\uDC65"); // 👥
+        safeSetTabIcon(tabSessions, "\uD83D\uDD53"); // 🕓 (your original)
+        safeSetTabIcon(tabLive, "\uD83C\uDFA5"); // 🎥
+        safeSetTabIcon(tabReports, "\uD83D\uDCCA"); // 📊
+        safeSetTabIcon(tabSettings, "\u2699"); // ⚙
+        safeSetTabIcon(tabProfile, "\uD83D\uDC64");
+        safeSetTabIcon(tabEnrollments, "\uD83D\uDCCB");
 
         // Student icons (null-safe)
-        safeSetTabIcon(tabCapture,    "\uD83D\uDCF7"); // 📷 Face Capture
+        safeSetTabIcon(tabCapture, "\uD83D\uDCF7"); // 📷 Face Capture
         safeSetTabIcon(tabAttendance, "\uD83D\uDCCB"); // 🗋/📋 clipboard (or use calendar "\uD83D\uDCC5" 🗓)
-        // If you prefer calendar for attendance, swap to: safeSetTabIcon(tabAttendance, "\uD83D\uDCC5"); // 🗓
+        safeSetTabIcon(tabProfile, "\uD83D\uDC64");
+        // If you prefer calendar for attendance, swap to: safeSetTabIcon(tabAttendance,
+        // "\uD83D\uDCC5"); // 🗓
     }
 
     @FXML
@@ -58,7 +66,8 @@ public class RootController {
     }
 
     private void safeSetTabIcon(Tab tab, String emoji) {
-        if (tab != null) tab.setGraphic(makeGlyph(emoji));
+        if (tab != null)
+            tab.setGraphic(makeGlyph(emoji));
     }
 
     private Label makeGlyph(String s) {

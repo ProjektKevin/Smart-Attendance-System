@@ -8,10 +8,10 @@ package com.smartattendance.service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import com.smartattendance.model.AttendanceRecord;
-import com.smartattendance.model.AttendanceStatus;
-import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
+import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceStatus;
+import com.smartattendance.model.entity.Session;
+import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
 

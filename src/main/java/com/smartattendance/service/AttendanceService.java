@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.smartattendance.controller.LiveRecognitionController;
-import com.smartattendance.model.AttendanceRecord;
+// import com.smartattendance.model.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.util.AttendanceObserver;
 
 

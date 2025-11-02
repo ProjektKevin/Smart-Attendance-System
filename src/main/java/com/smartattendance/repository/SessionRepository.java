@@ -1,13 +1,21 @@
 package com.smartattendance.repository;
 
-import com.smartattendance.model.Session;
-import com.smartattendance.util.DatabaseUtil;
-import java.util.*;
-import java.sql.*;
+// import com.smartattendance.model.Session;
+// import com.smartattendance.util.DatabaseUtil;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.smartattendance.config.DatabaseUtil;
+import com.smartattendance.model.entity.Session;
 
 public class SessionRepository {
 
-    // select all
+    // Select all sessions 
     public List<Session> findAll() {
         List<Session> sessions = new ArrayList<>();
         String sql = "SELECT session_id, course_name, session_date, start_time, end_time, location, late_threshold_minutes, status FROM sessions";
@@ -41,7 +49,7 @@ public class SessionRepository {
         return sessions;
     }
 
-    // select by id
+    // Select session by id
     public Session findById(int id) {
         String sql = "SELECT session_id, course_name, session_date, start_time, end_time, location, late_threshold_minutes, status FROM sessions WHERE session_id = ?";
         try (Connection conn = DatabaseUtil.getConnection();
@@ -73,7 +81,7 @@ public class SessionRepository {
         return null;
     }
     
-    // insert 
+    // Insert session  
     public void save(Session s) {
         String sql = "INSERT INTO sessions (course_name, session_date, start_time, end_time, location, late_threshold_minutes, status) VALUES (?, ?, ?, ?, ?, ?, ?) ";
 
@@ -112,7 +120,7 @@ public class SessionRepository {
         }
     }
 
-    // delete by id
+    // Delete session by id
     public void deleteById(int id) {
         String sql = "DELETE FROM sessions where session_id = ?";
 
@@ -132,7 +140,7 @@ public class SessionRepository {
         }
     }
 
-    // delete all
+    // Delete all sessions and reset id to start from 1
     public void deleteAll() {
         String deleteSql = "DELETE FROM sessions";
         String resetSql = "ALTER SEQUENCE sessions_session_id_seq RESTART WITH 1";
@@ -155,7 +163,7 @@ public class SessionRepository {
         }
     }
 
-    // update status 
+    // Update status of session by id
     public void updateStatus(int id, String status){
         String sql = "UPDATE sessions SET status = ? WHERE session_id = ?";
 

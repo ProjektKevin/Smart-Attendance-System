@@ -1,7 +1,12 @@
 package com.smartattendance.repository;
 
+<<<<<<< HEAD
 import com.smartattendance.model.Student;
 import com.smartattendance.util.DatabaseUtil;
+=======
+import com.smartattendance.config.DatabaseUtil;
+import com.smartattendance.model.entity.Student;
+>>>>>>> origin/dev
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -87,9 +92,15 @@ public class StudentRepository {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, s.getStudentId());
+<<<<<<< HEAD
             ps.setString(2, s.getName());
             ps.setString(3, s.getCourse());
             ps.setString(4, s.getName());
+=======
+            ps.setString(2, s.getUserName());
+            ps.setString(3, s.getCourse());
+            ps.setString(4, s.getUserName());
+>>>>>>> origin/dev
             ps.setString(5, s.getCourse());
 
             ps.executeUpdate();

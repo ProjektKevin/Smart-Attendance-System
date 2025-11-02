@@ -1,6 +1,10 @@
 package com.smartattendance.controller;
 
+<<<<<<< HEAD
 import com.smartattendance.model.Session;
+=======
+import com.smartattendance.model.entity.Session;
+>>>>>>> origin/dev
 import com.smartattendance.service.SessionService;
 
 import javafx.fxml.FXML;

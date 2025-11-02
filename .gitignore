@@ -34,3 +34,5 @@ Thumbs.db
 # file to printout folder structure
 src/folder_structure.py
 out
+## Attendance logs
+attendance.log.*

@@ -14,7 +14,7 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
-import com.smartattendance.model.Student;
+import com.smartattendance.model.entity.Student;
 import com.smartattendance.service.StudentService;
 
 import javafx.application.Platform;
@@ -305,7 +305,7 @@ public class DashboardController {
             if (keep) {
                 rows.add(new ActivityItem(
                     LocalDateTime.now().minusMinutes((i + 1) * 5).format(fmt),
-                    s.getName(), status));
+                    s.getUserName(), status));
             }
         }
         recentTable.setItems(FXCollections.observableArrayList(rows));

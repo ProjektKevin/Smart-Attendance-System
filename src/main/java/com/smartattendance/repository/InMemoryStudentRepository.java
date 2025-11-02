@@ -7,9 +7,9 @@
 //   private final List<Student> students = new ArrayList<>();
 
 //   public InMemoryStudentRepository() {
-//     students.add(new Student("S101", "Alice Tan", "G1"));
-//     students.add(new Student("S102", "Bob Lee", "G1"));
-//     students.add(new Student("S103", "Cheryl Ong", "G2"));
+//     students.add(new Student("S101", "Alice Tan", "CS102"));
+//     students.add(new Student("S102", "Bob Lee", "CS104"));
+//     students.add(new Student("S103", "Cheryl Ong", "CS106"));
 //   }
 
 //   public List<Student> findAll() {

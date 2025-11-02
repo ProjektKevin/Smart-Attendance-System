@@ -5,7 +5,7 @@
 */
 
 package com.smartattendance.service;
-import com.smartattendance.model.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceRecord;
 
 /**
  * Strategy interface for marking attendance.

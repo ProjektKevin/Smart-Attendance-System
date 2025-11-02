@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.smartattendance.controller.ProfileController"
+      spacing="16"
+      style="-fx-padding: 16;">
+
+    <!-- State: No Profile Setup -->
+    <VBox fx:id="noProfileContainer" spacing="12" alignment="CENTER">
+        <Label text="You have yet to set up a profile"
+               style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        <Label text="Complete your profile"
+               style="-fx-font-size: 12px; -fx-text-fill: #666666;"/>
+        <Button text="Create Profile" onAction="#onCreateProfile"
+                style="-fx-font-size: 14px; -fx-padding: 10px 30px;"/>
+    </VBox>
+
+    <!-- State: Profile Exists -->
+    <VBox fx:id="profileContainer" spacing="12" visible="false" managed="false">
+        <!-- Profile Information Card -->
+        <VBox spacing="12" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-padding: 12;">
+            <Label text="Profile Information"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+            <GridPane hgap="10" vgap="8">
+                <columnConstraints>
+                    <ColumnConstraints prefWidth="120"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+
+                <!-- First Name -->
+                <Label text="First Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <VBox GridPane.rowIndex="0" GridPane.columnIndex="1" spacing="2">
+                    <TextField fx:id="firstNameField" editable="false"/>
+                    <Label fx:id="firstNameError" text=""
+                           visible="${firstNameError.text != ''}"
+                           managed="${firstNameError.text != ''}"
+                           style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+                </VBox>
+
+                <!-- Last Name -->
+                <Label text="Last Name:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <VBox GridPane.rowIndex="1" GridPane.columnIndex="1" spacing="2">
+                    <TextField fx:id="lastNameField" editable="false"/>
+                    <Label fx:id="lastNameError" text=""
+                           visible="${lastNameError.text != ''}"
+                           managed="${lastNameError.text != ''}"
+                           style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+                </VBox>
+
+                <!-- Phone Number -->
+                <Label text="Phone Number:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <VBox GridPane.rowIndex="3" GridPane.columnIndex="1" spacing="2">
+                    <TextField fx:id="phoneField" editable="false"/>
+                    <Label fx:id="phoneError" text=""
+                           visible="${phoneError.text != ''}"
+                           managed="${phoneError.text != ''}"
+                           style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+                </VBox>
+
+            </GridPane>
+        </VBox>
+
+        <!-- Action Buttons -->
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <!-- View Mode Buttons -->
+            <Button fx:id="editButton" text="Edit Profile"
+                    onAction="#onEditProfile"/>
+            <Button fx:id="deleteButton" text="Delete Profile"
+                    onAction="#onDeleteProfile"
+                    style="-fx-text-fill: #d32f2f;"/>
+
+            <!-- Edit Mode Buttons -->
+            <Button fx:id="saveButton" text="Save Changes"
+                    onAction="#onSaveProfile"
+                    visible="false" managed="false"/>
+            <Button fx:id="cancelButton" text="Cancel"
+                    onAction="#onCancelEdit"
+                    visible="false" managed="false"/>
+        </HBox>
+    </VBox>
+
+    <!-- Separator -->
+    <Separator/>
+
+    <!-- Status Message -->
+    <Label fx:id="statusLabel" text=""
+           visible="${statusLabel.text != ''}"
+           managed="${statusLabel.text != ''}"
+           style="-fx-font-size: 12px; -fx-text-fill: #4caf50;"/>
+
+    <!-- Error Message -->
+    <Label fx:id="errorLabel" text=""
+           visible="${errorLabel.text != ''}"
+           managed="${errorLabel.text != ''}"
+           wrapText="true"
+           style="-fx-font-size: 12px; -fx-text-fill: #d32f2f;"/>
+
+</VBox>

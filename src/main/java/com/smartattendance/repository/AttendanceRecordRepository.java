@@ -1,5 +1,14 @@
 package com.smartattendance.repository;
 
+// import java.sql.Connection;
+// import java.sql.PreparedStatement;
+// import java.sql.ResultSet;
+// import java.sql.SQLException;
+// import java.sql.Statement;
+// import java.sql.Timestamp;
+// import java.util.ArrayList;
+// import java.util.List;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,12 +18,12 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.smartattendance.model.AttendanceRecord;
-import com.smartattendance.model.AttendanceStatus;
-import com.smartattendance.model.MarkMethod;
-import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
-import com.smartattendance.util.DatabaseUtil;
+import com.smartattendance.config.DatabaseUtil;
+import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceStatus;
+import com.smartattendance.model.entity.MarkMethod;
+import com.smartattendance.model.entity.Session;
+import com.smartattendance.model.entity.Student;
 
 public class AttendanceRecordRepository {
     private StudentRepository studentRepo;
