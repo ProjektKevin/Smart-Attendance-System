@@ -25,7 +25,7 @@
                 <Tab fx:id="tabDashboard" text="Dashboard"><content><fx:include source="DashboardView.fxml"/></content></Tab>
                 <Tab fx:id="tabStudents"  text="Students"><content><fx:include source="StudentView.fxml"/></content></Tab>
                 <Tab fx:id="tabSessions"  text="Sessions"><content><fx:include source="SessionView.fxml"/></content></Tab>
-                <Tab fx:id="tabLive"      text="Live Recognition"><content><fx:include source="LiveView.fxml"/></content></Tab>
+                <Tab fx:id="tabLive"      text="Live Recognition"><content><fx:include source="RecognitionView.fxml"/></content></Tab>
                 <Tab fx:id="tabReports"   text="Reports"><content><fx:include source="ReportView.fxml"/></content></Tab>
                 <Tab fx:id="tabSettings"  text="Settings"><content><fx:include source="SettingsView.fxml"/></content></Tab>
             </tabs>
