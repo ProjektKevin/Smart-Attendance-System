@@ -5,6 +5,7 @@
  */
 package com.smartattendance.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +30,7 @@ public class AttendanceService {
     // F_MA: modified by felicia handling marking attendance
     public synchronized void markAttendance(AttendanceRecord r) {
         try {
-            // attendanceRecords.add(r);
+            attendanceRecords.add(r);
             r.mark();
             for (AttendanceObserver o : observers) {
                 // notify the recognitionService that the attendance of a particular student is marked
@@ -106,14 +107,14 @@ public class AttendanceService {
     // public synchronized List<AttendanceRecord> getAll() {
     //   return new ArrayList<>(records);
     // }
-    // public synchronized List<AttendanceRecord> getBetween(LocalDate from, LocalDate to) {
-    //   List<AttendanceRecord> out = new ArrayList<>();
-    //   for (AttendanceRecord r : records) {
-    //     LocalDate d = r.getTimestamp().toLocalDate();
-    //     boolean ok = (from == null || !d.isBefore(from)) && (to == null || !d.isAfter(to));
-    //     if (ok)
-    //       out.add(r);
-    //   }
-    //   return out;
-    // }
+    public synchronized List<AttendanceRecord> getBetween(LocalDate from, LocalDate to) {
+      List<AttendanceRecord> out = new ArrayList<>();
+      for (AttendanceRecord r : attendanceRecords) {
+        LocalDate d = r.getTimestamp().toLocalDate();
+        boolean ok = (from == null || !d.isBefore(from)) && (to == null || !d.isAfter(to));
+        if (ok)
+          out.add(r);
+      }
+      return out;
+    }
 }
