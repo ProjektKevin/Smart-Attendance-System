@@ -79,6 +79,14 @@ public class SessionService {
                 "-", // Default method
                 0.0,      // Default confidence
                 LocalDateTime.now() // Default LocalDateTime
+                this.student = student;
+                this.session = session;
+                // this.status = AttendanceStatus.ABSENT;
+                this.status = status;
+                this.confidence = confidence;
+                this.timestamp = timestamp;
+                this.lastSeen = timestamp;
+                this.method = method;
             );
             record.setNote("Auto-created with session"); // Default note
             
