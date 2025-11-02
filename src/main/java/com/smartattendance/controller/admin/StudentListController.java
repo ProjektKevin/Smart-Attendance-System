@@ -48,7 +48,8 @@ public class StudentListController {
         actionsColumn.setCellFactory(
                 new Callback<TableColumn<UserListDTO, Integer>, javafx.scene.control.TableCell<UserListDTO, Integer>>() {
                     @Override
-                    public javafx.scene.control.TableCell<UserListDTO, Integer> call(TableColumn<UserListDTO, Integer> param) {
+                    public javafx.scene.control.TableCell<UserListDTO, Integer> call(
+                            TableColumn<UserListDTO, Integer> param) {
                         return new javafx.scene.control.TableCell<UserListDTO, Integer>() {
                             private final Button actionsBtn = new Button("...");
                             private final ContextMenu contextMenu = new ContextMenu();
@@ -107,5 +108,15 @@ public class StudentListController {
     private void onDeleteStudent(UserListDTO studentDto) {
         // chore(), Harry: Add delete method here
         System.out.println("Delete student: " + studentDto.getEmail());
+    }
+
+    // chore(), Harry: Finish this up (user registration)
+    private void onAddStudent() {
+        try {
+            // String email = emailField.getText();
+
+            // ValidationResult validationResult = 
+        } catch (Exception e) {
+        }
     }
 }
