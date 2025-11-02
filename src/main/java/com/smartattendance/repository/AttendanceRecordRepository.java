@@ -28,7 +28,8 @@ public class AttendanceRecordRepository {
     // select all
     public List<AttendanceRecord> findAll() {
         List<AttendanceRecord> records = new ArrayList<>();
-        String sql = "SELECT student_id, session_id, status, method, confidence, timestamp, note FROM attendance_records";
+        // F_MA: modified by felicia handling marking attendance
+        String sql = "SELECT student_id, session_id, status, method, confidence, marked_at, note FROM attendance";
 
         try (Connection conn = DatabaseUtil.getConnection();
             Statement stmt = conn.createStatement();
@@ -49,8 +50,8 @@ public class AttendanceRecordRepository {
                     session,
                     status,
                     rs.getDouble("confidence"),
-                    rs.getTimestamp("timestamp").toLocalDateTime(),
-                    method
+                    method,
+                    rs.getTimestamp("timestamp").toLocalDateTime()
                 );
                 
                 // Set the note if it exists
@@ -72,7 +73,8 @@ public class AttendanceRecordRepository {
     // select by session_id - returns multiple records for a session
     public List<AttendanceRecord> findBySessionId(int sessionId) {
         List<AttendanceRecord> records = new ArrayList<>();
-        String sql = "SELECT student_id, session_id, status, method, confidence, timestamp, note FROM attendance_records WHERE session_id = ?";
+        // F_MA: modified by felicia handling marking attendance
+        String sql = "SELECT student_id, session_id, status, method, confidence, marked_at, note FROM attendance WHERE session_id = ?";
         
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -94,8 +96,8 @@ public class AttendanceRecordRepository {
                         session,
                         status,
                         rs.getDouble("confidence"),
-                        rs.getTimestamp("timestamp").toLocalDateTime(),
-                        method
+                        method,
+                        rs.getTimestamp("timestamp").toLocalDateTime()
                     );
                     
                     // Set the note if it exists
@@ -116,7 +118,8 @@ public class AttendanceRecordRepository {
     
     // If you need to find a single record by composite key (student_id + session_id)
     public AttendanceRecord findById(String studentId, int sessionId) {
-        String sql = "SELECT student_id, session_id, status, method, confidence, timestamp, note FROM attendance_records WHERE student_id = ? AND session_id = ?";
+        // F_MA: modified by felicia handling marking attendance
+        String sql = "SELECT student_id, session_id, status, method, confidence, marked_at, note FROM attendance WHERE student_id = ? AND session_id = ?";
         
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -139,8 +142,8 @@ public class AttendanceRecordRepository {
                         session,
                         status,
                         rs.getDouble("confidence"),
-                        rs.getTimestamp("timestamp").toLocalDateTime(),
-                        method
+                        method,
+                        rs.getTimestamp("timestamp").toLocalDateTime()
                     );
                     
                     // Set the note if it exists
@@ -160,7 +163,8 @@ public class AttendanceRecordRepository {
     }
     
     public boolean save(AttendanceRecord record) {
-        String sql = "INSERT INTO attendance_records (student_id, session_id, status, method, confidence, timestamp, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // F_MA: modified by felicia handling marking attendance
+        String sql = "INSERT INTO attendance (student_id, session_id, status, method, confidence, marked_at, note) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -182,7 +186,8 @@ public class AttendanceRecordRepository {
     }
     
     public boolean update(AttendanceRecord record) {
-        String sql = "UPDATE attendance_records SET status = ?, method = ?, confidence = ?, timestamp = ?, note = ? WHERE student_id = ? AND session_id = ?";
+        // F_MA: modified by felicia handling marking attendance
+        String sql = "UPDATE attendance SET status = ?, method = ?, confidence = ?, marked_at = ?, note = ? WHERE student_id = ? AND session_id = ?";
         
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -194,6 +199,32 @@ public class AttendanceRecordRepository {
             ps.setString(5, record.getNote());
             ps.setString(6, record.getStudent().getStudentId());
             ps.setInt(7, record.getSession().getSessionId());
+            
+            return ps.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // F_MA: added by felicia handling marking attendance
+    // this one is for update last seen only if the student is already marked present via auto mark
+    public boolean updateLastSeen(AttendanceRecord record) {
+        String sql = "UPDATE attendance SET last_seen = ? WHERE student_id = ? AND session_id = ?";
+        
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            // ps.setString(1, record.getStatus().toString());
+            // ps.setString(2, record.getMethod().toString());
+            // ps.setDouble(3, record.getConfidence());
+            // ps.setTimestamp(4, Timestamp.valueOf(record.getTimestamp()));
+            // ps.setString(5, record.getNote());
+
+            ps.setTimestamp(1, Timestamp.valueOf((record.getTimestamp())));
+            ps.setString(2, record.getStudent().getStudentId());
+            ps.setInt(3, record.getSession().getSessionId());
             
             return ps.executeUpdate() > 0;
             

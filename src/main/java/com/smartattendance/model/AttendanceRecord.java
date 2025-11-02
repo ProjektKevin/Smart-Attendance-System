@@ -5,11 +5,13 @@
  */
 package com.smartattendance.model;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import com.smartattendance.repository.AttendanceRecordRepository;
 
 public class AttendanceRecord {
+
     private AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
     private final Student student;
     private final Session session;
@@ -19,7 +21,7 @@ public class AttendanceRecord {
     private LocalDateTime lastSeen;
     private MarkMethod method;
     // private final String method; 
-    private double confidence; 
+    private double confidence;
     // private final LocalDateTime timestamp; 
     private String note;
 
@@ -34,7 +36,6 @@ public class AttendanceRecord {
     //     this.method = method;
     //     this.note = "";
     // }
-
     // F_MA: modified by felicia handling marking attendance
     // this constructor will be called by SessionService.createAttendanceRecordsForSession when session created
     public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp) {
@@ -52,6 +53,7 @@ public class AttendanceRecord {
     /**
      * Marks attendance with all relevant info.
      */
+    // F_MA: modified by felicia handling marking attendance
     public void mark() throws Exception {
         // this.status = status;
         // this.timestamp = timestamp;
@@ -62,11 +64,24 @@ public class AttendanceRecord {
         // }
 
         try {
-            attendanceRecordRepo.save(this); 
+            LocalDateTime lastSeen = attendanceRecordRepo.findById(this.student.getStudentId(), this.session.getSessionId()).getLastSeen();
+            long diffInSeconds = Duration.between(lastSeen, this.getTimestamp()).getSeconds();
+
+            // if the student is not marked as present before (still in default ABSENT status), update the student attendance
+            if (this.status == AttendanceStatus.ABSENT) {
+                attendanceRecordRepo.update(this);
+            } else {
+                // if still in cooldown time, too soon to update lastSeen time
+                if (diffInSeconds < 30) {
+                    return;
+                } else {
+                    attendanceRecordRepo.updateLastSeen(this);
+                }
+            }
+
         } catch (Exception e) {
             throw new Exception("Failed to save attendance record", e);
         }
-
 
     }
     // public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {

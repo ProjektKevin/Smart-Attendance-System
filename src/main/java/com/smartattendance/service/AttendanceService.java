@@ -14,6 +14,7 @@ import java.util.Map;
 
 import com.smartattendance.controller.LiveRecognitionController;
 import com.smartattendance.model.AttendanceRecord;
+import com.smartattendance.model.AttendanceStatus;
 import com.smartattendance.model.Session;
 import com.smartattendance.model.Student;
 import com.smartattendance.util.AttendanceObserver;
@@ -32,7 +33,7 @@ public class AttendanceService {
     // F_MA: modified by felicia handling marking attendance
     public synchronized void markAttendance(AttendanceRecord r) {
         try {
-            attendanceRecords.add(r);
+            // attendanceRecords.add(r);
             r.mark();
             for (AttendanceObserver o : observers) {
                 // notify the recognitionService that the attendance of a particular student is marked
@@ -48,7 +49,29 @@ public class AttendanceService {
         }
     }
 
-    public AttendanceRecord getOrCreateRecord(Student student, Session session) {
+    // public synchronized void markAttendance(AttendanceRecord r) {
+    //     try {
+    //         attendanceRecords.add(r);
+    //         r.mark();
+    //         for (AttendanceObserver o : observers) {
+    //             // notify the recognitionService that the attendance of a particular student is marked
+    //             o.onAttendanceMarked(r);
+    //         }
+    //     } catch (Exception e) {
+    //         for (AttendanceObserver o : observers) {
+    //             // notify the recognitionService that the attendance of a particular student is NOT marked
+    //             if (o instanceof LiveRecognitionController) {
+    //                 ((LiveRecognitionController) o).onAttendanceNotMarked(r);
+    //             }
+    //         }
+    //     }
+    // }
+
+    // public AttendanceRecord getOrCreateRecord(Student student, Session session) {
+    //     return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
+    // }
+
+    public AttendanceRecord getRecord(Student student, Session session) {
         return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
     }
 
