@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +20,7 @@ public class SessionRepository {
     // Select all sessions 
     public List<Session> findAll() {
         List<Session> sessions = new ArrayList<>();
-        String sql = "SELECT session_id, course_name, session_date, start_time, end_time, location, late_threshold_minutes, status FROM sessions";
+        String sql = "SELECT s.session_id, c.course_code, s.late_threshold, s.location, s.start_time, s.end_time, s.session_date, s.status FROM sessions s JOIN courses c ON s.course_id = c.course_id;";
 
         try (Connection conn = DatabaseUtil.getConnection();
             Statement stmt = conn.createStatement();
@@ -27,17 +29,17 @@ public class SessionRepository {
             while (rs.next()) {
                 // Convert SQL types to Java time types
                 java.sql.Date sqlDate = rs.getDate("session_date");
-                java.sql.Time sqlStartTime = rs.getTime("start_time");
-                java.sql.Time sqlEndTime = rs.getTime("end_time");
+                Timestamp sqlStartTime = rs.getTimestamp("start_time");
+                Timestamp sqlEndTime = rs.getTimestamp("end_time");
                 
                 sessions.add(new Session(
                     rs.getInt("session_id"),
-                    rs.getString("course_name"),
+                    rs.getString("course_code"),
                     sqlDate != null ? sqlDate.toLocalDate() : null,
-                    sqlStartTime != null ? sqlStartTime.toLocalTime() : null,
-                    sqlEndTime != null ? sqlEndTime.toLocalTime() : null,
+                    sqlStartTime != null ? sqlStartTime.toLocalDateTime().toLocalTime() : null,
+                    sqlEndTime != null ? sqlEndTime.toLocalDateTime().toLocalTime() : null,
                     rs.getString("location"),
-                    rs.getInt("late_threshold_minutes"),
+                    rs.getInt("late_threshold"),
                     rs.getString("status")
                 ));
             }
@@ -51,7 +53,7 @@ public class SessionRepository {
 
     // Select session by id
     public Session findById(int id) {
-        String sql = "SELECT session_id, course_name, session_date, start_time, end_time, location, late_threshold_minutes, status FROM sessions WHERE session_id = ?";
+        String sql = "SELECT s.session_id, c.course_code, s.late_threshold, s.location, s.start_time, s.end_time, s.session_date, s.status FROM sessions s JOIN courses c ON s.course_id = c.course_id WHERE session_id = ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -60,16 +62,16 @@ public class SessionRepository {
                 if (rs.next()) {
                     // Convert SQL types to Java time types
                     java.sql.Date sqlDate = rs.getDate("session_date");
-                    java.sql.Time sqlStartTime = rs.getTime("start_time");
-                    java.sql.Time sqlEndTime = rs.getTime("end_time");
+                    Timestamp sqlStartTime = rs.getTimestamp("start_time");
+                    Timestamp sqlEndTime = rs.getTimestamp("end_time");
                     return new Session(
                             rs.getInt("session_id"),
-                            rs.getString("course_name"),
+                            rs.getString("course_code"),
                             sqlDate != null ? sqlDate.toLocalDate() : null,
-                            sqlStartTime != null ? sqlStartTime.toLocalTime() : null,
-                            sqlEndTime != null ? sqlEndTime.toLocalTime() : null,
+                            sqlStartTime != null ? sqlStartTime.toLocalDateTime().toLocalTime() : null,
+                            sqlEndTime != null ? sqlEndTime.toLocalDateTime().toLocalTime() : null,
                             rs.getString("location"),
-                            rs.getInt("late_threshold_minutes"),
+                            rs.getInt("late_threshold"),
                             rs.getString("status")
                     );
                 }
@@ -83,24 +85,29 @@ public class SessionRepository {
     
     // Insert session  
     public void save(Session s) {
-        String sql = "INSERT INTO sessions (course_name, session_date, start_time, end_time, location, late_threshold_minutes, status) VALUES (?, ?, ?, ?, ?, ?, ?) ";
+        String sql = "INSERT INTO sessions (course_id, late_threshold, location, start_time, end_time, session_date, status) VALUES ((SELECT course_id FROM courses WHERE course_code = ?), ?, ?, ?, ?, ?, ?) ";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            // Convert LocalDate to java.sql.Date
+            // Convert LocalDate to java.sql.Date for session_date
             java.sql.Date sqlDate = java.sql.Date.valueOf(s.getSessionDate());
             
-            // Convert LocalTime to java.sql.Time
-            java.sql.Time sqlStartTime = java.sql.Time.valueOf(s.getStartTime());
-            java.sql.Time sqlEndTime = java.sql.Time.valueOf(s.getEndTime());
+            // For timestamp columns, we need to combine session_date with the time
+            // Create LocalDateTime objects by combining session_date with the time
+            LocalDateTime startDateTime = LocalDateTime.of(s.getSessionDate(), s.getStartTime());
+            LocalDateTime endDateTime = LocalDateTime.of(s.getSessionDate(), s.getEndTime());
+            
+            // Convert to Timestamp
+            Timestamp sqlStartTime = Timestamp.valueOf(startDateTime);
+            Timestamp sqlEndTime = Timestamp.valueOf(endDateTime);
 
             ps.setString(1, s.getCourse());
-            ps.setDate(2, sqlDate);
-            ps.setTime(3, sqlStartTime);
-            ps.setTime(4, sqlEndTime);
-            ps.setString(5, s.getLocation());
-            ps.setInt(6, s.getLateThresholdMinutes());
+            ps.setInt(2, s.getLateThresholdMinutes());
+            ps.setString(3, s.getLocation());
+            ps.setTimestamp(4, sqlStartTime);
+            ps.setTimestamp(5, sqlEndTime);
+            ps.setDate(6, sqlDate);
             ps.setString(7, s.getStatus());
 
             int affectedRows = ps.executeUpdate();

@@ -89,7 +89,7 @@ public class AttendanceService {
 
             System.out.printf("Student ID: %s | Name: %s | Status: %s | Method: %s | Last Seen: %s%n",
                     studentId,
-                    record.getStudent().getUserName(),
+                    record.getStudent().getName(),
                     record.getStatus(),
                     record.getMethod(),
                     record.getLastSeen());

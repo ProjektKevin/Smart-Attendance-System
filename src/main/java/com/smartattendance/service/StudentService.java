@@ -29,9 +29,7 @@ public class StudentService {
     }
 
     /** Find a student by ID, or null if not found. */
-    public Student findById(String id) {
-        if (id == null || id.isBlank())
-            return null;
+    public Student findById(int id) {
         return repo.findById(id);
     }
 

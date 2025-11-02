@@ -76,7 +76,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             // }
 
             Student student = record.getStudent();
-            String studentId = student.getStudentId();
+            int studentId = student.getStudentId();
             Session session = record.getSession();
             int sessionId = session.getSessionId();
             AttendanceRecordRepository attendanceRecordRepo = record.getAttendanceRecordRepo();

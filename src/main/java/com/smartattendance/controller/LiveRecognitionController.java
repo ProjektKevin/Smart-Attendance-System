@@ -37,11 +37,11 @@ public class LiveRecognitionController implements AttendanceObserver {
 
     @Override
     public void onAttendanceMarked(AttendanceRecord r) {
-        Platform.runLater(() -> statusLabel.setText("Marked: " + r.getStudent().getUserName() + " (" + r.getStatus() + ")"));
+        Platform.runLater(() -> statusLabel.setText("Marked: " + r.getStudent().getName() + " (" + r.getStatus() + ")"));
     }
 
     // F_MA: modified by felicia handling marking attendance
     public void onAttendanceNotMarked(AttendanceRecord r) {
-        Platform.runLater(() -> statusLabel.setText("Error marking attendance for " + r.getStudent().getUserName() + ". Please try again."));
+        Platform.runLater(() -> statusLabel.setText("Error marking attendance for " + r.getStudent().getName() + ". Please try again."));
     }
 }
