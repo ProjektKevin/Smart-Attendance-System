@@ -6,11 +6,14 @@
     
     <TableView fx:id="attendanceTable" prefWidth="700" prefHeight="400">
         <columns>
+            <TableColumn fx:id="colSessionId" text="Session ID" prefWidth="100"/>
             <TableColumn fx:id="colStudentId" text="Student ID" prefWidth="100"/>
             <TableColumn fx:id="colStudentName" text="Name" prefWidth="150"/>
             <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
             <TableColumn fx:id="colMethod" text="Method" prefWidth="100"/>
-            <TableColumn fx:id="colNote" text="Note" prefWidth="200"/>
+            <TableColumn fx:id="colMarkedAt" text="Marked At" prefWidth="200"/>
+            <TableColumn fx:id="colLastSeen" text="Last Seen" prefWidth="200"/>
+            <TableColumn fx:id="colNote" text="Note" prefWidth="500"/>
         </columns>
     </TableView>
 

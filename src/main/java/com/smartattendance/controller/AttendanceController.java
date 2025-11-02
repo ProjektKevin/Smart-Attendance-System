@@ -1,5 +1,7 @@
 package com.smartattendance.controller;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -29,6 +31,8 @@ public class AttendanceController {
     @FXML private TableColumn<AttendanceRecord, String> colStudentName;
     @FXML private TableColumn<AttendanceRecord, String> colStatus;
     @FXML private TableColumn<AttendanceRecord, String> colMethod;
+    @FXML private TableColumn<AttendanceRecord, String> colMarkedAt;
+    @FXML private TableColumn<AttendanceRecord, String> colLastSeen;
     @FXML private TableColumn<AttendanceRecord, String> colNote;
 
     private final AttendanceRecordRepository repo = new AttendanceRecordRepository();
@@ -71,7 +75,7 @@ public class AttendanceController {
         colStatus.setCellFactory(column -> new TableCell<AttendanceRecord, String>() {
             // F_MA: modified by felicia handling marking attendance
             private final ComboBox<String> combo = new ComboBox<>(
-                    FXCollections.observableArrayList("PRESENT", "ABSENT", "LATE"));
+                    FXCollections.observableArrayList("Present", "Absent", "Late"));
 
             {
                 combo.setOnAction(event -> {
@@ -96,6 +100,24 @@ public class AttendanceController {
                 }
             }
         });
+
+        // F_MA: added by felicia handling marking attendance //
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        colMarkedAt.setCellValueFactory(cellData -> {
+            LocalDateTime markedAt = cellData.getValue().getTimestamp();
+            String formatted = markedAt != null ? dtf.format(markedAt) : "";
+            return new SimpleStringProperty(formatted);
+        });
+
+        colLastSeen.setCellValueFactory(cellData -> {
+            LocalDateTime lastSeen = cellData.getValue().getLastSeen();
+            String formatted = lastSeen != null ? dtf.format(lastSeen) : "";
+            return new SimpleStringProperty(formatted);
+        });
+
+        // Make table editable if you want to edit notes or status
+        attendanceTable.setEditable(true);
     }
 
     private void loadAttendanceRecords() {
