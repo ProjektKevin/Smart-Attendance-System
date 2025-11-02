@@ -23,23 +23,29 @@ public class AttendanceRecord {
     // private final LocalDateTime timestamp; 
     private String note;
 
-    // public AttendanceRecord(Student s, Session sess, AttendanceStatus st, MarkMethod m, double c, LocalDateTime ts){ 
-    //   this.student=s; 
-    //   this.session=sess; 
-    //   this.status=st; 
-    //   this.method=m; 
-    //   this.confidence=c; 
-    //   this.timestamp=ts; 
+    // public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, LocalDateTime timestamp, MarkMethod method) {
+    //     this.student = student;
+    //     this.session = session;
+    //     // this.status = AttendanceStatus.ABSENT;
+    //     this.status = status;
+    //     this.confidence = confidence;
+    //     this.timestamp = timestamp;
+    //     this.lastSeen = timestamp;
+    //     this.method = method;
+    //     this.note = "";
     // }
-    public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, LocalDateTime timestamp, MarkMethod method) {
+
+    // F_MA: modified by felicia handling marking attendance
+    // this constructor will be called by SessionService.createAttendanceRecordsForSession when session created
+    public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp) {
         this.student = student;
         this.session = session;
         // this.status = AttendanceStatus.ABSENT;
         this.status = status;
-        this.confidence = confidence;
+        this.confidence = 0.0;
         this.timestamp = timestamp;
         this.lastSeen = timestamp;
-        this.method = method;
+        this.method = null;
         this.note = "";
     }
 

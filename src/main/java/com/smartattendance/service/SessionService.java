@@ -1,20 +1,20 @@
 package com.smartattendance.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.smartattendance.model.AttendanceRecord;
+import com.smartattendance.model.AttendanceStatus;
+import com.smartattendance.model.MarkMethod;
 import com.smartattendance.model.Session;
 import com.smartattendance.model.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.repository.StudentRepository;
-
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
 
 public class SessionService {
     private final Map<String, Session> sessions = new HashMap<>();
@@ -72,21 +72,14 @@ public class SessionService {
         List<Student> enrolledStudents = studentRepo.findByCourse(s.getCourse());
         
         for (Student student : enrolledStudents) {
+            // F_MA: modified by felicia handling marking attendance
             AttendanceRecord record = new AttendanceRecord(
                 student,
                 s,
-                "Pending", // Default status
-                "-", // Default method
-                0.0,      // Default confidence
+                AttendanceStatus.ABSENT, // Default status
+                0.0, // Default confidence
+                MarkMethod.NONE,      // Default method
                 LocalDateTime.now() // Default LocalDateTime
-                this.student = student;
-                this.session = session;
-                // this.status = AttendanceStatus.ABSENT;
-                this.status = status;
-                this.confidence = confidence;
-                this.timestamp = timestamp;
-                this.lastSeen = timestamp;
-                this.method = method;
             );
             record.setNote("Auto-created with session"); // Default note
             

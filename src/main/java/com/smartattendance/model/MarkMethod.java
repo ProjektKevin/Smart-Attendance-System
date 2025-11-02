@@ -11,5 +11,6 @@ package com.smartattendance.model;
  */
 public enum MarkMethod {
     AUTO,    // Marked automatically via face recognition
-    MANUAL   // Marked manually via user action
+    MANUAL,   // Marked manually via user action
+    NONE
 }
