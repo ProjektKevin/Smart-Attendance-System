@@ -16,11 +16,10 @@ import com.smartattendance.controller.LiveRecognitionController;
 import com.smartattendance.model.AttendanceRecord;
 import com.smartattendance.util.AttendanceObserver;
 
-public class AttendanceService {
 
+public class AttendanceService {
     private final List<AttendanceObserver> observers = new ArrayList<>();
     private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
-
     private final Map<String, AttendanceRecord> records = new HashMap<>();
 
     public void addObserver(AttendanceObserver o) {

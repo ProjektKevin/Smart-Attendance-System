@@ -5,10 +5,7 @@
 */
 
 package com.smartattendance.service;
-import java.time.LocalDateTime;
-
 import com.smartattendance.model.AttendanceRecord;
-import com.smartattendance.model.Session;
 
 /**
  * Strategy interface for marking attendance.
@@ -16,7 +13,7 @@ import com.smartattendance.model.Session;
  */
 public interface AttendanceMarker {
     // void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime, float confidence, float threshold);
-    void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime);
+    void markAttendance(AttendanceRecord record) throws Exception;
 
 
     // void registerObserver(AttendanceObserver observer);

@@ -233,4 +233,14 @@ public class AttendanceRecordRepository {
             return false;
         }
     }
+
+    public StudentRepository getStudentRepo() {
+        return studentRepo;
+    }
+
+    public SessionRepository getSessionRepo() {
+        return sessionRepo;
+    }
+
+
 }

@@ -5,14 +5,15 @@
  */
 package com.smartattendance.model;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import com.smartattendance.repository.AttendanceRecordRepository;
+import com.smartattendance.service.AutoAttendanceMarker;
 
 public class AttendanceRecord {
 
     private AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
+    private AutoAttendanceMarker autoAttendanceMarker = new AutoAttendanceMarker();
     private final Student student;
     private final Session session;
     // private final String status;
@@ -64,26 +65,7 @@ public class AttendanceRecord {
         // }
 
         try {
-            LocalDateTime lastSeen = attendanceRecordRepo.findById(this.student.getStudentId(), this.session.getSessionId()).getLastSeen();
-            long diffInSeconds = Duration.between(lastSeen, this.getTimestamp()).getSeconds();
-            long diffInMinutes = Duration.between(this.timestamp, session.getStartTime()).toMinutes();
-
-            // if the student is not marked as present before (still in default ABSENT status), update the student attendance
-            if (this.status == AttendanceStatus.ABSENT) {
-                // if the student is late, set attendance status to LATE before update
-                if (diffInMinutes > this.session.getLateThresholdMinutes()) {
-                    this.setStatus(AttendanceStatus.LATE);
-                }
-                attendanceRecordRepo.update(this);
-            } else {
-                // if still in cooldown time, too soon to update lastSeen time
-                if (diffInSeconds < 30) {
-                    return;
-                } 
-                
-                attendanceRecordRepo.updateLastSeen(this);
-            }
-
+            autoAttendanceMarker.markAttendance(this);
         } catch (Exception e) {
             throw new Exception("Failed to save attendance record", e);
         }
@@ -153,6 +135,10 @@ public class AttendanceRecord {
 
     public void setConfidence(double confidence) {
         this.confidence = confidence;
+    }
+
+    public AttendanceRecordRepository getAttendanceRecordRepo() {
+        return attendanceRecordRepo;
     }
 
 }
