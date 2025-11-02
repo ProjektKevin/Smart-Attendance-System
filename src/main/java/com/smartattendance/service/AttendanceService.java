@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.smartattendance.controller.LiveRecognitionController;
-// import com.smartattendance.model.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.util.AttendanceObserver;
 
@@ -90,7 +89,7 @@ public class AttendanceService {
 
             System.out.printf("Student ID: %s | Name: %s | Status: %s | Method: %s | Last Seen: %s%n",
                     studentId,
-                    record.getStudent().getName(),
+                    record.getStudent().getUserName(),
                     record.getStatus(),
                     record.getMethod(),
                     record.getLastSeen());

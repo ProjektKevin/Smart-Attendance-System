@@ -4,19 +4,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-<<<<<<< HEAD
-import com.smartattendance.model.AttendanceRecord;
-import com.smartattendance.model.AttendanceStatus;
-import com.smartattendance.model.MarkMethod;
-import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
-import com.smartattendance.util.AppContext;
-=======
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceStatus;
+import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
->>>>>>> origin/dev
 
 public class RecognitionService {
   // Use shared attendance service so Reports can see the records
@@ -35,14 +28,10 @@ public class RecognitionService {
       Student s = new Student("S101", "Alice Tan", "CS102");
       Session sess = new Session(1, "CS102", LocalDate.now(), LocalTime.of(10, 0), LocalTime.of(11, 0), "Room 1",
           15, "PENDING");
-<<<<<<< HEAD
       // AttendanceRecord rec = new AttendanceRecord(s, sess, "Present", "Auto", 0.95, LocalDateTime.now());
       // AttendanceRecord rec = new AttendanceRecord(s, sess, AttendanceStatus.PRESENT, 0.95, LocalDateTime.now(), MarkMethod.AUTO);
       // attendanceService.markAttendance(rec);
       AttendanceRecord rec = new AttendanceRecord(s, sess, AttendanceStatus.PRESENT, 0.95, MarkMethod.AUTO, LocalDateTime.now());
-=======
-      AttendanceRecord rec = new AttendanceRecord(s, sess, "Present", "Auto", 0.95, LocalDateTime.now());
->>>>>>> origin/dev
       attendanceService.markAttendance(rec);
     }).start();
   }

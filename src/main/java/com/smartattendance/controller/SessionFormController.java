@@ -1,18 +1,17 @@
 package com.smartattendance.controller;
 
-<<<<<<< HEAD
-import com.smartattendance.model.Session;
-=======
-import com.smartattendance.model.entity.Session;
->>>>>>> origin/dev
-import com.smartattendance.service.SessionService;
-
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+
+import com.smartattendance.model.entity.Session;
+import com.smartattendance.service.SessionService;
+
+import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 
 public class SessionFormController {
 
