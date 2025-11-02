@@ -3,9 +3,10 @@ package com.smartattendance.controller;
 import com.smartattendance.model.AttendanceRecord;
 import com.smartattendance.service.RecognitionService;
 import com.smartattendance.util.AttendanceObserver;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 
 public class LiveRecognitionController implements AttendanceObserver {
@@ -37,5 +38,10 @@ public class LiveRecognitionController implements AttendanceObserver {
     @Override
     public void onAttendanceMarked(AttendanceRecord r) {
         Platform.runLater(() -> statusLabel.setText("Marked: " + r.getStudent().getName() + " (" + r.getStatus() + ")"));
+    }
+
+    // F_MA: modified by felicia handling marking attendance
+    public void onAttendanceNotMarked(AttendanceRecord r) {
+        Platform.runLater(() -> statusLabel.setText("Error marking attendance for " + r.getStudent().getName() + ". Please try again."));
     }
 }

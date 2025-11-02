@@ -12,27 +12,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.smartattendance.controller.LiveRecognitionController;
 import com.smartattendance.model.AttendanceRecord;
 import com.smartattendance.model.Session;
 import com.smartattendance.model.Student;
 import com.smartattendance.util.AttendanceObserver;
 
 public class AttendanceService {
+
     private final List<AttendanceObserver> observers = new ArrayList<>();
     private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
 
     private final Map<String, AttendanceRecord> records = new HashMap<>();
 
     public void addObserver(AttendanceObserver o) {
-      observers.add(o);
+        observers.add(o);
     }
 
+    // F_MA: modified by felicia handling marking attendance
     public synchronized void markAttendance(AttendanceRecord r) {
-      attendanceRecords.add(r);
-      for (AttendanceObserver o : observers)
-        // notify the recognitionService that the attendance of a particular student is marked
-        o.onAttendanceMarked(r);
-      r.mark();
+        try {
+            attendanceRecords.add(r);
+            r.mark();
+            for (AttendanceObserver o : observers) {
+                // notify the recognitionService that the attendance of a particular student is marked
+                o.onAttendanceMarked(r);
+            }
+        } catch (Exception e) {
+            for (AttendanceObserver o : observers) {
+                // notify the recognitionService that the attendance of a particular student is NOT marked
+                if (o instanceof LiveRecognitionController) {
+                    ((LiveRecognitionController) o).onAttendanceNotMarked(r);
+                }
+            }
+        }
     }
 
     public AttendanceRecord getOrCreateRecord(Student student, Session session) {
@@ -40,28 +53,28 @@ public class AttendanceService {
     }
 
     public void updateLastSeen(String studentId, LocalDateTime time) {
-      if (records.containsKey(studentId)) {
-        records.get(studentId).setLastSeen(time);
-      }
+        if (records.containsKey(studentId)) {
+            records.get(studentId).setLastSeen(time);
+        }
     }
-    
+
     public synchronized Map<String, AttendanceRecord> getAll() {
-      return Collections.unmodifiableMap(new HashMap<>(records));
+        return Collections.unmodifiableMap(new HashMap<>(records));
     }
 
     public synchronized void printAllRecords() {
-      for (Map.Entry<String, AttendanceRecord> entry : records.entrySet()) {
-          String studentId = entry.getKey();
-          AttendanceRecord record = entry.getValue();
+        for (Map.Entry<String, AttendanceRecord> entry : records.entrySet()) {
+            String studentId = entry.getKey();
+            AttendanceRecord record = entry.getValue();
 
-          System.out.printf("Student ID: %s | Name: %s | Status: %s | Method: %s | Last Seen: %s%n",
-                  studentId,
-                  record.getStudent().getName(),
-                  record.getStatus(),
-                  record.getMethod(),
-                  record.getLastSeen());
+            System.out.printf("Student ID: %s | Name: %s | Status: %s | Method: %s | Last Seen: %s%n",
+                    studentId,
+                    record.getStudent().getName(),
+                    record.getStatus(),
+                    record.getMethod(),
+                    record.getLastSeen());
         }
-      }
+    }
 
     // public void addObserver(AttendanceObserver o) {
     //   observers.add(o);

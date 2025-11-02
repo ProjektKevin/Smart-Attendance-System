@@ -1,11 +1,20 @@
 package com.smartattendance.repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.smartattendance.model.AttendanceRecord;
+import com.smartattendance.model.AttendanceStatus;
+import com.smartattendance.model.MarkMethod;
 import com.smartattendance.model.Session;
 import com.smartattendance.model.Student;
 import com.smartattendance.util.DatabaseUtil;
-import java.util.*;
-import java.sql.*;
 
 public class AttendanceRecordRepository {
     private StudentRepository studentRepo;
@@ -30,13 +39,18 @@ public class AttendanceRecordRepository {
                 Student student = studentRepo.findById(rs.getString("student_id"));
                 Session session = sessionRepo.findById(rs.getInt("session_id"));
 
+                // F_MA: modified by felicia handling marking attendance
+                // Convert strings to enums
+                AttendanceStatus status = AttendanceStatus.valueOf(rs.getString("status").toUpperCase());
+                MarkMethod method = MarkMethod.valueOf(rs.getString("method").toUpperCase());
+
                 AttendanceRecord record = new AttendanceRecord(
                     student,
                     session,
-                    rs.getString("status"),
-                    rs.getString("method"),
+                    status,
                     rs.getDouble("confidence"),
-                    rs.getTimestamp("timestamp").toLocalDateTime()
+                    rs.getTimestamp("timestamp").toLocalDateTime(),
+                    method
                 );
                 
                 // Set the note if it exists
@@ -70,13 +84,18 @@ public class AttendanceRecordRepository {
                     Student student = studentRepo.findById(rs.getString("student_id"));
                     Session session = sessionRepo.findById(rs.getInt("session_id"));
 
+                    // F_MA: modified by felicia handling marking attendance
+                    // Convert strings to enums
+                    AttendanceStatus status = AttendanceStatus.valueOf(rs.getString("status").toUpperCase());
+                    MarkMethod method = MarkMethod.valueOf(rs.getString("method").toUpperCase());
+
                     AttendanceRecord record = new AttendanceRecord(
                         student,
                         session,
-                        rs.getString("status"),
-                        rs.getString("method"),
+                        status,
                         rs.getDouble("confidence"),
-                        rs.getTimestamp("timestamp").toLocalDateTime()
+                        rs.getTimestamp("timestamp").toLocalDateTime(),
+                        method
                     );
                     
                     // Set the note if it exists
@@ -110,13 +129,18 @@ public class AttendanceRecordRepository {
                     Student student = studentRepo.findById(rs.getString("student_id"));
                     Session session = sessionRepo.findById(rs.getInt("session_id"));
 
+                    // F_MA: modified by felicia handling marking attendance
+                    // Convert strings to enums
+                    AttendanceStatus status = AttendanceStatus.valueOf(rs.getString("status").toUpperCase());
+                    MarkMethod method = MarkMethod.valueOf(rs.getString("method").toUpperCase());
+
                     AttendanceRecord record = new AttendanceRecord(
                         student,
                         session,
-                        rs.getString("status"),
-                        rs.getString("method"),
+                        status,
                         rs.getDouble("confidence"),
-                        rs.getTimestamp("timestamp").toLocalDateTime()
+                        rs.getTimestamp("timestamp").toLocalDateTime(),
+                        method
                     );
                     
                     // Set the note if it exists

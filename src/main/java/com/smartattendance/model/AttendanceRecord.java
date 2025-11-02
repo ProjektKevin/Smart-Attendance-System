@@ -46,16 +46,21 @@ public class AttendanceRecord {
     /**
      * Marks attendance with all relevant info.
      */
-    public void mark() {
-        this.status = status;
-        this.timestamp = timestamp;
-        this.lastSeen = timestamp;
-        this.method = method;
-        if (note != null) {
-            this.note = note;
+    public void mark() throws Exception {
+        // this.status = status;
+        // this.timestamp = timestamp;
+        // this.lastSeen = timestamp;
+        // this.method = method;
+        // if (note != null) {
+        //     this.note = note;
+        // }
+
+        try {
+            attendanceRecordRepo.save(this); 
+        } catch (Exception e) {
+            throw new Exception("Failed to save attendance record", e);
         }
 
-        attendanceRecordRepo.save(this); // modify this
 
     }
     // public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {
