@@ -1,15 +1,15 @@
 package com.smartattendance.service.recognition;
 
-import com.smartattendance.model.dto.student.StudentDTO;
+import com.smartattendance.model.entity.Student;
 
 public class RecognitionResult {
-  private StudentDTO matchedStudent;
+  private Student matchedStudent;
   private double confidenceScore;
   private boolean isMatch;
 
   // ----- Constructors -----
   // constrcutor for successful match
-  public RecognitionResult(StudentDTO matchedStudent, double confidenceScore) {
+  public RecognitionResult(Student matchedStudent, double confidenceScore) {
     this.matchedStudent = matchedStudent;
     this.confidenceScore = confidenceScore;
     this.isMatch = matchedStudent != null;
@@ -23,7 +23,7 @@ public class RecognitionResult {
   }
 
   // ----- Getters -----
-  public StudentDTO getMatchedStudent() {
+  public Student getMatchedStudent() {
     return matchedStudent;
   }
 

@@ -10,9 +10,8 @@ import org.opencv.core.MatOfInt;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import com.smartattendance.model.dto.student.FaceDataDTO;
-import com.smartattendance.model.dto.student.StudentDTO;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.entity.FaceData;
 
 public class HistogramRecognizer extends Recognizer {
   public HistogramRecognizer() {
@@ -24,9 +23,9 @@ public class HistogramRecognizer extends Recognizer {
   }
 
   @Override
-  public void train(List<StudentDTO> students) {
-    for (StudentDTO student : students) {
-      FaceDataDTO faceData = student.getFaceData();
+  public void train(List<Student> students) {
+    for (Student student : students) {
+      FaceData faceData = student.getFaceData();
       if (faceData != null && !faceData.getImages().isEmpty()) {
         Mat avgHistogram = computeAverageHistogram(faceData.getImages());
         faceData.setHistogram(avgHistogram);
@@ -35,7 +34,7 @@ public class HistogramRecognizer extends Recognizer {
   }
 
   @Override
-  public RecognitionResult recognize(Mat faceImage, List<StudentDTO> enrolledStudents) {
+  public RecognitionResult recognize(Mat faceImage, List<Student> enrolledStudents) {
     if (faceImage.empty()) {
       return new RecognitionResult();
     }
@@ -44,11 +43,11 @@ public class HistogramRecognizer extends Recognizer {
     Mat inputHistogram = computeHistogram(faceImage);
 
     double bestScore = -1.0;
-    StudentDTO bestMatch = null;
+    Student bestMatch = null;
 
     // Compare with each student's stored histogram
-    for (StudentDTO student : enrolledStudents) {
-      FaceDataDTO faceData = student.getFaceData();
+    for (Student student : enrolledStudents) {
+      FaceData faceData = student.getFaceData();
       if (faceData == null || faceData.getHistogram() == null) {
         continue;
       }

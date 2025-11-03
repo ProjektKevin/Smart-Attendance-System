@@ -4,7 +4,7 @@ public class StudentDTO {
     private Integer id;
     private String fullName;
     private String courseName;
-    private FaceDataDTO faceData;
+    
 
     /**
      * Constructor for StudentDTO
@@ -41,13 +41,5 @@ public class StudentDTO {
 
     public void setCourseName(String courseName) {
         this.courseName = courseName;
-    }
-
-    public FaceDataDTO getFaceData() {
-        return faceData;
-    }
-
-    public void setFaceData(FaceDataDTO faceData) {
-        this.faceData = faceData;
     }
 }

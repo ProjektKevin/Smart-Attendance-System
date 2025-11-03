@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.opencv.core.Mat;
 
-import com.smartattendance.model.dto.student.StudentDTO;
+import com.smartattendance.model.entity.Student;
 
 public abstract class Recognizer {
   private double confidenceThreshold;
@@ -26,8 +26,8 @@ public abstract class Recognizer {
   }
 
   // Abstract method for recognize a face from an image
-  public abstract RecognitionResult recognize(Mat faceImage, List<StudentDTO> enrolledStudents);
+  public abstract RecognitionResult recognize(Mat faceImage, List<Student> enrolledStudents);
 
   // Train the recogntion model with enrolled students' data
-  public abstract void train(List<StudentDTO> students);
+  public abstract void train(List<Student> students);
 }

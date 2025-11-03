@@ -1,17 +1,17 @@
-package com.smartattendance.model.dto.student;
+package com.smartattendance.model.entity;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.opencv.core.Mat;
 
-public class FaceDataDTO {
+public class FaceData {
     private List<Mat> images;
     private List<String> imagePaths;
     private Mat histogram;
     private Mat faceEmbedding;
 
-    public FaceDataDTO() {
+    public FaceData() {
         this.images = new ArrayList<>();
         this.imagePaths = new ArrayList<>();
     }
