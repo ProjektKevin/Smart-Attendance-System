@@ -4,7 +4,7 @@ import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
-import com.smartattendance.repository.SessionRepository;;
+import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
 
