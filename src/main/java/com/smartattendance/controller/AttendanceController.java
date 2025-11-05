@@ -2,7 +2,9 @@ package com.smartattendance.controller;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
@@ -39,6 +41,10 @@ public class AttendanceController {
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
     private Session currentSession;
     private Runnable backHandler;
+    private final Map<Integer, String> originalStatuses = new HashMap<>();
+    
+    // Formatter for timestamp display
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public void setBackHandler(Runnable backHandler) {
         this.backHandler = backHandler;
@@ -69,13 +75,30 @@ public class AttendanceController {
         // Configure other columns
         colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
         colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
+        
+        // Configure timestamp columns with proper formatting
+        colMarkedAt.setCellValueFactory(cellData -> {
+            if (cellData.getValue().getTimestamp() != null) {
+                return new SimpleStringProperty(cellData.getValue().getTimestamp().format(formatter));
+            } else {
+                return new SimpleStringProperty("-");
+            }
+        });
+        
+        colLastSeen.setCellValueFactory(cellData -> {
+            if (cellData.getValue().getLastSeen() != null) {
+                return new SimpleStringProperty(cellData.getValue().getLastSeen().format(formatter));
+            } else {
+                return new SimpleStringProperty("-");
+            }
+        });
 
         // Custom cell factory for status with dropdown
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colStatus.setCellFactory(column -> new TableCell<AttendanceRecord, String>() {
             // F_MA: modified by felicia handling marking attendance
             private final ComboBox<String> combo = new ComboBox<>(
-                    FXCollections.observableArrayList("Present", "Absent", "Late"));
+                    FXCollections.observableArrayList("Present", "Absent", "Late", "Pending"));
 
             {
                 combo.setOnAction(event -> {
@@ -125,6 +148,12 @@ public class AttendanceController {
             List<AttendanceRecord> records = repo.findBySessionId(currentSession.getSessionId());
             attendanceList.setAll(records);
             attendanceTable.setItems(attendanceList);
+
+            // Store the original statuses for change detection
+            originalStatuses.clear();
+            for (AttendanceRecord record : records) {
+                originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
+            }
         }
     }
 
@@ -133,11 +162,21 @@ public class AttendanceController {
         try {
             int updatedCount = 0;
             for (AttendanceRecord record : attendanceList) {
-                if (record != null) {
+                String originalStatus = originalStatuses.get(record.getStudent().getStudentId());
+                String currentStatus = record.getStatus().toString();
+
+                // Only update if status actually changed
+                if (!java.util.Objects.equals(originalStatus, currentStatus)) {
                     repo.updateStatus(record);
                     updatedCount++;
+
+                    // Update the original status map so subsequent saves work fine
+                    originalStatuses.put(record.getStudent().getStudentId(), currentStatus);
                 }
             }
+
+            // Reload data from database after saving
+            loadAttendanceRecords();
             
             Alert alert = new Alert(Alert.AlertType.INFORMATION, 
                 String.format("Successfully updated %d attendance records!", updatedCount));
@@ -151,26 +190,11 @@ public class AttendanceController {
         }
     }
 
-    // @FXML
-    // private void onBack() {
-    //     try {
-    //         Parent root = FXMLLoader.load(getClass().getResource("/view/SessionView.fxml"));
-    //         Scene currentScene = attendanceTable.getScene();
-    //         currentScene.setRoot(root);
-    //     } catch (Exception e) {
-    //         Alert alert = new Alert(Alert.AlertType.ERROR, 
-    //             "Error navigating back: " + e.getMessage());
-    //         alert.showAndWait();
-    //         e.printStackTrace();
-    //     }
-    // }
-
     @FXML
     private void onBack() {
         if (backHandler != null) {
             backHandler.run();
         } else {
-            // fallback: try to use scene navigation (optional)
             try {
                 Parent sessionRoot = FXMLLoader.load(getClass().getResource("/view/SessionView.fxml"));
                 attendanceTable.getScene().setRoot(sessionRoot);

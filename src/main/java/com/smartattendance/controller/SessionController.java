@@ -82,6 +82,9 @@ public class SessionController {
 
     @FXML
     public void initialize() {
+        // Apply initial styling to the info label
+        styleInfoLabel("normal", "Loaded sessions will appear here");
+        
         attendanceViewContainer.setVisible(false);
         attendanceViewContainer.setManaged(false);
         
@@ -126,6 +129,36 @@ public class SessionController {
         }));
         uiRefresher.setCycleCount(Timeline.INDEFINITE);
         uiRefresher.play();
+    }
+
+    // Styles the info label based on message type
+    // @param type "success", "error", "warning", or "normal"
+    // @param message The text to display
+    private void styleInfoLabel(String type, String message) {
+        sessionsInfo.setText(message);
+        
+        // Reset styles first
+        sessionsInfo.setStyle("-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+        
+        switch (type.toLowerCase()) {
+            case "success":
+                sessionsInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "error":
+                sessionsInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "warning":
+                sessionsInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "normal":
+            default:
+                sessionsInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+        }
     }
 
     private void setupCheckBoxColumn() {
@@ -214,10 +247,9 @@ public class SessionController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            sessionsInfo.setText("Error opening attendance page: " + e.getMessage());
+            showError("Error opening attendance page: " + e.getMessage());
         }
     }
-
 
     private void loadSessionsFromDatabase() {
         try {
@@ -254,12 +286,29 @@ public class SessionController {
                 selectionMap.put(session.getSessionId(), new SimpleBooleanProperty(false));
             }
             
-            sessionsInfo.setText("Loaded " + sessions.size() + " sessions");
+            showInfo("Loaded " + sessions.size() + " sessions");
             updateButtonStates();
         } catch (Exception e) {
-            sessionsInfo.setText("Error loading sessions: " + e.getMessage());
+            showError("Error loading sessions: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    // Helper methods for different message types
+    private void showSuccess(String message) {
+        styleInfoLabel("success", "✓ " + message);
+    }
+
+    private void showError(String message) {
+        styleInfoLabel("error", "✗ " + message);
+    }
+
+    private void showWarning(String message) {
+        styleInfoLabel("warning", "⚠ " + message);
+    }
+
+    private void showInfo(String message) {
+        styleInfoLabel("normal", "ℹ " + message);
     }
 
     // Update button states
@@ -363,12 +412,12 @@ public class SessionController {
 
             if (newSession != null) {
                 loadSessionsFromDatabase(); // Reload to get the new session
-                sessionsInfo.setText("Session " + newSession.getSessionId() + " created successfully!");
+                showSuccess("Session " + newSession.getSessionId() + " created successfully!");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            sessionsInfo.setText("Error creating session: " + e.getMessage());
+            showError("Error creating session: " + e.getMessage());
         }
     }
 
@@ -377,7 +426,7 @@ public class SessionController {
         // Selection of sessions to start
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
-            sessionsInfo.setText("Please select session(s) to start.");
+            showWarning("Please select session(s) to start.");
             return;
         }
 
@@ -392,7 +441,7 @@ public class SessionController {
 
         sessionTable.refresh();
         clearAllSelection();
-        sessionsInfo.setText("Started " + successCount + " session(s) successfully.");
+        showSuccess("Started " + successCount + " session(s) successfully.");
     }
 
     @FXML
@@ -400,7 +449,7 @@ public class SessionController {
         // Selection of sessions to stop if session status != "Closed"
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
-            sessionsInfo.setText("Please select session(s) to stop.");
+            showWarning("Please select session(s) to stop.");
             return;
         }
 
@@ -415,7 +464,7 @@ public class SessionController {
 
         sessionTable.refresh();
         clearAllSelection();
-        sessionsInfo.setText("Stopped " + successCount + " session(s) successfully.");
+        showSuccess("Stopped " + successCount + " session(s) successfully.");
     }
 
     @FXML
@@ -423,7 +472,7 @@ public class SessionController {
         // Selection of sessions to delete if session status != "Open"
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
-            sessionsInfo.setText("Please select session(s) to delete.");
+            showWarning("Please select session(s) to delete.");
             return;
         }
 
@@ -445,9 +494,9 @@ public class SessionController {
                     SessionRepository repo = new SessionRepository();
                     repo.deleteAll();
                     loadSessionsFromDatabase();
-                    sessionsInfo.setText("Successfully deleted all sessions.");
+                    showSuccess("Successfully deleted all sessions.");
                 } catch (Exception e) {
-                    sessionsInfo.setText("Error deleting all sessions: " + e.getMessage());
+                    showError("Error deleting all sessions: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -457,7 +506,7 @@ public class SessionController {
                     .anyMatch(s -> "Open".equals(s.getStatus()));
 
             if (hasOpenSessions) {
-                sessionsInfo.setText("Cannot delete open sessions. Stop the sessions first.");
+                showWarning("Cannot delete open sessions. Stop the sessions first.");
                 return;
             }
 
@@ -483,9 +532,9 @@ public class SessionController {
                     }
                     
                     loadSessionsFromDatabase();
-                    sessionsInfo.setText("Successfully deleted " + successCount + " session(s).");
+                    showSuccess("Successfully deleted " + successCount + " session(s).");
                 } catch (Exception e) {
-                    sessionsInfo.setText("Error deleting sessions: " + e.getMessage());
+                    showError("Error deleting sessions: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -496,7 +545,6 @@ public class SessionController {
 // if there is error, alert using notification bar instead of SessionInfo (currently, tooltips cannot work)
 // Cannot remove the selection effect? Should I also remove the automation of opening/closing of sessions?
 // when course entered does not have any student enrolled, don't allow to create?
-// expand to see student roster (Attendance Record)?
 // implement edit session function?
-// add user_id so view for each type of user is different
-// implement gui for attendance record under each session (why the tabs and everything missing? also test select one session update status / delete)
+// ensure view for each type of user (e.g. admin, ta, student, prof) is different
+// cannot create a session from 23:00 to 00:00?

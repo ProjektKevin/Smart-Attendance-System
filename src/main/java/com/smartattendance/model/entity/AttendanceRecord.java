@@ -51,6 +51,18 @@ public class AttendanceRecord {
         this.note = "";
     }
 
+    public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp, LocalDateTime last_seen) {
+        this.student = student;
+        this.session = session;
+        // this.status = AttendanceStatus.ABSENT;
+        this.status = status;
+        this.confidence = 0.0;
+        this.timestamp = timestamp;
+        this.lastSeen = last_seen;
+        this.method = null;
+        this.note = "";
+    }
+
     // // F_MA: modified by felicia handling marking attendance
     // public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp, String note) {
     //     this.student = student;

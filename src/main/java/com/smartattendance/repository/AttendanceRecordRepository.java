@@ -59,7 +59,9 @@ public class AttendanceRecordRepository {
                     status,
                     rs.getDouble("confidence"),
                     method,
-                    rs.getTimestamp("marked_at").toLocalDateTime()
+                    rs.getTimestamp("marked_at").toLocalDateTime(),
+                    // rs.getTimestamp("marked_at").toLocalDateTime(),
+                    rs.getTimestamp("last_seen").toLocalDateTime()
                 );
                 
                 // Set the note if it exists
@@ -104,7 +106,9 @@ public class AttendanceRecordRepository {
                         status,
                         rs.getDouble("confidence"),
                         method,
-                        rs.getTimestamp("marked_at").toLocalDateTime()
+                        rs.getTimestamp("marked_at").toLocalDateTime(),
+                        // rs.getTimestamp("marked_at").toLocalDateTime(),
+                        rs.getTimestamp("last_seen").toLocalDateTime()
                     );
                     
                     // Set the note if it exists
@@ -149,7 +153,9 @@ public class AttendanceRecordRepository {
                         status,
                         rs.getDouble("confidence"),
                         method,
-                        rs.getTimestamp("marked_at").toLocalDateTime()
+                        // rs.getTimestamp("marked_at").toLocalDateTime()
+                        rs.getTimestamp("marked_at").toLocalDateTime(),
+                        rs.getTimestamp("last_seen").toLocalDateTime()
                     );
                     
                     // Set the note if it exists
@@ -251,15 +257,23 @@ public class AttendanceRecordRepository {
 
 
     public void updateStatus(AttendanceRecord record){
-        String sql = "UPDATE attendance SET marked_at = ?, method = 'MANUAL', status = ? WHERE user_id = ? AND session_id = ?";
+        String sql = "UPDATE attendance SET marked_at = ?, last_seen = ?, method = 'Manual', status = ? WHERE user_id = ? AND session_id = ?";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
                 
             ps.setTimestamp(1, Timestamp.valueOf(record.getTimestamp()));
-            ps.setString(2, record.getStatus().toString());
-            ps.setInt(3, record.getStudent().getStudentId());
-            ps.setInt(4, record.getSession().getSessionId());
+            ps.setTimestamp(2, Timestamp.valueOf(record.getLastSeen()));
+            ps.setString(3, record.getStatus().toString());
+            ps.setInt(4, record.getStudent().getStudentId());
+            ps.setInt(5, record.getSession().getSessionId());
+             // Set both marked_at and last_seen to current timestamp
+            // Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+            // ps.setTimestamp(1, currentTimestamp);
+            // ps.setTimestamp(2, currentTimestamp);
+            // ps.setString(3, record.getStatus());
+            // ps.setInt(4, record.getStudent().getStudentId());
+            // ps.setInt(5, record.getSession().getSessionId());
             
             ps.executeUpdate();
             

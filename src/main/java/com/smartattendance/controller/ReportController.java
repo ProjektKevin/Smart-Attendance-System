@@ -698,8 +698,8 @@ public class ReportController {
             date, LocalTime.of(9,0), LocalTime.of(10,0), "Room D", 15, "PENDING");
 
         AttendanceRecord rec = new AttendanceRecord(st, sess,
-            (status.isEmpty() ? AttendanceStatus.ABSENT : AttendanceStatus.valueOf(status)),
-            conf, (method.isEmpty() ? MarkMethod.MANUAL : MarkMethod.valueOf(method)),
+            (status.isEmpty() ? AttendanceStatus.ABSENT : AttendanceStatus.valueOf(status.toUpperCase())),
+            conf, (method.isEmpty() ? MarkMethod.MANUAL : MarkMethod.valueOf(method.toUpperCase())),
             LocalDateTime.of(date, time));
         rec.setNote(note);
         ApplicationContext.getAttendanceService().markAttendance(rec);

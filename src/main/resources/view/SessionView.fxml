@@ -7,7 +7,9 @@
             style="-fx-padding: 10;">
 
     <VBox fx:id="sessionListContainer" spacing="10">
-        <Label fx:id="sessionsInfo" text="Sessions info (stub)"/>
+        <Label fx:id="sessionsInfo" text="Sessions info (stub)" 
+               maxWidth="1.7976931348623157E308" 
+               style="-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;"/>
 
         <TableView fx:id="sessionTable" prefHeight="300" prefWidth="700">
             <columns>
