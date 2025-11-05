@@ -135,8 +135,8 @@ public class RecognitionController {
         }
 
         // Release camera
-        if (camera != null && camera.isOpened()) {
-            camera.release();
+        if (capture != null && capture.isOpened()) {
+            capture.release();
         }
 
         cameraStatusLabel.setText("Camera: Disconnected");
@@ -163,8 +163,8 @@ public class RecognitionController {
         Runnable frameGrabber = () -> {
             Mat frame = new Mat();
 
-            if (camera != null && camera.isOpened()) {
-                camera.read(frame);
+            if (capture != null && capture.isOpened()) {
+                capture.read(frame);
 
                 if (!frame.empty()) {
                     // Convert Mat to Image and display
@@ -185,55 +185,59 @@ public class RecognitionController {
         return new Image(new ByteArrayInputStream(buffer.toArray()));
     }
 
-
     // ----- Helper Functions -----
     private Mat grabFrame() {
-		// init everything
-		Mat frame = new Mat();
+        // init everything
+        Mat frame = new Mat();
 
-		// check if the capture is open
-		if (this.capture.isOpened()) {
-			try {
-				// read the current frame
-				this.capture.read(frame);
+        // check if the capture is open
+        if (this.capture.isOpened()) {
+            try {
+                // read the current frame
+                this.capture.read(frame);
 
-				// if the frame is not empty, process it
-				if (!frame.empty()) {
-					MatOfRect faces = faceDetectionService.detectFaces(frame);
+                // if the frame is not empty, process it
+                if (!frame.empty()) {
+                    MatOfRect faces = faceDetectionService.detectFaces(frame);
 
-					// Draw rectangles on the COLOR frame (not grayscale)
-					int faceCount = faceDetectionService.drawFaceRectangles(frame, faces);
+                    // Draw rectangles on the COLOR frame (not grayscale)
+                    int faceCount = faceDetectionService.drawFaceRectangles(frame, faces);
 
-					if (faceCount != 1) {
-						System.out.println("Too many people for enrollment");
-						// chore(), Harry: Add validation here
-					}
-				}
+                    if (faceCount != 1) {
+                        System.out.println("Too many people for enrollment");
+                        // chore(), Harry: Add validation here
+                    }
+                }
 
-			} catch (Exception e) {
-				// log the error
-				System.err.println("Exception during the image elaboration: " + e);
-			}
-		}
+            } catch (Exception e) {
+                // log the error
+                System.err.println("Exception during the image elaboration: " + e);
+            }
+        }
 
-		return frame;
-	}
+        return frame;
+    }
 
     private void stopAcquisition() {
-		if (this.timer != null && !this.timer.isShutdown()) {
-			try {
-				// stop the timer
-				this.timer.shutdown();
-				this.timer.awaitTermination(33, TimeUnit.MILLISECONDS);
-			} catch (InterruptedException e) {
-				// log any exception
-				System.err.println("Exception in stopping the frame capture, trying to release the camera now... " + e);
-			}
-		}
+        if (this.timer != null && !this.timer.isShutdown()) {
+            try {
+                // stop the timer
+                this.timer.shutdown();
+                this.timer.awaitTermination(33, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                // log any exception
+                System.err.println("Exception in stopping the frame capture, trying to release the camera now... " + e);
+            }
+        }
 
-		if (this.capture.isOpened()) {
-			// release the camera
-			this.capture.release();
-		}
-	}
+        if (this.capture.isOpened()) {
+            // release the camera
+            this.capture.release();
+        }
+    }
+
+    private void updateImageView(ImageView view, Image image) {
+        OpenCVUtils.onFXThread(view.imageProperty(), image);
+    }
+
 }

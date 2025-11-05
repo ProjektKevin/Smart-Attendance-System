@@ -44,7 +44,7 @@
                 </Tab>
                 <Tab fx:id="tabLive" text="Live Recognition">
                     <content>
-                        <fx:include source="LiveView.fxml" />
+                        <fx:include source="RecognitionView.fxml" />
                     </content>
                 </Tab>
                 <Tab fx:id="tabReports" text="Reports">
