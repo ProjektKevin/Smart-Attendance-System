@@ -6,7 +6,7 @@
     
     <TableView fx:id="attendanceTable" prefWidth="700" prefHeight="400">
         <columns>
-            <TableColumn fx:id="colSessionId" text="Session ID" prefWidth="100"/>
+            <!-- <TableColumn fx:id="colSessionId" text="Session ID" prefWidth="100"/> -->
             <TableColumn fx:id="colStudentId" text="Student ID" prefWidth="100"/>
             <TableColumn fx:id="colStudentName" text="Name" prefWidth="150"/>
             <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>

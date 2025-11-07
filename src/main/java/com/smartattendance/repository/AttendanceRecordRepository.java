@@ -97,6 +97,8 @@ public class AttendanceRecordRepository {
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            System.out.println("Running query for session_id = " + sessionId); // ##for testing
+            
             ps.setInt(1, sessionId);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -127,6 +129,13 @@ public class AttendanceRecordRepository {
                     }
                     
                     records.add(record);
+
+                    // ##for testing
+                    System.out.println(
+                        "Found record: user_id=" + rs.getInt("user_id") +
+                        ", status=" + rs.getString("status")
+                    );
+
                 }
             }
         } catch (SQLException e) {

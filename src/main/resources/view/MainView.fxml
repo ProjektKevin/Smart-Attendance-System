@@ -43,17 +43,17 @@
                     </content>
                 </Tab>
                 <!-- F_MA: modified by felicia handling marking attendance -->
-                <Tab fx:id="tabAttendances" text="Attendance">
+                <!-- <Tab fx:id="tabAttendances" text="Attendance">
                     <content>
                         <fx:include source="AttendanceView.fxml" />
                     </content>
-                </Tab>
+                </Tab> -->
                 <!-- for testing -->
-                <Tab fx:id="tabStudentAttendances" text="Student Attendance">
+                <!-- <Tab fx:id="tabStudentAttendances" text="Student Attendance">
                     <content>
                         <fx:include source="StudentAttendanceView.fxml" />
                     </content>
-                </Tab>
+                </Tab> -->
                 <Tab fx:id="tabLive" text="Live Recognition">
                     <content>
                         <fx:include source="LiveView.fxml" />

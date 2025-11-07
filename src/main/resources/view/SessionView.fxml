@@ -38,5 +38,5 @@
         </HBox>
     </VBox>
 
-    <VBox fx:id="attendanceViewContainer" visible="false" managed="false" />
+    <VBox fx:id="attendanceViewContainer" visible="false" managed="false" /> 
 </StackPane>

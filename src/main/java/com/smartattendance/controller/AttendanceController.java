@@ -76,7 +76,7 @@ public class AttendanceController {
         colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
         colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
         
-        // Configure timestamp columns with proper formatting
+        // Configure marked_at column with proper formatting
         colMarkedAt.setCellValueFactory(cellData -> {
             if (cellData.getValue().getTimestamp() != null) {
                 return new SimpleStringProperty(cellData.getValue().getTimestamp().format(formatter));
@@ -85,6 +85,7 @@ public class AttendanceController {
             }
         });
         
+        // Configure last_seen column with proper formatting
         colLastSeen.setCellValueFactory(cellData -> {
             if (cellData.getValue().getLastSeen() != null) {
                 return new SimpleStringProperty(cellData.getValue().getLastSeen().format(formatter));
@@ -94,7 +95,11 @@ public class AttendanceController {
         });
 
         // Custom cell factory for status with dropdown
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        // colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        // F_MA: modified by felicia handling marking attendance
+        colStatus.setCellValueFactory(cellData ->
+            new SimpleStringProperty(AttendanceRecordRepository.capitalize(cellData.getValue().getStatus().name()))
+        );
         colStatus.setCellFactory(column -> new TableCell<AttendanceRecord, String>() {
             // F_MA: modified by felicia handling marking attendance
             private final ComboBox<String> combo = new ComboBox<>(
@@ -105,7 +110,10 @@ public class AttendanceController {
                     AttendanceRecord record = getTableView().getItems().get(getIndex());
                     if (record != null) {
                         // F_MA: modified by felicia handling marking attendance
+                        // String selected = combo.getValue();
+                        // if (selected != null) {
                         record.setStatus(AttendanceStatus.valueOf(combo.getValue().toUpperCase()));
+                        // }
                     }
                 });
             }
