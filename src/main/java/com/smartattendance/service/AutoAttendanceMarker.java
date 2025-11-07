@@ -10,10 +10,12 @@ import java.time.LocalDateTime;
 
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
+import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
+import com.smartattendance.config.Config;
 
 
 /**
@@ -62,6 +64,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
 
     // private final int lateThresholdMinutes = 15;
     // private final int cooldownSeconds = 30;
+    private int cooldownSeconds = Integer.parseInt(Config.get("cooldown.seconds"));
 
     @Override
     public void markAttendance (AttendanceRecord record) throws Exception {
@@ -76,36 +79,52 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             // }
 
             Student student = record.getStudent();
-            int studentId = student.getStudentId();
+            // int studentId = student.getStudentId();
             Session session = record.getSession();
-            int sessionId = session.getSessionId();
+            // int sessionId = session.getSessionId();
+            
             AttendanceRecordRepository attendanceRecordRepo = record.getAttendanceRecordRepo();
-            SessionRepository sessionRepo = attendanceRecordRepo.getSessionRepo();
-            LocalDateTime lastSeen = attendanceRecordRepo.findById(studentId, sessionId).getLastSeen();
-            long diffInSeconds = Duration.between(lastSeen, record.getTimestamp()).getSeconds();
-            long diffInMinutes = Duration.between(record.getTimestamp(), session.getStartTime()).toMinutes();
+            // SessionRepository sessionRepo = attendanceRecordRepo.getSessionRepo();
+            AttendanceRecord existingRecord = attendanceRecordRepo.findById(student.getStudentId(), session.getSessionId());
+            
+            // LocalDateTime lastSeen = existingRecord.getLastSeen();
+            // long diffInSeconds = Duration.between(lastSeen, record.getTimestamp()).getSeconds();
+            // long diffInMinutes = Duration.between(record.getTimestamp(), session.getStartTime()).toMinutes();
+            LocalDateTime now = record.getTimestamp();
 
-            // if the student is not marked as present before (still in default ABSENT status), update the student attendance
-            if (attendanceRecordRepo.findById(studentId, sessionId).getStatus() == AttendanceStatus.PENDING) {
+            // First time marking
+            // if the student is not marked as present before (still in default PENDING status), update the student attendance
+            if (existingRecord.getStatus() == AttendanceStatus.PENDING) {
 
                 // if the student is late, set attendance status to LATE before update
-                AttendanceStatus status = (diffInMinutes > sessionRepo.findById(sessionId).getLateThresholdMinutes())
+                long minutesLate = Duration.between(session.getStartTime(), now).toMinutes();
+                // AttendanceStatus status = (minutesLate > sessionRepo.findById(session.getSessionId()).getLateThresholdMinutes())
+                AttendanceStatus status = (minutesLate > session.getLateThresholdMinutes())
                         ? AttendanceStatus.LATE
                         : AttendanceStatus.PRESENT;
                 record.setStatus(status);
+                record.setTimestamp(now);
+                record.setMethod(MarkMethod.AUTO);
 
                 // if (diffInMinutes > record.getSession().getLateThresholdMinutes()) {
                 //     record.setStatus(AttendanceStatus.LATE);
                 // }
 
                 attendanceRecordRepo.update(record);
+                System.out.println("Marked " + student.getName() + " as " + status);
+            
+            // student already marked
+            } else if (existingRecord.getStatus() == AttendanceStatus.PRESENT || existingRecord.getStatus() == AttendanceStatus.LATE){
+                long secondsSinceLastSeen = Duration.between(existingRecord.getLastSeen(), now).getSeconds();
+                if (secondsSinceLastSeen >= cooldownSeconds) {
+                    existingRecord.setLastSeen(now);
+                    attendanceRecordRepo.updateLastSeen(record);
+                    System.out.println("Updated last_seen for " + student.getName());
+                } else {
+                    System.out.println("Cooldown active for " + student.getName() + ", skipping re-mark.");
+                }
             } else {
-                // if still in cooldown time, too soon to update lastSeen time
-                if (diffInSeconds < 30) {
-                    return;
-                } 
-                
-                record.getAttendanceRecordRepo().updateLastSeen(record);
+                System.out.println("Skipping: already marked as " + existingRecord.getStatus());
             }
 
             // if (record.getLastSeen() == null) {
@@ -124,7 +143,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             //     }
             // }
         } catch (Exception e) {
-            throw new Exception("Failed to save attendance record", e);
+            throw new Exception("Failed to mark attendance: ", e);
         }
 
     }
