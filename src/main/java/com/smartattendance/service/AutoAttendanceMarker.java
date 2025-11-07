@@ -86,7 +86,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             long diffInMinutes = Duration.between(record.getTimestamp(), session.getStartTime()).toMinutes();
 
             // if the student is not marked as present before (still in default ABSENT status), update the student attendance
-            if (attendanceRecordRepo.findById(studentId, sessionId).getStatus() == AttendanceStatus.ABSENT) {
+            if (attendanceRecordRepo.findById(studentId, sessionId).getStatus() == AttendanceStatus.PENDING) {
 
                 // if the student is late, set attendance status to LATE before update
                 AttendanceStatus status = (diffInMinutes > sessionRepo.findById(sessionId).getLateThresholdMinutes())

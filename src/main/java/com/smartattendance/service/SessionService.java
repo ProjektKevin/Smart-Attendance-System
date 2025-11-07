@@ -66,7 +66,7 @@ public class SessionService {
             AttendanceRecord record = new AttendanceRecord(
                 student,
                 s,
-                AttendanceStatus.ABSENT, // Default status
+                AttendanceStatus.PENDING, // Default status
                 0.0, // Default confidence
                 MarkMethod.NONE,      // Default method
                 LocalDateTime.now() // Default LocalDateTime

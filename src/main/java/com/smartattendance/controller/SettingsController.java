@@ -7,13 +7,14 @@ import javafx.scene.control.TextField;
 
 public class SettingsController {
   @FXML
-  private TextField cameraIndexField, thresholdField, lateField, dbPathField;
+  private TextField cameraIndexField, thresholdField, lateField, cooldownField, dbPathField;
 
   @FXML
   public void initialize() {
     cameraIndexField.setText(String.valueOf(Config.get("camera.index")));
     thresholdField.setText(String.valueOf(Config.get("recognition.threshold")));
     lateField.setText(String.valueOf(Config.get("late.threshold.minutes")));
+    cooldownField.setText(String.valueOf(Config.get("cooldown.seconds")));
     dbPathField.setText(String.valueOf(Config.get("database.path")));
   }
 
