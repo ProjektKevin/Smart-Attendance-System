@@ -17,7 +17,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Character;
 
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.entity.AttendanceRecord;
