@@ -22,6 +22,7 @@ import java.util.Map;
  * Handles displaying and editing user profile information.
  * Shows conditional UI: "Create Profile" button if no profile exists,
  * or "Edit Profile" button if profile exists.
+ * 
  * @author Thiha Swan Htet
  */
 public class ProfileController {
@@ -255,6 +256,7 @@ public class ProfileController {
             // Save to database
             if (currentProfile == null) {
                 // New profile - insert
+                // chore(), Harry: Add logger and info dialog if unsuccessful
                 profileService.createUserProfile(
                         firstName.trim(),
                         lastName.trim(),

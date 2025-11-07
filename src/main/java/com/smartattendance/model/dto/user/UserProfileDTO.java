@@ -2,6 +2,7 @@ package com.smartattendance.model.dto.user;
 
 import com.smartattendance.model.entity.Profile;
 import com.smartattendance.model.entity.User;
+import com.smartattendance.model.enums.Role;
 
 /**
  * DTO for Student Profile display
@@ -11,7 +12,7 @@ public class UserProfileDTO {
     private String firstName;
     private String lastName;
     private String email;
-    private String role;
+    private Role role;
     private String phoneNo;
     private boolean emailVerified;
 
@@ -51,7 +52,7 @@ public class UserProfileDTO {
         return email;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 

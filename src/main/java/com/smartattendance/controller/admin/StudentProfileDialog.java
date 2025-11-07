@@ -32,8 +32,8 @@ public class StudentProfileDialog {
         stage.setWidth(550);
         stage.setHeight(500);
         stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setResizable(true);  // Allow user to resize
-        stage.setMinWidth(400);    // Minimum size
+        stage.setResizable(true); // Allow user to resize
+        stage.setMinWidth(400); // Minimum size
         stage.setMinHeight(350);
 
         // Create root layout
@@ -107,7 +107,7 @@ public class StudentProfileDialog {
         // Role
         Label roleLabel = new Label("Role:");
         roleLabel.setStyle("-fx-font-weight: bold;");
-        Label roleValue = new Label(student.getRole() != null ? student.getRole() : "N/A");
+        Label roleValue = new Label(student.getRole() != null ? student.getRole().name() : "N/A");
 
         // Add to grid
         int row = 0;

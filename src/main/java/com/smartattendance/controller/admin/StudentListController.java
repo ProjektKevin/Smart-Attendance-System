@@ -1,12 +1,15 @@
 package com.smartattendance.controller.admin;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.User;
 import com.smartattendance.model.dto.user.UserListDTO;
 import com.smartattendance.model.dto.user.UserProfileDTO;
+import com.smartattendance.service.AuthService;
 import com.smartattendance.service.UserService;
 
 import java.util.List;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -26,6 +29,7 @@ public class StudentListController {
     private TableColumn<UserListDTO, Integer> actionsColumn;
 
     private UserService userService = ApplicationContext.getUserService();
+    private AuthService authService = ApplicationContext.getAuthService();
 
     // Initialize student data
     @FXML
@@ -106,17 +110,101 @@ public class StudentListController {
     }
 
     private void onDeleteStudent(UserListDTO studentDto) {
-        // chore(), Harry: Add delete method here
-        System.out.println("Delete student: " + studentDto.getEmail());
-    }
-
-    // chore(), Harry: Finish this up (user registration)
-    private void onAddStudent() {
         try {
-            // String email = emailField.getText();
+            // Show confirmation dialog
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Delete Student");
+            alert.setHeaderText("Are you sure you want to delete this student?");
+            alert.setContentText("Email: " + studentDto.getEmail() + "\nThis action cannot be undone.");
 
-            // ValidationResult validationResult = 
+            if (alert.showAndWait().get() == javafx.scene.control.ButtonType.OK) {
+                // Delete User using the student ID from the DTO
+                userService.deleteUser(studentDto.getId());
+
+                // Reload to the students table
+                Platform.runLater(this::loadStudents);
+
+                // Show success message
+                javafx.scene.control.Alert successAlert = new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Success");
+                successAlert.setHeaderText("Student Deleted");
+                successAlert.setContentText("Student has been successfully deleted.");
+                successAlert.showAndWait();
+            }
         } catch (Exception e) {
+            javafx.scene.control.Alert errorAlert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Failed to delete student");
+            errorAlert.setContentText(e.getMessage());
+            errorAlert.showAndWait();
         }
     }
+
+    @FXML
+    private void onAddStudent() {
+        try {
+            // Open Add Student dialog
+            AddStudentDialog dialog = new AddStudentDialog();
+            dialog.show();
+
+            // Check if user submitted the form
+            if (!dialog.isSubmitted()) {
+                return;
+            }
+
+            String email = dialog.getEmail();
+            String role = dialog.getRole();
+
+            // Check if user already exists
+            User user = authService.getUserByEmail(email);
+
+            if (user != null) {
+                // User already exists - show error message
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.WARNING);
+                alert.setTitle("User Already Exists");
+                alert.setHeaderText("Cannot Add Student");
+                alert.setContentText("A user with email '" + email + "' already exists.");
+                alert.showAndWait();
+                return;
+            }
+
+            // Invite new user
+            boolean isUserAdded = authService.inviteUser(email, role);
+
+            // Always reload table to ensure we have latest data
+            // (AuthRepository might swallow exceptions, so check actual database state)
+            loadStudents();
+
+            if (isUserAdded) {
+                // Success message
+                javafx.scene.control.Alert successAlert = new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.INFORMATION);
+                successAlert.setTitle("Success");
+                successAlert.setHeaderText("Student Added");
+                successAlert.setContentText("User Added: " + email);
+                successAlert.showAndWait();
+            } else {
+                // Failure message - invitation returned false
+                javafx.scene.control.Alert failAlert = new javafx.scene.control.Alert(
+                        javafx.scene.control.Alert.AlertType.WARNING);
+                failAlert.setTitle("Failed");
+                failAlert.setHeaderText("Could Not Add Student");
+                failAlert.setContentText("Failed to create account for: " + email);
+                failAlert.showAndWait();
+            }
+
+        } catch (Exception e) {
+            javafx.scene.control.Alert errorAlert = new javafx.scene.control.Alert(
+                    javafx.scene.control.Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Failed to add student");
+            errorAlert.setContentText(e.getMessage());
+            errorAlert.showAndWait();
+        }
+    }
+
 }

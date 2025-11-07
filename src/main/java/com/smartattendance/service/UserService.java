@@ -46,6 +46,16 @@ public class UserService {
         return userRepository.findUserById(userId);
     }
 
+    /**
+     * Delete user
+     *
+     * @param userId The user id
+     * @return Boolean: if deleted > true. If not > false
+     */
+    public boolean deleteUser(Integer userId) {
+        return userRepository.deleteUserById(userId);
+    }
+
     // ==================== DTO Methods ====================
 
     /**
