@@ -13,15 +13,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.smartattendance.ApplicationContext;
+import com.smartattendance.config.Config;
+import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.controller.LiveRecognitionController;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.util.AttendanceObserver;
-
 
 public class AttendanceService {
     private final List<AttendanceObserver> observers = new ArrayList<>();
     private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
     private final Map<String, AttendanceRecord> records = new HashMap<>();
+    private final double threshold = Double.parseDouble(Config.get("recognition.threshold"));
 
     public void addObserver(AttendanceObserver o) {
         observers.add(o);
@@ -30,6 +33,11 @@ public class AttendanceService {
     // F_MA: modified by felicia handling marking attendance
     public synchronized void markAttendance(AttendanceRecord r) {
         try {
+            // if confidence < threshold, request user confirmation
+            if (r.getConfidence() < threshold) {
+                AttendanceController.requestUserConfirmation(r);
+                return;
+            }
             attendanceRecords.add(r);
             r.mark();
             for (AttendanceObserver o : observers) {

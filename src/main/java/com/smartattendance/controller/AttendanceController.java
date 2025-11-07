@@ -5,13 +5,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,6 +22,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -54,6 +58,35 @@ public class AttendanceController {
         this.currentSession = session;
         lblSessionTitle.setText("Attendance for Session ID: " + session.getSessionId());
         loadAttendanceRecords();
+    }
+
+    public static void requestUserConfirmation(AttendanceRecord record) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Student Identity");
+            alert.setHeaderText("Low Confidence Detection");
+            alert.setContentText(String.format(
+                    // "Detected student:\n\nName: %s\nID: %d\nConfidence: %.2f\n\nIs this correct?",
+                    "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
+                    record.getStudent().getName(),
+                    record.getStudent().getStudentId()
+                    // record.getConfidence()
+            ));
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                // user confirmed → mark attendance
+                try {
+                    record.mark();
+                } catch (Exception e) {
+                    System.err.println("Failed to save attendance record");
+                    e.printStackTrace();
+                }
+            } else {
+                // user declined → skip
+                System.out.println("Skipped marking for " + record.getStudent().getName());
+            }
+        });
     }
 
     @FXML
@@ -215,4 +248,6 @@ public class AttendanceController {
             }
         }
     }
+
+
 }

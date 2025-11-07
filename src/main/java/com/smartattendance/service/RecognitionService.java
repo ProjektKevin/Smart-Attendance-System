@@ -10,10 +10,12 @@ import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.config.Config;
 
 public class RecognitionService {
   // Use shared attendance service so Reports can see the records
   private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
+  private final double threshold = Double.parseDouble(Config.get("recognition.threshold"));
 
   public AttendanceService getAttendanceService() {
     return attendanceService;
@@ -31,6 +33,7 @@ public class RecognitionService {
       // AttendanceRecord rec = new AttendanceRecord(s, sess, "Present", "Auto", 0.95, LocalDateTime.now());
       // AttendanceRecord rec = new AttendanceRecord(s, sess, AttendanceStatus.PRESENT, 0.95, LocalDateTime.now(), MarkMethod.AUTO);
       // attendanceService.markAttendance(rec);
+      // AttendanceRecord rec = new AttendanceRecord(s, sess, AttendanceStatus.PRESENT, 0.95, MarkMethod.AUTO, LocalDateTime.now());
       AttendanceRecord rec = new AttendanceRecord(s, sess, AttendanceStatus.PRESENT, 0.95, MarkMethod.AUTO, LocalDateTime.now());
       attendanceService.markAttendance(rec);
     }).start();
