@@ -24,6 +24,8 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.util.OpenCVUtils;
+// F_MA: modified by felicia handling marking attendance ##for testing
+import com.smartattendance.service.RecognitionServiceTest;
 
 public class RecognitionController {
     @FXML
@@ -63,6 +65,9 @@ public class RecognitionController {
     private boolean cameraActive = false;
     private ScheduledExecutorService timer;
     private static int cameraId = 0;
+
+    // F_MA: modified by felicia handling marking attendance ##for testing
+    private RecognitionServiceTest testService;
 
     // =======================================================================
     @FXML
@@ -239,6 +244,28 @@ public class RecognitionController {
 
     private void updateImageView(ImageView view, Image image) {
         OpenCVUtils.onFXThread(view.imageProperty(), image);
+    }
+
+    // F_MA: modified by felicia handling marking attendance ##for testing
+
+     @FXML
+    private void onTestHighConfidence() {
+        testService.testHighConfidence();
+    }
+
+    @FXML
+    private void onTestLowConfidence() {
+        testService.testLowConfidence();
+    }
+
+    @FXML
+    private void onTestWithinCooldown() {
+        testService.testWithinCooldown();
+    }
+
+    @FXML
+    private void onTestAfterCooldown() {
+        testService.testAfterCooldown();
     }
 
 }

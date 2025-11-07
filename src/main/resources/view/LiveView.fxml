@@ -7,6 +7,8 @@
     <HBox spacing="10">
         <!-- <Button text="Start" onAction="#onStartCamera"/>
         <Button text="Stop" onAction="#onStopCamera"/> -->
-        <Label fx:id="statusLabel" text="Idle"/>
+        <!-- F_MA: modified by felicia handling marking attendance ##for testing -->
+        <Label fx:id="StatusLabel" text="Idle"/>
+        <Label fx:id="cameraStatusLabel" text="Initializing camera..."/>
     </HBox>
 </VBox>

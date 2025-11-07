@@ -15,6 +15,12 @@ public class RootController {
     // Admin tabs (may be null on student view)
     @FXML
     private Tab tabDashboard, tabStudents, tabEnrollments, tabSessions, tabLive, tabReports, tabSettings;
+    // F_MA: modified by felicia handling marking attendance ##for testing
+    private Tab tabRecognition;
+    @FXML
+    private RecognitionController recognitionViewController;
+
+
     // Student tabs (may be null on admin view)
     @FXML
     private Tab tabCapture, tabAttendance, tabProfile;
@@ -43,6 +49,8 @@ public class RootController {
         safeSetTabIcon(tabStudents, "\uD83D\uDC65"); // 👥
         safeSetTabIcon(tabSessions, "\uD83D\uDD53"); // 🕓 (your original)
         safeSetTabIcon(tabLive, "\uD83C\uDFA5"); // 🎥
+        // F_MA: modified by felicia handling marking attendance ##for testing
+        safeSetTabIcon(tabRecognition, "\uD83C\uDFA5");
         safeSetTabIcon(tabReports, "\uD83D\uDCCA"); // 📊
         safeSetTabIcon(tabSettings, "\u2699"); // ⚙
         safeSetTabIcon(tabProfile, "\uD83D\uDC64");
