@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+  fx:controller="com.smartattendance.controller.RecognitionController"
+  fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent;">
+  <BorderPane >
+    <top>
+      <VBox spacing="10" style="-fx-padding: 15;">
+        <Label text="Student Face Recognition System">
+          <font>
+            <Font name="System Bold" size="24" />
+          </font>
+        </Label>
+        <Label fx:id="statusLabel" text="Status: Ready">
+          <font>
+            <Font size="14" />
+          </font>
+        </Label>
+      </VBox>
+    </top>
+
+    <center>
+      <VBox spacing="15" alignment="TOP_CENTER" style="-fx-padding: 20;">
+        <!-- Video Feed -->
+        <VBox alignment="CENTER" spacing="10">
+          <Label text="Live Camera Feed" style="-fx-font-size: 16; -fx-font-weight: bold;" />
+          <ImageView fx:id="videoFeed" fitHeight="480" fitWidth="640" preserveRatio="true"
+            style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 2);" />
+        </VBox>
+
+        <!-- Control Buttons -->
+        <HBox spacing="15" alignment="CENTER">
+          <Button fx:id="startButton" text="Start Recognition" onAction="#startRecognition"
+            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;">
+            <font>
+              <Font name="System Bold" size="14" />
+            </font>
+          </Button>
+
+          <Button fx:id="stopButton" text="Stop Recognition" onAction="#stopRecognition"
+            disable="true"
+            style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;">
+            <font>
+              <Font name="System Bold" size="14" />
+            </font>
+          </Button>
+
+          <!-- <Button fx:id="captureButton" text="Capture Frame" onAction="#captureFrame"
+            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;">
+            <font>
+              <Font name="System Bold" size="14" />
+            </font>
+          </Button> -->
+        </HBox>
+      </VBox>
+    </center>
+
+    <right>
+      <VBox spacing="15" style="-fx-background-color: #ecf0f1; -fx-padding: 20;" prefWidth="300">
+        <Label text="Recognized Students" style="-fx-font-size: 16; -fx-font-weight: bold;" />
+
+        <Separator />
+
+        <!-- Current Detection Info -->
+        <VBox spacing="10"
+          style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 5;">
+          <Label text="Current Detection:" style="-fx-font-weight: bold; -fx-font-size: 14;" />
+          <Label fx:id="currentStudentLabel" text="No face detected" wrapText="true"
+            style="-fx-font-size: 13; -fx-text-fill: #7f8c8d;" />
+          <Label fx:id="confidenceLabel" text="Confidence: N/A"
+            style="-fx-font-size: 12; -fx-text-fill: #95a5a6;" />
+        </VBox>
+
+        <Separator />
+
+        <!-- Recognition History -->
+        <Label text="Recognition History:" style="-fx-font-size: 14; -fx-font-weight: bold;" />
+        <ListView fx:id="recognitionListView" prefHeight="300"
+          style="-fx-background-radius: 5;" />
+
+        <Button fx:id="clearHistoryButton" text="Clear History" onAction="#clearHistory"
+          style="-fx-background-color: #95a5a6; -fx-text-fill: white; -fx-font-size: 12; -fx-padding: 8 15;" />
+      </VBox>
+    </right>
+
+    <bottom>
+      <HBox spacing="10" alignment="CENTER_LEFT"
+        style="-fx-background-color: #eeeeee;  -fx-padding: 10;">
+        <Label fx:id="cameraStatusLabel" text="Camera: Disconnected">
+          <font>
+            <Font size="12" />
+          </font>
+        </Label>
+        <Separator orientation="VERTICAL" />
+        <Label fx:id="modelStatusLabel" text="Model: Not Loaded">
+          <font>
+            <Font size="12" />
+          </font>
+        </Label>
+      </HBox>
+    </bottom>
+  </BorderPane>
+</ScrollPane>
