@@ -17,6 +17,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Character;
 
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -34,6 +35,15 @@ public class AttendanceRecordRepository {
         this.sessionRepo = new SessionRepository();
     }
     
+    // helper class to convert first character to upper case for mark method and attendance status
+    public static String capitalize(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+
+        str = str.toLowerCase();
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
     // select all
     public List<AttendanceRecord> findAll() {
         List<AttendanceRecord> records = new ArrayList<>();
@@ -186,8 +196,8 @@ public class AttendanceRecordRepository {
             ps.setDouble(4, record.getConfidence());
             ps.setTimestamp(5, Timestamp.valueOf(record.getTimestamp()));
             ps.setTimestamp(6, Timestamp.valueOf(record.getLastSeen()));
-            ps.setString(7, record.getMethod().toString());
-            ps.setString(8, record.getStatus().toString());
+            ps.setString(7, capitalize(record.getMethod().toString()));
+            ps.setString(8, capitalize(record.getStatus().toString()));
 
             
             return ps.executeUpdate() > 0;
@@ -204,8 +214,8 @@ public class AttendanceRecordRepository {
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            ps.setString(1, record.getStatus().toString());
-            ps.setString(2, record.getMethod().toString());
+            ps.setString(1, capitalize(record.getStatus().toString()));
+            ps.setString(2, capitalize(record.getMethod().toString()));
             ps.setDouble(3, record.getConfidence());
             ps.setTimestamp(4, Timestamp.valueOf(record.getTimestamp()));
             ps.setTimestamp(5, Timestamp.valueOf(record.getLastSeen()));
@@ -264,7 +274,7 @@ public class AttendanceRecordRepository {
                 
             ps.setTimestamp(1, Timestamp.valueOf(record.getTimestamp()));
             ps.setTimestamp(2, Timestamp.valueOf(record.getLastSeen()));
-            ps.setString(3, record.getStatus().toString());
+            ps.setString(3, capitalize(record.getStatus().toString()));
             ps.setInt(4, record.getStudent().getStudentId());
             ps.setInt(5, record.getSession().getSessionId());
              // Set both marked_at and last_seen to current timestamp
