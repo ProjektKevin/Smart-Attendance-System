@@ -47,7 +47,7 @@ public class AttendanceRecord {
         this.confidence = 0.0;
         this.timestamp = timestamp;
         this.lastSeen = timestamp;
-        this.method = null;
+        this.method = method;
         this.note = "";
     }
 
@@ -59,7 +59,7 @@ public class AttendanceRecord {
         this.confidence = 0.0;
         this.timestamp = timestamp;
         this.lastSeen = last_seen;
-        this.method = null;
+        this.method = method;
         this.note = "";
     }
 

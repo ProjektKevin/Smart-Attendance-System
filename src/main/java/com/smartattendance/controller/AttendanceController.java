@@ -73,7 +73,11 @@ public class AttendanceController {
         });
 
         // Configure other columns
-        colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
+        // colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
+        // F_MA: modified by felicia handling marking attendance
+        colMethod.setCellValueFactory(cellData ->
+            new SimpleStringProperty(AttendanceRecordRepository.capitalize(cellData.getValue().getMethod().name()))
+        );
         colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
         
         // Configure marked_at column with proper formatting
