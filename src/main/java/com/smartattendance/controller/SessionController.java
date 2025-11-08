@@ -13,6 +13,7 @@ import com.smartattendance.model.entity.Session;
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
+import com.smartattendance.util.ControllerRegistry;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -79,6 +80,8 @@ public class SessionController {
     private final SessionService sm = new SessionService();
     private final ObservableList<Session> sessionList = FXCollections.observableArrayList();
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
+    // F_MA: added by felicia handling marking attendance
+    private AttendanceController attendanceController; // store reference
 
     @FXML
     public void initialize() {
@@ -129,6 +132,10 @@ public class SessionController {
         }));
         uiRefresher.setCycleCount(Timeline.INDEFINITE);
         uiRefresher.play();
+    }
+
+    public AttendanceController getAttendanceController() {
+        return attendanceController;
     }
 
     // Styles the info label based on message type
@@ -220,13 +227,18 @@ public class SessionController {
             // Load the Attendance view fresh and get its controller
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceView.fxml"));
             Parent attendanceRoot = loader.load();
-            AttendanceController attendanceCtrl = loader.getController();
+            // F_MA: modified by felicia handling marking attendance
+            attendanceController = loader.getController();
+            // AttendanceController attendanceCtrl = loader.getController();
+            // Save globally for AutoAttendanceUpdater to access
+            ControllerRegistry.setAttendanceController(attendanceController);
+            
 
             // Pass session to the attendance controller
-            attendanceCtrl.setSession(session);
+            attendanceController.setSession(session);
 
             // Provide a callback so AttendanceController can go back to the sessions list
-            attendanceCtrl.setBackHandler(() -> {
+            attendanceController.setBackHandler(() -> {
                 // hide attendance view and show session list
                 attendanceViewContainer.getChildren().clear();
                 attendanceViewContainer.setVisible(false);

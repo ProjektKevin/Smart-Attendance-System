@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.smartattendance.config.Config;
+import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.MarkMethod;
@@ -17,6 +18,9 @@ import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
+import com.smartattendance.util.ControllerRegistry;
+
+import javafx.application.Platform;
 
 
 /**
@@ -173,6 +177,12 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                     System.out.println("Updated attendance to ABSENT for student: " + rec.getStudent().getName());
                 }
             }
+        }
+
+        // Refresh the UI after updates
+        AttendanceController attendanceController = ControllerRegistry.getAttendanceController();
+        if (attendanceController != null) {
+            Platform.runLater(attendanceController::loadAttendanceRecords);
         }
     }
 

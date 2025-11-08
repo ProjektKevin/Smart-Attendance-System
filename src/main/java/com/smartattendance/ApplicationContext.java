@@ -31,9 +31,10 @@ public final class ApplicationContext {
     private static ProfileService profileService;
     private static CourseService courseService;
 
-    // Busines Utils
+    // Busines Utils & Controller
     // F_MA: added by felicia handling marking attendance
     private static AutoAttendanceUpdater autoAttendanceUpdater;
+    // private static AttendanceController attendanceController;
 
     // DB Repositories
     private static AuthRepository authRepository;
@@ -89,6 +90,7 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
         autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
+        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         autoAttendanceUpdater.startAutoUpdate(60);
 
         initialized = true;

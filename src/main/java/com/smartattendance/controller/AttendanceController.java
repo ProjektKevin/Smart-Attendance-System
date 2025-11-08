@@ -12,6 +12,7 @@ import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
+import com.smartattendance.util.AttendanceObserver;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -29,7 +30,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-public class AttendanceController {
+public class AttendanceController implements AttendanceObserver{
     @FXML private Label lblSessionTitle;
     @FXML private TableView<AttendanceRecord> attendanceTable;
     @FXML private TableColumn<AttendanceRecord, String> colStudentId;
@@ -48,6 +49,16 @@ public class AttendanceController {
     
     // Formatter for timestamp display
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    @Override
+    public void onAttendanceMarked(AttendanceRecord record) {
+        // single record marked (existing)
+    }
+
+    @Override
+    public void onAttendanceAutoUpdated() {
+        Platform.runLater(this::loadAttendanceRecords);
+    }
 
     public void setBackHandler(Runnable backHandler) {
         this.backHandler = backHandler;
@@ -187,7 +198,9 @@ public class AttendanceController {
         attendanceTable.setEditable(true);
     }
 
-    private void loadAttendanceRecords() {
+    // F_MA: modified by felicia handling marking attendance
+    // private void loadAttendanceRecords() {
+    public void loadAttendanceRecords() {
         if (currentSession != null) {
             List<AttendanceRecord> records = repo.findBySessionId(currentSession.getSessionId());
             attendanceList.setAll(records);
