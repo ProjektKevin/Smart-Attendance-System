@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
+import com.smartattendance.service.AttendanceService;
 import com.smartattendance.util.AttendanceObserver;
 
 import javafx.application.Platform;
@@ -43,6 +45,7 @@ public class AttendanceController implements AttendanceObserver{
 
     private final AttendanceRecordRepository repo = new AttendanceRecordRepository();
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
+    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
     private Session currentSession;
     private Runnable backHandler;
     private final Map<Integer, String> originalStatuses = new HashMap<>();
@@ -196,6 +199,7 @@ public class AttendanceController implements AttendanceObserver{
 
         // Make table editable if you want to edit notes or status
         attendanceTable.setEditable(true);
+        attendanceService.addObserver(this);
     }
 
     // F_MA: modified by felicia handling marking attendance

@@ -43,6 +43,10 @@ public class AttendanceService {
             for (AttendanceObserver o : observers) {
                 // notify the recognitionService that the attendance of a particular student is marked
                 o.onAttendanceMarked(r);
+                if (o instanceof AttendanceController) {
+                    // refresh the attendancceRecords page
+                    ((AttendanceController) o).loadAttendanceRecords();
+                }
             }
         } catch (Exception e) {
             for (AttendanceObserver o : observers) {

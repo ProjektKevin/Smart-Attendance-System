@@ -160,9 +160,10 @@ public class AutoAttendanceMarker implements AttendanceMarker {
         LocalDateTime now = LocalDateTime.now();
 
         for (Session sess : allSessions) {
-            LocalDateTime sessionEndDateTime = LocalDateTime.of(sess.getSessionDate(), sess.getEndTime());
-            boolean isClosed = "Closed".equalsIgnoreCase(sess.getStatus()) ||
-                               sessionEndDateTime.isBefore(now);
+            // LocalDateTime sessionEndDateTime = LocalDateTime.of(sess.getSessionDate(), sess.getEndTime());
+            // boolean isClosed = "Closed".equalsIgnoreCase(sess.getStatus()) ||
+            //                    sessionEndDateTime.isBefore(now);
+            boolean isClosed = "Closed".equalsIgnoreCase(sess.getStatus());
 
             if (isClosed) {
                 List<AttendanceRecord> pendingRecords = attendanceRecordRepo.findPendingAttendanceBySessionId(sess.getSessionId(), AttendanceStatus.PENDING);

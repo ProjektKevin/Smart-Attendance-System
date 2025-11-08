@@ -6,6 +6,7 @@ import com.smartattendance.util.AttendanceObserver;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 
@@ -38,6 +39,11 @@ public class LiveRecognitionController implements AttendanceObserver {
     @Override
     public void onAttendanceMarked(AttendanceRecord r) {
         Platform.runLater(() -> statusLabel.setText("Marked: " + r.getStudent().getName() + " (" + r.getStatus() + ")"));
+        // Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        // alert.setTitle("Confirm Delete All");
+        // alert.setHeaderText("Delete ALL Sessions");
+        // alert.setContentText("WARNING: This will permanently delete ALL " + sessionList.size() + " sessions!\n\n" +
+        //         "This action cannot be undone. Are you absolutely sure?");
     }
 
     // F_MA: modified by felicia handling marking attendance ##
