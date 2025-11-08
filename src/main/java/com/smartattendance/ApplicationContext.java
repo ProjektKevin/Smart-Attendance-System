@@ -112,7 +112,7 @@ public final class ApplicationContext {
             LoggerUtil.LOGGER.info("Image processing service initialized");
 
             // Initialize face recognition
-            faceRecognitionService = new FaceRecognitionService();
+            faceRecognitionService = new FaceRecognitionService(faceDetectionService);
             LoggerUtil.LOGGER.info("Face recognition service initialized");
 
         } catch (Exception e) {

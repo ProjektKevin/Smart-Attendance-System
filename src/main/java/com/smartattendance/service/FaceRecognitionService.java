@@ -15,12 +15,15 @@ import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.service.recognition.Recognizer;
 
 public class FaceRecognitionService {
-  private final FaceProcessingService faceProcessingService = ApplicationContext.getFaceProcessingService();
+  private final FaceDetectionService faceDetectionService;
+  private final FaceProcessingService faceProcessingService;
   private Recognizer recognizer;
   private List<Student> enrolledStudents;
 
   // ----- Constructor -----
-  public FaceRecognitionService() {
+  public FaceRecognitionService(FaceDetectionService faceDetectionService) {
+    this.faceDetectionService = faceDetectionService;
+    this.faceProcessingService = new FaceProcessingService(faceDetectionService);
     this.recognizer = new HistogramRecognizer(faceProcessingService, 70.0);
     this.enrolledStudents = new ArrayList<>();
 
