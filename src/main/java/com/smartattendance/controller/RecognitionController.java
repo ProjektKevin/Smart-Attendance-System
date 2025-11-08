@@ -13,15 +13,20 @@ import org.opencv.objdetect.CascadeClassifier;
 import org.opencv.videoio.VideoCapture;
 
 import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.Student;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
+import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.util.OpenCVUtils;
 
 public class RecognitionController {
@@ -63,6 +68,20 @@ public class RecognitionController {
     private ScheduledExecutorService timer;
     private static int cameraId = 0;
 
+    // Recognition tracking
+    private Set<String> recognizedStudentIds = new HashSet<>();
+    private int totalDetections = 0;
+    private long lastFrameTime = 0;
+    private double currentFps = 0.0;
+
+    // Recognition cooldown to avoid spam
+    private long lastRecognitionTime = 0;
+    private static final long RECOGNITION_COOLDOWN_MS = 3000; // 3 seconds
+
+    // Time formatter for logs
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+
     // =======================================================================
     @FXML
     public void initialize() {
@@ -92,6 +111,9 @@ public class RecognitionController {
 
                         // STEP 3: Update the UI with the new frame
                         updateImageView(videoFeed, imageToShow);
+
+                        // STEP 4: Update FPS display
+                        updateFPS();
                     }
                 };
 
@@ -100,14 +122,19 @@ public class RecognitionController {
                 this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
 
                 // Update UI
-                this.startButton.setText("Stop Recognition");
-                this.cameraStatusLabel.setText("Camera: Connected");
-                this.statusLabel.setText("Status: Recognition Active");
+                Platform.runLater(() -> {
+                    startButton.setText("Stop Recognition");
+                    cameraStatusLabel.setText("Camera: Connected");
+                    statusLabel.setText("Status: Recognition Active");
+                    if (stopButton != null) {
+                        stopButton.setDisable(false);
+                    }
+                });
 
             } else {
                 // Camera failed to open
                 System.err.println("Camera Connection Failed");
-                this.statusLabel.setText("Status: Camera Error");
+                statusLabel.setText("Status: Camera Error");
             }
 
         } else {
@@ -159,35 +186,8 @@ public class RecognitionController {
         System.out.println("Clear history button clicked");
     }
 
-    private void startCameraFeed() {
-        Runnable frameGrabber = () -> {
-            Mat frame = new Mat();
-
-            if (capture != null && capture.isOpened()) {
-                capture.read(frame);
-
-                if (!frame.empty()) {
-                    // Convert Mat to Image and display
-                    Image imageToShow = mat2Image(frame);
-                    Platform.runLater(() -> videoFeed.setImage(imageToShow));
-                }
-            }
-        };
-
-        // Grab frames at ~30 FPS
-        timer = Executors.newSingleThreadScheduledExecutor();
-        timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
-    }
-
-    private Image mat2Image(Mat frame) {
-        MatOfByte buffer = new MatOfByte();
-        org.opencv.imgcodecs.Imgcodecs.imencode(".png", frame, buffer);
-        return new Image(new ByteArrayInputStream(buffer.toArray()));
-    }
-
     // ----- Helper Functions -----
     private Mat grabFrame() {
-        // init everything
         Mat frame = new Mat();
 
         // check if the capture is open
@@ -198,14 +198,31 @@ public class RecognitionController {
 
                 // if the frame is not empty, process it
                 if (!frame.empty()) {
+                    // 1. Detect Faces
                     MatOfRect faces = faceDetectionService.detectFaces(frame);
+                    Rect[] facesArray = faces.toArray();
 
-                    // Draw rectangles on the COLOR frame (not grayscale)
-                    int faceCount = faceDetectionService.drawFaceRectangles(frame, faces);
+                    if (facesArray.length > 0) {
+                        // Step 2: Extractface ROTs
+                        List<Mat> faceROIs = faceRecognitionService.extractFaceROIs(frame, facesArray);
 
-                    if (faceCount != 1) {
-                        System.out.println("Too many people for enrollment");
-                        // chore(), Harry: Add validation here
+                        // Step 3: Recognize Faces
+                        List<RecognitionResult> results = faceRecognitionService.recognizeFaces(faceROIs);
+
+                        // Step 4: Process results
+                        String[] recognizedNames = processRecognitionResults(results);
+
+                        // Step 5: Draw rectangles and labels
+                        faceDetectionService.drawFaceRectanglesWithLabels(frame, faces, recognizedNames);
+
+                        // Step 6: Update UI
+                        final int faceCount = facesArray.length;
+                        Platform.runLater(() -> {
+                            totalDetectionsLabel.setText("Detections: " + faceCount);
+                            statusLabel.setText("Status: Detected " + faceCount + " face(s)");
+                        });
+                    } else {
+                        Platform.runLater(() -> statusLabel.setText("Status: No faces detected"));
                     }
                 }
 
@@ -240,4 +257,112 @@ public class RecognitionController {
         OpenCVUtils.onFXThread(view.imageProperty(), image);
     }
 
+    private String[] processRecognitionResults(List<RecognitionResult> results) {
+        String[] names = new String[results.size()];
+        long currentTime = System.currentTimeMillis();
+
+        for (int i = 0; i < results.size(); i++) {
+            RecognitionResult result = results.get(i);
+
+            if (result.isMatch()) {
+                Student student = result.getMatchedStudent();
+                double confidence = result.getConfidenceScore();
+
+                names[i] = student.getUserName();
+
+                // Update current recognition display
+                final String studentName = student.getUserName();
+                final double finalConfidence = confidence;
+
+                Platform.runLater(() -> {
+                    currentStudentLabel.setText("Current: " + studentName);
+                    confidenceLabel.setText(String.format("Confidence: %.1f%%", finalConfidence));
+                });
+
+                // Log attendance if cooldown period has passed
+                if (currentTime - lastRecognitionTime > RECOGNITION_COOLDOWN_MS) {
+                    logAttendance(student, confidence);
+                    lastRecognitionTime = currentTime;
+                }
+
+            } else {
+                names[i] = "Unknown";
+
+                Platform.runLater(() -> {
+                    currentStudentLabel.setText("Current: Unknown");
+                    confidenceLabel.setText("Confidence: N/A");
+                });
+            }
+        }
+
+        return names;
+    }
+
+    // Show attendance log in the UI
+    private void logAttendance(Student student, double confidence) {
+        String studentId = student.getStudentId();
+        String studentName = student.getUserName();
+
+        // Track unique students
+        boolean isNewStudent = recognizedStudentIds.add(studentId);
+        totalDetections++;
+
+        // Create log entry
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        String statusIcon;
+
+        if (confidence >= 80.0) {
+            statusIcon = "✓"; // High confidence
+        } else if (confidence >= 70.0) {
+            statusIcon = "~"; // Medium confidence
+        } else {
+            statusIcon = "?"; // Low confidence
+        }
+
+        String logEntry = String.format("%s [%s] %s (ID: %s) - %.1f%%",
+                statusIcon, timestamp, studentName, studentId, confidence);
+
+        final int uniqueCount = recognizedStudentIds.size();
+
+        // Update UI
+        Platform.runLater(() -> {
+            // Add to list view
+            recognitionListView.getItems().add(0, logEntry);
+
+            // Update counters
+            uniqueStudentsLabel.setText("Unique: " + uniqueCount);
+
+            // Keep list manageable (max 50 entries)
+            if (recognitionListView.getItems().size() > 50) {
+                recognitionListView.getItems().remove(50);
+            }
+        });
+
+        // Console log
+        if (isNewStudent) {
+            System.out.println("NEW STUDENT RECOGNIZED: " + logEntry);
+        } else {
+            System.out.println("STUDENT RE-DETECTED: " + logEntry);
+        }
+    }
+
+    // Update FPS display
+    private void updateFPS() {
+        long currentTime = System.currentTimeMillis();
+        
+        if (lastFrameTime > 0) {
+            long frameDuration = currentTime - lastFrameTime;
+            if (frameDuration > 0) {
+                currentFps = 1000.0 / frameDuration;
+
+                Platform.runLater(() -> {
+                    if (fpsLabel != null) {
+                        fpsLabel.setText(String.format("FPS: %.1f", currentFps));
+                    }
+                });
+            }
+        }
+        
+        lastFrameTime = currentTime;
+    }
 }

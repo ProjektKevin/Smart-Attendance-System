@@ -7,19 +7,25 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
+import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.entity.FaceData;
+import com.smartattendance.service.FaceProcessingService;
 
 public class HistogramRecognizer extends Recognizer {
-  public HistogramRecognizer() {
+  private final FaceProcessingService faceProcessingService;
+
+  public HistogramRecognizer(FaceProcessingService faceProcessingService) {
     super();
+    this.faceProcessingService = faceProcessingService;
   }
 
-  public HistogramRecognizer(double confidenceThreshold) {
+  public HistogramRecognizer(FaceProcessingService faceProcessingService, double confidenceThreshold) {
     super(confidenceThreshold);
+    this.faceProcessingService = faceProcessingService;
   }
 
   @Override
@@ -27,95 +33,107 @@ public class HistogramRecognizer extends Recognizer {
     for (Student student : students) {
       FaceData faceData = student.getFaceData();
       if (faceData != null && !faceData.getImages().isEmpty()) {
-        Mat avgHistogram = computeAverageHistogram(faceData.getImages());
-        faceData.setHistogram(avgHistogram);
+        try {
+          Mat avgHistogram = faceProcessingService.computeAverageHistogram(faceData.getImages());
+          if (avgHistogram.empty()) {
+            System.out.println("Failed to compute average histogram for student " + student.getUserName());
+            continue;
+          }
+
+          faceData.setHistogram(avgHistogram);
+
+          System.out.println("Got average Hist for " + student.getUserName());
+        } catch (Exception e) {
+          System.out.println("Error processing student " + student.getUserName() + ": " + e.getMessage());
+          continue;
+        }
+      } else {
+        System.out.println("Student " + student.getUserName() + " has no face data");
+        continue;
       }
     }
   }
 
   @Override
   public RecognitionResult recognize(Mat faceImage, List<Student> enrolledStudents) {
-    if (faceImage.empty()) {
+    if (faceImage.empty() || faceImage == null) {
+      System.out.println("Input face image is empty or null");
       return new RecognitionResult();
     }
 
-    // Compute histogram of input face
-    Mat inputHistogram = computeHistogram(faceImage);
+    if (enrolledStudents.isEmpty() || enrolledStudents == null) {
+      System.out.println("No enrolled students to compare against");
+      return new RecognitionResult();
+    }
+    try {
+      // Preprocess the input face image
+      Rect fullRect = new Rect(0, 0, faceImage.cols(), faceImage.rows());
+      Mat preprocessedFace = faceProcessingService.preprocessFace(faceImage, fullRect);
 
-    double bestScore = -1.0;
-    Student bestMatch = null;
+      // Compute histogram for the preprocessed face
+      Mat inputHistogram = faceProcessingService.computeHistogram(preprocessedFace);
+      preprocessedFace.release(); // Release memory (Clean up)
 
-    // Compare with each student's stored histogram
-    for (Student student : enrolledStudents) {
-      FaceData faceData = student.getFaceData();
-      if (faceData == null || faceData.getHistogram() == null) {
-        continue;
+      double bestScore = -1.0;
+      Student bestMatch = null;
+
+      // Compare with each student's stored histogram
+      for (Student student : enrolledStudents) {
+        FaceData faceData = student.getFaceData();
+        if (faceData == null || faceData.getHistogram() == null) {
+          continue;
+        }
+
+        try {
+          double score = Imgproc.compareHist(
+              inputHistogram,
+              faceData.getHistogram(), // Get from FaceData!
+              Imgproc.CV_COMP_CORREL);
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = student;
+          }
+        } catch (Exception e) {
+          System.out.println("Error comparing histograms for student " + student.getUserName() + ": " + e.getMessage());
+        }
       }
 
-      double score = Imgproc.compareHist(
-          inputHistogram,
-          faceData.getHistogram(), // Get from FaceData!
-          Imgproc.CV_COMP_CORREL);
+      inputHistogram.release(); // Release memory
 
-      // Convert correlation to percentage
-      double confidence = (score + 1.0) * 50.0;
+      // Return result if meets threshold
+      if (bestMatch != null) {
+        // Convert correlation score to percentage (correlation is -1 to 1)
+        double confidence = (bestScore + 1.0) * 50.0;
 
-      if (confidence > bestScore) {
-        bestScore = confidence;
-        bestMatch = student;
+        if (confidence >= getConfidenceThreshold()) {
+          System.out.println("Recognized: " + bestMatch.getUserName() +
+              " (confidence: " + String.format("%.2f%%", confidence) + ")");
+          return new RecognitionResult(bestMatch, confidence);
+        } else {
+          System.out.println("Best match below threshold: " + bestMatch.getUserName() +
+              " (confidence: " + String.format("%.2f%%", confidence) + ")");
+        }
       }
-    }
 
-    // Return result if meets threshold
-    if (bestMatch != null && bestScore >= getConfidenceThreshold()) {
-      return new RecognitionResult(bestMatch, bestScore);
+      return new RecognitionResult();
+    } catch (Exception e) {
+      System.out.println("Error during recognition: " + e.getMessage());
+      return new RecognitionResult();
     }
-
-    return new RecognitionResult();
   }
 
-  public Mat computeHistogram(Mat image) {
-    if (image.empty()) {
-      System.out.println("Cannot compute histogram for empty image");
-      return new Mat();
+  // Recognize multiple faces from a list of face images
+  public List<RecognitionResult> recognizeBatch(List<Mat> faceImages, List<Student> enrolledStudents) {
+    List<RecognitionResult> results = new java.util.ArrayList<>();
+
+    for (Mat faceImage : faceImages) {
+      RecognitionResult result = recognize(faceImage, enrolledStudents);
+      results.add(result);
     }
 
-    Mat hist = new Mat();
-
-    // Histogram parameters
-    MatOfInt histSize = new MatOfInt(256);
-    MatOfFloat ranges = new MatOfFloat(0f, 256f);
-    MatOfInt channels = new MatOfInt(0);
-
-    // Calculate histogram
-    Imgproc.calcHist(List.of(image), channels, new Mat(), hist, histSize, ranges);
-
-    // Normalize histogram to range [0, 1]
-    Core.normalize(hist, hist, 0, 1, Core.NORM_MINMAX);
-
-    return hist;
+    return results;
   }
 
-  public Mat computeAverageHistogram(List<Mat> images) {
-    if (images.isEmpty()) {
-      return new Mat();
-    }
-
-    Mat sumHistogram = Mat.zeros(256, 1, CvType.CV_32F); // safer initialization
-
-    for (Mat image : images) {
-      Mat hist = computeHistogram(image);
-      if (hist.type() != CvType.CV_32F || !hist.size().equals(new Size(1, 256))) {
-        hist.convertTo(hist, CvType.CV_32F);
-        hist = hist.reshape(1, 256); // ensure column vector
-      }
-      Core.add(sumHistogram, hist, sumHistogram);
-    }
-
-    sumHistogram.convertTo(sumHistogram, sumHistogram.type(), 1.0 / images.size());
-    Core.normalize(sumHistogram, sumHistogram, 0, 1, Core.NORM_MINMAX);
-
-    return sumHistogram;
-  }
 
 }

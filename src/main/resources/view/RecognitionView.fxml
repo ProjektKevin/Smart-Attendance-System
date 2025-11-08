@@ -15,7 +15,7 @@
 <ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="com.smartattendance.controller.RecognitionController"
   fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent;">
-  <BorderPane >
+  <BorderPane>
     <top>
       <VBox spacing="10" style="-fx-padding: 15;">
         <Label text="Student Face Recognition System">
@@ -56,13 +56,6 @@
               <Font name="System Bold" size="14" />
             </font>
           </Button>
-
-          <!-- <Button fx:id="captureButton" text="Capture Frame" onAction="#captureFrame"
-            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;">
-            <font>
-              <Font name="System Bold" size="14" />
-            </font>
-          </Button> -->
         </HBox>
       </VBox>
     </center>
@@ -85,6 +78,19 @@
 
         <Separator />
 
+        <!-- Statistics -->
+        <VBox spacing="8" style="-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 5;">
+          <Label text="Statistics:" style="-fx-font-weight: bold; -fx-font-size: 14;" />
+          <Label fx:id="totalDetectionsLabel" text="Detections: 0"
+            style="-fx-font-size: 12; -fx-text-fill: #7f8c8d;" />
+          <Label fx:id="uniqueStudentsLabel" text="Unique Students: 0"
+            style="-fx-font-size: 12; -fx-text-fill: #7f8c8d;" />
+          <Label fx:id="fpsLabel" text="FPS: 0.0"
+            style="-fx-font-size: 12; -fx-text-fill: #7f8c8d;" />
+        </VBox>
+
+        <Separator />
+
         <!-- Recognition History -->
         <Label text="Recognition History:" style="-fx-font-size: 14; -fx-font-weight: bold;" />
         <ListView fx:id="recognitionListView" prefHeight="300"
@@ -97,7 +103,7 @@
 
     <bottom>
       <HBox spacing="10" alignment="CENTER_LEFT"
-        style="-fx-background-color: #eeeeee;  -fx-padding: 10;">
+        style="-fx-background-color: #eeeeee; -fx-padding: 10;">
         <Label fx:id="cameraStatusLabel" text="Camera: Disconnected">
           <font>
             <Font size="12" />
