@@ -167,6 +167,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                     rec.setStatus(AttendanceStatus.ABSENT);
                     rec.setMethod(MarkMethod.AUTO);
                     rec.setTimestamp(now);
+                    rec.setNote("Auto-marked as Absent after session closed.");
                     attendanceRecordRepo.update(rec);
 
                     System.out.println("Updated attendance to ABSENT for student: " + rec.getStudent().getName());
