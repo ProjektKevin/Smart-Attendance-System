@@ -88,12 +88,23 @@ public class RecognitionService {
             //         "Open"
             // );
 
+            // Session sess = new Session(
+            //         7,
+            //         "CS102",
+            //         LocalDate.now(),
+            //         LocalTime.of(01, 20),
+            //         LocalTime.of(01, 50),
+            //         "Room 5",
+            //         15,
+            //         "Open"
+            // );
+
             Session sess = new Session(
-                    7,
+                    9,
                     "CS102",
                     LocalDate.now(),
-                    LocalTime.of(01, 20),
-                    LocalTime.of(01, 50),
+                    LocalTime.of(01, 45),
+                    LocalTime.of(02, 30),
                     "Room 5",
                     15,
                     "Open"
@@ -114,7 +125,8 @@ public class RecognitionService {
                     s,
                     sess,
                     AttendanceStatus.PRESENT,
-                    0.35,
+                    // 0.35,
+                    0.95,
                     MarkMethod.AUTO,
                     LocalDateTime.now()
             );

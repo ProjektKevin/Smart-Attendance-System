@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.function.Consumer;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -112,31 +113,49 @@ public class AttendanceController implements AttendanceObserver {
     //         }
     //     });
     // }
-    public static boolean requestUserConfirmation(AttendanceRecord record) {
-        FutureTask<Boolean> task = new FutureTask<>(() -> {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Confirm Student Identity");
-            alert.setHeaderText("Low Confidence Detection");
-            alert.setContentText(String.format(
-                    "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
-                    record.getStudent().getName(),
-                    record.getStudent().getStudentId()
-            ));
+    // public static boolean requestUserConfirmation(AttendanceRecord record, Consumer<Boolean> callback) {
+    //     Platform.runLater(() -> {
+    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    //         alert.setTitle("Confirm Student Identity");
+    //         alert.setHeaderText("Low Confidence Detection");
+    //         alert.setContentText(String.format(
+    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
+    //                 record.getStudent().getName(),
+    //                 record.getStudent().getStudentId()
+    //         ));
 
-            Optional<ButtonType> result = alert.showAndWait();
-            return result.isPresent() && result.get() == ButtonType.OK;
-        });
+    //         // Use Yes/No buttons
+    //         ButtonType yesButton = new ButtonType("Yes");
+    //         ButtonType noButton = new ButtonType("No");
+    //         alert.getButtonTypes().setAll(yesButton, noButton);
 
-        Platform.runLater(task);
+    //         Optional<ButtonType> result = alert.showAndWait();
+    //         boolean confirmed = result.isPresent() && result.get() == yesButton;
 
-        try {
-            // Wait for the user to respond
-            return task.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+    //         callback.accept(confirmed); // notify caller asynchronously
+    //     });
+    // }
+
+    public static void requestUserConfirmationAsync(AttendanceRecord record, Consumer<Boolean> callback) {
+    Platform.runLater(() -> {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Student Identity");
+        alert.setHeaderText("Low Confidence Detection");
+        alert.setContentText(String.format(
+            "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
+            record.getStudent().getName(),
+            record.getStudent().getStudentId()
+        ));
+
+        ButtonType yesButton = new ButtonType("Yes");
+        ButtonType noButton = new ButtonType("No");
+        alert.getButtonTypes().setAll(yesButton, noButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        callback.accept(result.isPresent() && result.get() == yesButton);
+    });
+}
+
 
     @FXML
     public void initialize() {

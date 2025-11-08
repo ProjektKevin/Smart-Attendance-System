@@ -17,6 +17,7 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.controller.LiveRecognitionController;
+import com.smartattendance.controller.RecognitionController;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.service.AttendanceObserver;
 
@@ -33,47 +34,83 @@ public class AttendanceService {
 
     // F_MA: modified by felicia handling marking attendance
     public synchronized void markAttendance(AttendanceRecord r) {
-        boolean result = true;
         try {
-            // if confidence < threshold, request user confirmation
-            if (r.getConfidence() < threshold) {
-                result = AttendanceController.requestUserConfirmation(r);
-                // return;
-                System.out.println("result " + result); // for testing
+            // Already marked or high confidence → mark directly
+            if (r.getConfidence() >= threshold) {
+                saveAttendanceRecord(r);
+                return;
             }
-            
-            System.out.println("result " + result); // for testing
-            if (result) {
-                attendanceRecords.add(r);
-                System.out.println("run until here 1"); // for testing
-                r.mark(observers);
-                System.out.println("run until here 2"); // for testing
-                // for (AttendanceObserver o : observers) {
-                //     // notify the recognitionService that the attendance of a particular student is marked
-                //     o.onAttendanceMarked(r);
-                //     if (o instanceof AttendanceController) {
-                //         // refresh the attendancceRecords page
-                //         ((AttendanceController) o).loadAttendanceRecords();
-                //     }
-                // }
-            } else {
-                for (AttendanceObserver o : observers) {
-                    // notify the recognitionService that the attendance of a particular student is NOT marked
-                    if (o instanceof LiveRecognitionController) {
-                        ((LiveRecognitionController) o).onAttendanceNotMarked(r);
-                    }
+
+            // Low confidence → ask for user confirmation asynchronously
+            AttendanceController.requestUserConfirmationAsync(r, confirmed -> {
+                if (confirmed) {
+                    saveAttendanceRecord(r);
+                } else {
+                    notifyAttendanceNotMarked(r);
                 }
-            }
+            });
         } catch (Exception e) {
-            for (AttendanceObserver o : observers) {
-                // notify the recognitionService that the attendance of a particular student is NOT marked
-                if (o instanceof LiveRecognitionController) {
-                    ((LiveRecognitionController) o).onAttendanceNotMarked(r);
-                }
+            notifyAttendanceNotMarked(r);
+        }
+    }
+
+    private void saveAttendanceRecord(AttendanceRecord r) {
+        try {
+            attendanceRecords.add(r);
+            r.mark(observers);
+        } catch (Exception e) {
+            notifyAttendanceNotMarked(r);
+        }
+    }
+
+    private void notifyAttendanceNotMarked(AttendanceRecord r) {
+        for (AttendanceObserver o : observers) {
+            if (o instanceof LiveRecognitionController) {
+                ((LiveRecognitionController) o).onAttendanceNotMarked(r);
             }
         }
     }
 
+    // public synchronized void markAttendance(AttendanceRecord r) {
+    //     boolean result = true;
+    //     try {
+    //         // if confidence < threshold, request user confirmation
+    //         if (r.getConfidence() < threshold) {
+    //             result = AttendanceController.requestUserConfirmation(r);
+    //             // return;
+    //             System.out.println("result " + result); // for testing
+    //         }
+    //         System.out.println("result " + result); // for testing
+    //         if (result) {
+    //             attendanceRecords.add(r);
+    //             System.out.println("run until here 1"); // for testing
+    //             r.mark(observers);
+    //             System.out.println("run until here 2"); // for testing
+    //             // for (AttendanceObserver o : observers) {
+    //             //     // notify the recognitionService that the attendance of a particular student is marked
+    //             //     o.onAttendanceMarked(r);
+    //             //     if (o instanceof AttendanceController) {
+    //             //         // refresh the attendancceRecords page
+    //             //         ((AttendanceController) o).loadAttendanceRecords();
+    //             //     }
+    //             // }
+    //         } else {
+    //             for (AttendanceObserver o : observers) {
+    //                 // notify the recognitionService that the attendance of a particular student is NOT marked
+    //                 if (o instanceof LiveRecognitionController) {
+    //                     ((LiveRecognitionController) o).onAttendanceNotMarked(r);
+    //                 }
+    //             }
+    //         }
+    //     } catch (Exception e) {
+    //         for (AttendanceObserver o : observers) {
+    //             // notify the recognitionService that the attendance of a particular student is NOT marked
+    //             if (o instanceof LiveRecognitionController) {
+    //                 ((LiveRecognitionController) o).onAttendanceNotMarked(r);
+    //             }
+    //         }
+    //     }
+    // }
     // public synchronized void markAttendance(AttendanceRecord r) {
     //     try {
     //         attendanceRecords.add(r);
