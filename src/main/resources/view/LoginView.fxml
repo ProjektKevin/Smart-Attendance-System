@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 
 <GridPane xmlns:fx="http://javafx.com/fxml"
-          fx:controller="com.smartattendance.controller.LoginController"
+          fx:controller="com.smartattendance.controller.auth.LoginController"
           stylesheets="@styles/login.css"
           styleClass="login-root"
           hgap="14" vgap="14" alignment="CENTER">

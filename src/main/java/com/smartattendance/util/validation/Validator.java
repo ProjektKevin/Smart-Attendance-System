@@ -78,7 +78,7 @@ public class Validator {
      * 
      * @return true if the string is all letters, false if not
      */
-    public static boolean validateisLetter(
+    public static boolean validateIsLetter(
             int start, int end, String input) {
         try {
             char[] characters = input.toCharArray();
@@ -91,6 +91,27 @@ public class Validator {
         } catch (IndexOutOfBoundsException e) {
             return false;
         }
+    }
+
+    /**
+     * Method to check if the string is alpha numeric
+     *
+     * @param input the string input
+     * 
+     * @return true if the string contains both letters and digits, false if not
+     */
+    public static boolean validateContainsLetterAndDigit(String input) {
+        boolean hasLetter = false;
+        boolean hasDigit = false;
+        for (char c : input.toCharArray()) {
+            if (Character.isLetter(c))
+                hasLetter = true;
+            else if (Character.isDigit(c))
+                hasDigit = true;
+            if (hasLetter && hasDigit)
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -111,5 +132,53 @@ public class Validator {
             }
         }
         return true;
+    }
+
+    /**
+     * Method to check if the string contains at least one uppercase letter
+     *
+     * @param input the string input
+     * 
+     * @return true if the string is if uppercase >= 1, false if not
+     */
+    public static boolean validateAtLeastOneUpperCase(String input) {
+        for (char c : input.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Method to check if the string contains at least one lowercase letter
+     *
+     * @param input the string input
+     * 
+     * @return true if the string is if lowercase >= 1, false if not
+     */
+    public static boolean validateAtLeastOneLowerCase(String input) {
+        for (char c : input.toCharArray()) {
+            if (Character.isLowerCase(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Method to check if the string contains at least one digit
+     *
+     * @param input the string input
+     * 
+     * @return true if the string is contains at least one digit
+     */
+    public static boolean validateIsDigit(String input) {
+        for (char c : input.toCharArray()) {
+            if (Character.isDigit(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

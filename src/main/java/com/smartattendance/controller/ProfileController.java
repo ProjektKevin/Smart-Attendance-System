@@ -81,7 +81,6 @@ public class ProfileController {
     // ====== Dependencies ======
 
     private final ProfileService profileService = ApplicationContext.getProfileService();
-
     private final AuthSession session = ApplicationContext.getAuthSession();
 
     // ====== State ======

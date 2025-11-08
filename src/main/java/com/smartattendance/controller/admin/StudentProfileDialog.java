@@ -1,6 +1,7 @@
 package com.smartattendance.controller.admin;
 
 import com.smartattendance.model.dto.user.UserProfileDTO;
+import com.smartattendance.model.enums.Status;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -102,7 +103,7 @@ public class StudentProfileDialog {
         // Email Verified
         Label verifiedLabel = new Label("Email Verified:");
         verifiedLabel.setStyle("-fx-font-weight: bold;");
-        Label verifiedValue = new Label(student.isEmailVerified() ? "Yes" : "No");
+        Label verifiedValue = new Label(student.isEmailVerified() ? Status.VERIFIED.name() : Status.PENDING.name());
 
         // Role
         Label roleLabel = new Label("Role:");
