@@ -213,7 +213,7 @@ public class AttendanceController {
                 if (!java.util.Objects.equals(originalStatus, currentStatus)) {
                     // F_MA: modified by felicia handling marking attendance
                     record.setTimestamp(LocalDateTime.now());
-                    record.setLastSeen(LocalDateTime.now());
+                    // record.setLastSeen(LocalDateTime.now());
                     repo.updateStatus(record);
                     updatedCount++;
 
