@@ -12,5 +12,11 @@ import com.smartattendance.model.entity.AttendanceRecord;
  * Implements the Observer Design Pattern.
  */
 public interface AttendanceObserver {
-    void attendanceUpdated(AttendanceRecord record);
+    // F_MA: added by felicia handling marking attendance
+
+    void onAttendanceMarked(AttendanceRecord record, String message);
+
+    void onAttendanceAutoUpdated();
+
+    // void attendanceUpdated(AttendanceRecord record);
 }

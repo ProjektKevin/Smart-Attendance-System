@@ -3,6 +3,9 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <VBox xmlns:fx="http://javafx.com/fxml" spacing="10" style="-fx-padding: 10;" fx:controller="com.smartattendance.controller.LiveRecognitionController">
+    <!-- // F_MA: added by felicia handling marking attendance -->
+    <!-- <Label fx:id="alertLabel" text="" style="-fx-font-weight: bold;" /> -->
+    <Pane fx:id="toastPane" pickOnBounds="false" style="-fx-background-color: transparent;" />
     <ImageView fx:id="cameraView" fitWidth="640" fitHeight="360" preserveRatio="true"/>
     <HBox spacing="10">
         <Button text="Start" onAction="#onStartCamera"/>

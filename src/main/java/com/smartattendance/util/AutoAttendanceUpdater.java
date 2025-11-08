@@ -9,6 +9,7 @@ import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AutoAttendanceMarker;
+import com.smartattendance.service.AttendanceObserver;
 
 import javafx.application.Platform;
 

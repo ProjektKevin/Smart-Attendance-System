@@ -18,9 +18,10 @@ import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.controller.LiveRecognitionController;
 import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.util.AttendanceObserver;
+import com.smartattendance.service.AttendanceObserver;
 
 public class AttendanceService {
+
     private final List<AttendanceObserver> observers = new ArrayList<>();
     private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
     private final Map<String, AttendanceRecord> records = new HashMap<>();
@@ -32,20 +33,35 @@ public class AttendanceService {
 
     // F_MA: modified by felicia handling marking attendance
     public synchronized void markAttendance(AttendanceRecord r) {
+        boolean result = true;
         try {
             // if confidence < threshold, request user confirmation
             if (r.getConfidence() < threshold) {
-                AttendanceController.requestUserConfirmation(r);
-                return;
+                result = AttendanceController.requestUserConfirmation(r);
+                // return;
+                System.out.println("result " + result); // for testing
             }
-            attendanceRecords.add(r);
-            r.mark();
-            for (AttendanceObserver o : observers) {
-                // notify the recognitionService that the attendance of a particular student is marked
-                o.onAttendanceMarked(r);
-                if (o instanceof AttendanceController) {
-                    // refresh the attendancceRecords page
-                    ((AttendanceController) o).loadAttendanceRecords();
+            
+            System.out.println("result " + result); // for testing
+            if (result) {
+                attendanceRecords.add(r);
+                System.out.println("run until here 1"); // for testing
+                r.mark(observers);
+                System.out.println("run until here 2"); // for testing
+                // for (AttendanceObserver o : observers) {
+                //     // notify the recognitionService that the attendance of a particular student is marked
+                //     o.onAttendanceMarked(r);
+                //     if (o instanceof AttendanceController) {
+                //         // refresh the attendancceRecords page
+                //         ((AttendanceController) o).loadAttendanceRecords();
+                //     }
+                // }
+            } else {
+                for (AttendanceObserver o : observers) {
+                    // notify the recognitionService that the attendance of a particular student is NOT marked
+                    if (o instanceof LiveRecognitionController) {
+                        ((LiveRecognitionController) o).onAttendanceNotMarked(r);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -75,15 +91,12 @@ public class AttendanceService {
     //         }
     //     }
     // }
-
     // public AttendanceRecord getOrCreateRecord(Student student, Session session) {
     //     return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
     // }
-
     // public AttendanceRecord getRecord(Student student, Session session) {
     //     return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
     // }
-
     public void updateLastSeen(String studentId, LocalDateTime time) {
         if (records.containsKey(studentId)) {
             records.get(studentId).setLastSeen(time);
@@ -120,13 +133,14 @@ public class AttendanceService {
     //   return new ArrayList<>(records);
     // }
     public synchronized List<AttendanceRecord> getBetween(LocalDate from, LocalDate to) {
-      List<AttendanceRecord> out = new ArrayList<>();
-      for (AttendanceRecord r : attendanceRecords) {
-        LocalDate d = r.getTimestamp().toLocalDate();
-        boolean ok = (from == null || !d.isBefore(from)) && (to == null || !d.isAfter(to));
-        if (ok)
-          out.add(r);
-      }
-      return out;
+        List<AttendanceRecord> out = new ArrayList<>();
+        for (AttendanceRecord r : attendanceRecords) {
+            LocalDate d = r.getTimestamp().toLocalDate();
+            boolean ok = (from == null || !d.isBefore(from)) && (to == null || !d.isAfter(to));
+            if (ok) {
+                out.add(r);
+            }
+        }
+        return out;
     }
 }

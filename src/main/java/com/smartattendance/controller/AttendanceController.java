@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -14,7 +16,7 @@ import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.service.AttendanceService;
-import com.smartattendance.util.AttendanceObserver;
+import com.smartattendance.service.AttendanceObserver;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -32,16 +34,26 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
-public class AttendanceController implements AttendanceObserver{
-    @FXML private Label lblSessionTitle;
-    @FXML private TableView<AttendanceRecord> attendanceTable;
-    @FXML private TableColumn<AttendanceRecord, String> colStudentId;
-    @FXML private TableColumn<AttendanceRecord, String> colStudentName;
-    @FXML private TableColumn<AttendanceRecord, String> colStatus;
-    @FXML private TableColumn<AttendanceRecord, String> colMethod;
-    @FXML private TableColumn<AttendanceRecord, String> colMarkedAt;
-    @FXML private TableColumn<AttendanceRecord, String> colLastSeen;
-    @FXML private TableColumn<AttendanceRecord, String> colNote;
+public class AttendanceController implements AttendanceObserver {
+
+    @FXML
+    private Label lblSessionTitle;
+    @FXML
+    private TableView<AttendanceRecord> attendanceTable;
+    @FXML
+    private TableColumn<AttendanceRecord, String> colStudentId;
+    @FXML
+    private TableColumn<AttendanceRecord, String> colStudentName;
+    @FXML
+    private TableColumn<AttendanceRecord, String> colStatus;
+    @FXML
+    private TableColumn<AttendanceRecord, String> colMethod;
+    @FXML
+    private TableColumn<AttendanceRecord, String> colMarkedAt;
+    @FXML
+    private TableColumn<AttendanceRecord, String> colLastSeen;
+    @FXML
+    private TableColumn<AttendanceRecord, String> colNote;
 
     private final AttendanceRecordRepository repo = new AttendanceRecordRepository();
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
@@ -49,12 +61,12 @@ public class AttendanceController implements AttendanceObserver{
     private Session currentSession;
     private Runnable backHandler;
     private final Map<Integer, String> originalStatuses = new HashMap<>();
-    
+
     // Formatter for timestamp display
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    public void onAttendanceMarked(AttendanceRecord record) {
+    public void onAttendanceMarked(AttendanceRecord record, String message) {
         // single record marked (existing)
     }
 
@@ -73,33 +85,57 @@ public class AttendanceController implements AttendanceObserver{
         loadAttendanceRecords();
     }
 
-    public static void requestUserConfirmation(AttendanceRecord record) {
-        Platform.runLater(() -> {
+    // public static void requestUserConfirmation(AttendanceRecord record) {
+    //     Platform.runLater(() -> {
+    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    //         alert.setTitle("Confirm Student Identity");
+    //         alert.setHeaderText("Low Confidence Detection");
+    //         alert.setContentText(String.format(
+    //                 // "Detected student:\n\nName: %s\nID: %d\nConfidence: %.2f\n\nIs this correct?",
+    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
+    //                 record.getStudent().getName(),
+    //                 record.getStudent().getStudentId()
+    //                 // record.getConfidence()
+    //         ));
+    //         Optional<ButtonType> result = alert.showAndWait();
+    //         if (result.isPresent() && result.get() == ButtonType.OK) {
+    //             // user confirmed → mark attendance
+    //             try {
+    //                 record.mark(observers);
+    //             } catch (Exception e) {
+    //                 System.err.println("Failed to save attendance record");
+    //                 e.printStackTrace();
+    //             }
+    //         } else {
+    //             // user declined → skip
+    //             System.out.println("Skipped marking for " + record.getStudent().getName());
+    //         }
+    //     });
+    // }
+    public static boolean requestUserConfirmation(AttendanceRecord record) {
+        FutureTask<Boolean> task = new FutureTask<>(() -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirm Student Identity");
             alert.setHeaderText("Low Confidence Detection");
             alert.setContentText(String.format(
-                    // "Detected student:\n\nName: %s\nID: %d\nConfidence: %.2f\n\nIs this correct?",
                     "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
                     record.getStudent().getName(),
                     record.getStudent().getStudentId()
-                    // record.getConfidence()
             ));
 
             Optional<ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-                // user confirmed → mark attendance
-                try {
-                    record.mark();
-                } catch (Exception e) {
-                    System.err.println("Failed to save attendance record");
-                    e.printStackTrace();
-                }
-            } else {
-                // user declined → skip
-                System.out.println("Skipped marking for " + record.getStudent().getName());
-            }
+            return result.isPresent() && result.get() == ButtonType.OK;
         });
+
+        Platform.runLater(task);
+
+        try {
+            // Wait for the user to respond
+            return task.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @FXML
@@ -121,11 +157,11 @@ public class AttendanceController implements AttendanceObserver{
         // Configure other columns
         // colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
         // F_MA: modified by felicia handling marking attendance
-        colMethod.setCellValueFactory(cellData ->
-            new SimpleStringProperty(AttendanceRecordRepository.capitalize(cellData.getValue().getMethod().name()))
+        colMethod.setCellValueFactory(cellData
+                -> new SimpleStringProperty(AttendanceRecordRepository.capitalize(cellData.getValue().getMethod().name()))
         );
         colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
-        
+
         // Configure marked_at column with proper formatting
         colMarkedAt.setCellValueFactory(cellData -> {
             if (cellData.getValue().getTimestamp() != null) {
@@ -134,7 +170,7 @@ public class AttendanceController implements AttendanceObserver{
                 return new SimpleStringProperty("-");
             }
         });
-        
+
         // Configure last_seen column with proper formatting
         colLastSeen.setCellValueFactory(cellData -> {
             if (cellData.getValue().getLastSeen() != null) {
@@ -147,8 +183,8 @@ public class AttendanceController implements AttendanceObserver{
         // Custom cell factory for status with dropdown
         // colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         // F_MA: modified by felicia handling marking attendance
-        colStatus.setCellValueFactory(cellData ->
-            new SimpleStringProperty(AttendanceRecordRepository.capitalize(cellData.getValue().getStatus().name()))
+        colStatus.setCellValueFactory(cellData
+                -> new SimpleStringProperty(AttendanceRecordRepository.capitalize(cellData.getValue().getStatus().name()))
         );
         colStatus.setCellFactory(column -> new TableCell<AttendanceRecord, String>() {
             // F_MA: modified by felicia handling marking attendance
@@ -241,14 +277,14 @@ public class AttendanceController implements AttendanceObserver{
 
             // Reload data from database after saving
             loadAttendanceRecords();
-            
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, 
-                String.format("Successfully updated %d attendance records!", updatedCount));
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    String.format("Successfully updated %d attendance records!", updatedCount));
             alert.showAndWait();
-            
+
         } catch (Exception e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR, 
-                "Error saving attendance records: " + e.getMessage());
+            Alert alert = new Alert(Alert.AlertType.ERROR,
+                    "Error saving attendance records: " + e.getMessage());
             alert.showAndWait();
             e.printStackTrace();
         }
@@ -267,6 +303,5 @@ public class AttendanceController implements AttendanceObserver{
             }
         }
     }
-
 
 }

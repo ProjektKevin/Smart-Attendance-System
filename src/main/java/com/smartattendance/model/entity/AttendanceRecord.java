@@ -6,9 +6,11 @@
 package com.smartattendance.model.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.service.AutoAttendanceMarker;
+import com.smartattendance.service.AttendanceObserver;
 
 public class AttendanceRecord {
 
@@ -80,7 +82,7 @@ public class AttendanceRecord {
      * Marks attendance with all relevant info.
      */
     // F_MA: modified by felicia handling marking attendance
-    public void mark() throws Exception {
+    public void mark(List<AttendanceObserver> observers) throws Exception {
         // this.status = status;
         // this.timestamp = timestamp;
         // this.lastSeen = timestamp;
@@ -90,7 +92,8 @@ public class AttendanceRecord {
         // }
 
         try {
-            autoAttendanceMarker.markAttendance(this);
+            System.out.println("run until here 3"); // for testing
+            autoAttendanceMarker.markAttendance(observers, this);
         } catch (Exception e) {
             throw new Exception("Failed to save attendance record", e);
         }
