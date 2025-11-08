@@ -11,7 +11,7 @@ import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
-import com.smartattendance.repository.AttendanceRecordRepository;
+import com.smartattendance.service.AttendanceService;
 import com.smartattendance.util.AttendanceObserver;
 
 import javafx.application.Platform;
@@ -41,7 +41,7 @@ public class AttendanceController implements AttendanceObserver{
     @FXML private TableColumn<AttendanceRecord, String> colLastSeen;
     @FXML private TableColumn<AttendanceRecord, String> colNote;
 
-    private final AttendanceRecordRepository repo = new AttendanceRecordRepository();
+    private final AttendanceService service = new AttendanceService();
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
     private Session currentSession;
     private Runnable backHandler;
@@ -119,7 +119,7 @@ public class AttendanceController implements AttendanceObserver{
         // colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
         // F_MA: modified by felicia handling marking attendance
         colMethod.setCellValueFactory(cellData ->
-            new SimpleStringProperty(AttendanceRecordRepository.capitalize(cellData.getValue().getMethod().name()))
+            new SimpleStringProperty(service.capitalize(cellData.getValue().getMethod().name()))
         );
         colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
         
@@ -145,7 +145,7 @@ public class AttendanceController implements AttendanceObserver{
         // colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         // F_MA: modified by felicia handling marking attendance
         colStatus.setCellValueFactory(cellData ->
-            new SimpleStringProperty(AttendanceRecordRepository.capitalize(cellData.getValue().getStatus().name()))
+            new SimpleStringProperty(service.capitalize(cellData.getValue().getStatus().name()))
         );
         colStatus.setCellFactory(column -> new TableCell<AttendanceRecord, String>() {
             // F_MA: modified by felicia handling marking attendance
@@ -202,7 +202,7 @@ public class AttendanceController implements AttendanceObserver{
     // private void loadAttendanceRecords() {
     public void loadAttendanceRecords() {
         if (currentSession != null) {
-            List<AttendanceRecord> records = repo.findBySessionId(currentSession.getSessionId());
+            List<AttendanceRecord> records = service.findBySessionId(currentSession.getSessionId());
             attendanceList.setAll(records);
             attendanceTable.setItems(attendanceList);
 
@@ -227,7 +227,7 @@ public class AttendanceController implements AttendanceObserver{
                     // F_MA: modified by felicia handling marking attendance
                     record.setTimestamp(LocalDateTime.now());
                     // record.setLastSeen(LocalDateTime.now());
-                    repo.updateStatus(record);
+                    service.updateStatus(record);
                     updatedCount++;
 
                     // Update the original status map so subsequent saves work fine

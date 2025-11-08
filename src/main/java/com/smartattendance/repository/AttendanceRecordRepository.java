@@ -35,7 +35,7 @@ public class AttendanceRecordRepository {
     }
     
     // helper class to convert first character to upper case for mark method and attendance status
-    public static String capitalize(String str) {
+    public String capitalize(String str) {
         if (str == null || str.isEmpty()) {
             return str;
         }

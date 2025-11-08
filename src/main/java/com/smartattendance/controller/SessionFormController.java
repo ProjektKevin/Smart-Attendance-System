@@ -4,18 +4,21 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import com.smartattendance.model.entity.Course;
 import com.smartattendance.model.entity.Session;
+import com.smartattendance.service.CourseService;
 import com.smartattendance.service.SessionService;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 public class SessionFormController {
 
-    @FXML private TextField txtCourse;
+    @FXML private ComboBox<String> cmbCourse;
     @FXML private DatePicker datePicker;
     @FXML private TextField txtStart;
     @FXML private TextField txtEnd;
@@ -23,6 +26,14 @@ public class SessionFormController {
     @FXML private TextField txtLate;
 
     private Session newSession;
+    private final CourseService service = new CourseService();
+
+    @FXML
+    public void initialize() {
+        for (Course course : service.getCourses()) {
+            cmbCourse.getItems().add(course.getCode());
+        }
+    }
 
     public Session getNewSession() {
         return newSession;
@@ -36,13 +47,21 @@ public class SessionFormController {
 
     @FXML
     private void onCancel() {
-        ((Stage) txtCourse.getScene().getWindow()).close();
+        ((Stage) cmbCourse.getScene().getWindow()).close();
     }
 
     @FXML
     private void onCreate() {
         try {
-            String course = txtCourse.getText();
+            String course = cmbCourse.getValue();
+            if (course == null || course.isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setHeaderText("Missing Course");
+                alert.setContentText("Please select a course.");
+                alert.showAndWait();
+                return;
+            }
+
             LocalDate date = datePicker.getValue();
             LocalTime start = LocalTime.parse(txtStart.getText());
             LocalTime end = LocalTime.parse(txtEnd.getText());
@@ -67,8 +86,8 @@ public class SessionFormController {
                 return;
             }
 
-            newSession = new SessionService().createSession(course.toUpperCase(), date, start, end, loc, late);
-            ((Stage) txtCourse.getScene().getWindow()).close();
+            newSession = new SessionService().createSession(course, date, start, end, loc, late);
+            ((Stage) cmbCourse.getScene().getWindow()).close();
 
         } catch (Exception e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);

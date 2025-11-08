@@ -48,6 +48,11 @@ public class SessionService {
         repo.deleteById(id);
     }
 
+    // Delete all sessions
+    public void deleteAll(){
+        repo.deleteAll();
+    }
+
     // Update session status
     public void updateSessionStatus(Session s){
         repo.updateStatus(s.getSessionId(), s.getStatus());

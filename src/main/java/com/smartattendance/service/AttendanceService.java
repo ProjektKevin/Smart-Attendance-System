@@ -18,6 +18,8 @@ import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.controller.LiveRecognitionController;
 import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.repository.AttendanceRecordRepository;
+import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.util.AttendanceObserver;
 
 public class AttendanceService {
@@ -25,6 +27,11 @@ public class AttendanceService {
     private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
     private final Map<String, AttendanceRecord> records = new HashMap<>();
     private final double threshold = Double.parseDouble(Config.get("recognition.threshold"));
+    private final AttendanceRecordRepository repo;
+
+    public AttendanceService(){
+        this.repo = new AttendanceRecordRepository();
+    }
 
     public void addObserver(AttendanceObserver o) {
         observers.add(o);
@@ -124,5 +131,17 @@ public class AttendanceService {
           out.add(r);
       }
       return out;
+    }
+
+    public List<AttendanceRecord> findBySessionId(int session_id){
+        return repo.findBySessionId(session_id);
+    }
+
+    public void updateStatus(AttendanceRecord record){
+        repo.updateStatus(record);
+    }
+
+    public String capitalize(String str) {
+        return repo.capitalize(str);
     }
 }
