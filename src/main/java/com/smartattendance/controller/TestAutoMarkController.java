@@ -63,4 +63,44 @@ public class TestAutoMarkController {
             System.err.println("❌ Error during auto mark: " + e.getMessage());
         }
     }
+
+    // test normal auto mark when confindence > threshold, session already started
+    @FXML
+    private void onTestAutoMark2() {
+        try {
+            // 1️⃣ Create a Student
+            Student s = new Student(1, "harry", "CS301");
+
+            // 2️⃣ Create a Session
+            Session sess = new Session(
+                    3,
+                    "CS301",
+                    LocalDate.now(),
+                    LocalTime.of(18, 30),
+                    LocalTime.of(19, 0),
+                    "Room 1",
+                    15,
+                    "Open"
+            );
+
+            // 3️⃣ Create an AttendanceRecord
+            AttendanceRecord rec = new AttendanceRecord(
+                    s,
+                    sess,
+                    AttendanceStatus.PRESENT,
+                    0.95,
+                    MarkMethod.AUTO,
+                    LocalDateTime.now()
+            );
+
+            // 4️⃣ Call the service to mark attendance
+            attendanceService.markAttendance(rec);
+
+            System.out.println("✅ Auto mark completed for " + s.getName());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("❌ Error during auto mark: " + e.getMessage());
+        }
+    }
 }

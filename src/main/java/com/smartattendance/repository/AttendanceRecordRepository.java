@@ -145,6 +145,63 @@ public class AttendanceRecordRepository {
         return records;
     }
     
+    // select pending attendance record by session_id - returns multiple records for a session
+    public List<AttendanceRecord> findPendingAttendanceBySessionId(int sessionId, AttendanceStatus status) {
+        List<AttendanceRecord> records = new ArrayList<>();
+        String sql = "SELECT user_id, session_id, note, confidence, marked_at, last_seen, method, status FROM attendance WHERE session_id = ? AND status = ?";
+        
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            System.out.println("Running query for session_id = " + sessionId); // ##for testing
+            
+            ps.setInt(1, sessionId);
+            ps.setString(2, capitalize(status.toString()));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Student student = studentRepo.findById(rs.getInt("user_id"));
+                    Session session = sessionRepo.findById(rs.getInt("session_id"));
+
+                    // F_MA: modified by felicia handling marking attendance
+                    // Convert strings to enums
+                    // AttendanceStatus status = AttendanceStatus.valueOf(rs.getString("status").toUpperCase());
+                    MarkMethod method = MarkMethod.valueOf(rs.getString("method").toUpperCase());
+
+                    AttendanceRecord record = new AttendanceRecord(
+                        student,
+                        session,
+                        status,
+                        rs.getDouble("confidence"),
+                        method,
+                        rs.getTimestamp("marked_at").toLocalDateTime(),
+                        // rs.getTimestamp("marked_at").toLocalDateTime(),
+                        rs.getTimestamp("last_seen").toLocalDateTime()
+                    );
+                    
+                    // Set the note if it exists
+                    String note = rs.getString("note");
+                    if (note != null) {
+                        record.setNote(note);
+                    }
+                    
+                    records.add(record);
+
+                    // ##for testing
+                    System.out.println(
+                        "Found record: user_id=" + rs.getInt("user_id") +
+                        ", status=" + rs.getString("status")
+                    );
+
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return records;
+    }
+    
     // If you need to find a single record by composite key (student_id + session_id)
     public AttendanceRecord findById(int studentId, int sessionId) {
         String sql = "SELECT user_id, session_id, note, confidence, marked_at, last_seen, method, status FROM attendance WHERE user_id = ? AND session_id = ?";

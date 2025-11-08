@@ -33,6 +33,7 @@
 
         <HBox spacing="10">
             <Button text="Test Auto Mark1" onAction="#onTestAutoMark1"/>
+            <Button text="Test Auto Mark2" onAction="#onTestAutoMark2"/>
             <!-- <Button text="Start" onAction="#onStartSession"/> -->
             <!-- <Button text="Stop" onAction="#onStopSession"/> -->
             <!-- <Button fx:id="deleteButton" text="Delete" onAction="#onDeleteSession"/> -->

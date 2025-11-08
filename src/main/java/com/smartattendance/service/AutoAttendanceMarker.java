@@ -7,7 +7,9 @@ package com.smartattendance.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.MarkMethod;
@@ -15,7 +17,6 @@ import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
-import com.smartattendance.config.Config;
 
 
 /**
@@ -146,6 +147,32 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             throw new Exception("Failed to mark attendance: ", e);
         }
 
+    }
+
+    /** Core logic to mark pending attendance as ABSENT */
+    public static void markPendingAttendanceAsAbsent(SessionRepository sessionRepository, AttendanceService attendanceService) {
+        AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
+        List<Session> allSessions = sessionRepository.findAll();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Session sess : allSessions) {
+            LocalDateTime sessionEndDateTime = LocalDateTime.of(sess.getSessionDate(), sess.getEndTime());
+            boolean isClosed = "Closed".equalsIgnoreCase(sess.getStatus()) ||
+                               sessionEndDateTime.isBefore(now);
+
+            if (isClosed) {
+                List<AttendanceRecord> pendingRecords = attendanceRecordRepo.findPendingAttendanceBySessionId(sess.getSessionId(), AttendanceStatus.PENDING);
+
+                for (AttendanceRecord rec : pendingRecords) {
+                    rec.setStatus(AttendanceStatus.ABSENT);
+                    rec.setMethod(MarkMethod.AUTO);
+                    rec.setTimestamp(now);
+                    attendanceRecordRepo.update(rec);
+
+                    System.out.println("Updated attendance to ABSENT for student: " + rec.getStudent().getName());
+                }
+            }
+        }
     }
 
     /**

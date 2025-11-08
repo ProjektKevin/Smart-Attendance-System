@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.Session;
@@ -212,6 +211,9 @@ public class AttendanceController {
 
                 // Only update if status actually changed
                 if (!java.util.Objects.equals(originalStatus, currentStatus)) {
+                    // F_MA: modified by felicia handling marking attendance
+                    record.setTimestamp(LocalDateTime.now());
+                    record.setLastSeen(LocalDateTime.now());
                     repo.updateStatus(record);
                     updatedCount++;
 
