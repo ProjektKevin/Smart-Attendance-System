@@ -44,7 +44,7 @@ public class AttendanceRecord {
         this.session = session;
         // this.status = AttendanceStatus.ABSENT;
         this.status = status;
-        this.confidence = 0.0;
+        this.confidence = confidence;
         this.timestamp = timestamp;
         this.lastSeen = timestamp;
         this.method = method;
@@ -56,7 +56,7 @@ public class AttendanceRecord {
         this.session = session;
         // this.status = AttendanceStatus.ABSENT;
         this.status = status;
-        this.confidence = 0.0;
+        this.confidence = confidence;
         this.timestamp = timestamp;
         this.lastSeen = last_seen;
         this.method = method;

@@ -242,7 +242,7 @@ public class AttendanceRecordRepository {
     // F_MA: added by felicia handling marking attendance
     // this one is for update last seen only if the student is already marked present via auto mark
     public boolean updateLastSeen(AttendanceRecord record) {
-        String sql = "UPDATE attendance SET last_seen = ? WHERE student_id = ? AND session_id = ?";
+        String sql = "UPDATE attendance SET last_seen = ? WHERE user_id = ? AND session_id = ?";
         
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
