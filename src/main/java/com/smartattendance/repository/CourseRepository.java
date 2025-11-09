@@ -174,4 +174,102 @@ public class CourseRepository {
         }
         return students;
     }
+
+    /**
+     * Enroll a student in a course
+     *
+     * @param userId   The user ID to enroll
+     * @param courseId The course ID to enroll in
+     * @return true if enrollment was successful, false otherwise
+     */
+    public boolean enrollStudentInCourse(Integer userId, Integer courseId) {
+        String sql = "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, courseId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            // Silently fail if enrollment already exists (duplicate key error)
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Enroll a student in multiple courses
+     *
+     * @param userId    The user ID to enroll
+     * @param courseIds List of course IDs to enroll in
+     * @return true if all enrollments were successful, false if any failed
+     */
+    public boolean enrollStudentInCourses(Integer userId, List<Integer> courseIds) {
+        if (courseIds == null || courseIds.isEmpty()) {
+            return false;
+        }
+
+        boolean allSuccess = true;
+        for (Integer courseId : courseIds) {
+            if (!enrollStudentInCourse(userId, courseId)) {
+                allSuccess = false;
+            }
+        }
+        return allSuccess;
+    }
+
+    /**
+     * Unenroll a student from a course
+     *
+     * @param userId   The user ID to unenroll
+     * @param courseId The course ID to unenroll from
+     * @return true if unenrollment was successful, false otherwise
+     */
+    public boolean unenrollStudentFromCourse(Integer userId, Integer courseId) {
+        String sql = "DELETE FROM enrollments WHERE user_id = ? AND course_id = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, courseId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Check if a student is already enrolled in a course
+     *
+     * @param userId   The user ID
+     * @param courseId The course ID
+     * @return true if student is enrolled, false otherwise
+     */
+    public boolean isStudentEnrolledInCourse(Integer userId, Integer courseId) {
+        String sql = "SELECT 1 FROM enrollments WHERE user_id = ? AND course_id = ? LIMIT 1";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, courseId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

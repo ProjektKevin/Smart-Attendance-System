@@ -104,7 +104,16 @@ public class AuthValidator {
 
         String trimmed = email.trim();
 
-        // chore(), Harry: Check email format with regex
+        /*
+         * Check email format with regex
+         * Source referenced from zod library for email validation
+         * Link: https://colinhacks.com/essays/reasonable-email-regex
+         */
+        String regexPattern = "/^(?!\\.)(?!.*\\.\\.)([a-z0-9_'+\\-\\.]*)[a-z0-9_'+\\-]@([a-z0-9][a-z0-9\\-]*\\.)+[a-z]{2,}$/i";
+        if (Validator.validateWithRegex(regexPattern, trimmed)) {
+            result.addFieldError("email", "Invalid email format.");
+            return;
+        }
     }
 
     /**

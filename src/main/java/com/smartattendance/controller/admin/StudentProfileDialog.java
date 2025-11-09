@@ -1,12 +1,13 @@
 package com.smartattendance.controller.admin;
 
-import com.smartattendance.model.dto.user.UserProfileDTO;
+import com.smartattendance.model.dto.student.StudentProfileDTO;
 import com.smartattendance.model.enums.Status;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -19,9 +20,9 @@ import javafx.stage.Stage;
  */
 public class StudentProfileDialog {
     private final Stage stage;
-    private final UserProfileDTO student;
+    private final StudentProfileDTO student;
 
-    public StudentProfileDialog(UserProfileDTO student) {
+    public StudentProfileDialog(StudentProfileDTO student) {
         this.student = student;
         this.stage = new Stage();
         initializeDialog();
@@ -47,10 +48,25 @@ public class StudentProfileDialog {
         Label titleLabel = new Label("Student Profile");
         titleLabel.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
 
-        // Create form grid with scroll pane
-        ScrollPane scrollPane = new ScrollPane();
+        // Create main content VBox with profile and courses
+        VBox contentBox = new VBox(15);
+        contentBox.setPadding(new Insets(10, 0, 10, 0));
+
+        // Profile section
+        VBox profileSection = new VBox(10);
+        Label profileSectionTitle = new Label("Personal Information");
+        profileSectionTitle.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #333;");
         GridPane formGrid = createProfileGrid();
-        scrollPane.setContent(formGrid);
+        profileSection.getChildren().addAll(profileSectionTitle, formGrid);
+
+        // Courses section
+        VBox coursesSection = createCoursesSection();
+
+        contentBox.getChildren().addAll(profileSection, coursesSection);
+
+        // Create scroll pane for all content
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(contentBox);
         scrollPane.setFitToWidth(true);
         scrollPane.setPannable(true);
 
@@ -141,6 +157,59 @@ public class StudentProfileDialog {
         grid.getColumnConstraints().addAll(col1, col2);
 
         return grid;
+    }
+
+    /**
+     * Create a responsive courses section with enrolled courses
+     */
+    private VBox createCoursesSection() {
+        VBox coursesBox = new VBox(10);
+        coursesBox.setStyle("-fx-border-color: #e8e8e8; -fx-border-width: 1; -fx-padding: 12;");
+
+        // Courses title
+        Label coursesTitle = new Label("Enrolled Courses");
+        coursesTitle.setStyle("-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #333;");
+
+        // Courses count label
+        int courseCount = student.getEnrolledCourses() != null ? student.getEnrolledCourses().size() : 0;
+        Label courseCountLabel = new Label("Total: " + courseCount + " course(s)");
+        courseCountLabel.setStyle("-fx-font-size: 11; -fx-text-fill: #666;");
+
+        coursesBox.getChildren().addAll(coursesTitle, courseCountLabel);
+
+        // Display courses in a responsive FlowPane (wraps horizontally)
+        if (student.getEnrolledCourses() != null && !student.getEnrolledCourses().isEmpty()) {
+            FlowPane coursesFlowPane = new FlowPane();
+            coursesFlowPane.setHgap(8);
+            coursesFlowPane.setVgap(8);
+            coursesFlowPane.setPadding(new Insets(10, 0, 0, 0));
+
+            for (String course : student.getEnrolledCourses()) {
+                // Create a styled label for each course
+                Label courseLabel = new Label(course);
+                courseLabel.setStyle(
+                        "-fx-background-color: #e3f2fd; " +
+                        "-fx-border-color: #2196f3; " +
+                        "-fx-border-width: 1; " +
+                        "-fx-padding: 6 12; " +
+                        "-fx-border-radius: 4; " +
+                        "-fx-text-fill: #1976d2; " +
+                        "-fx-font-size: 11; " +
+                        "-fx-font-weight: 500;"
+                );
+                coursesFlowPane.getChildren().add(courseLabel);
+            }
+
+            coursesBox.getChildren().add(coursesFlowPane);
+        } else {
+            // Show message if no courses enrolled
+            Label noCourseLabel = new Label("Not enrolled in any courses");
+            noCourseLabel.setStyle("-fx-font-size: 11; -fx-text-fill: #999; -fx-font-style: italic;");
+            noCourseLabel.setPadding(new Insets(10, 0, 0, 0));
+            coursesBox.getChildren().add(noCourseLabel);
+        }
+
+        return coursesBox;
     }
 
     /**

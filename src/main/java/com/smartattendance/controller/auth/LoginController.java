@@ -13,6 +13,7 @@ import com.smartattendance.service.AuthService;
 import com.smartattendance.util.EmailService;
 import com.smartattendance.util.EmailSettings;
 import com.smartattendance.util.EmailTemplates;
+import com.smartattendance.util.security.LoggerUtil;
 import com.smartattendance.util.security.PasswordUtil;
 import com.smartattendance.util.security.RandomUtil;
 import com.smartattendance.util.validation.AuthValidator;
@@ -26,8 +27,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import com.smartattendance.controller.auth.ForgotPasswordController;
-import com.smartattendance.controller.auth.RegisterController;
 
 public class LoginController {
 
@@ -50,8 +49,11 @@ public class LoginController {
     // ===== Login =====
     @FXML
     private void handleLogin() {
-        String userNameInput = usernameField.getText();
-        String passwordInput = passwordField.getText();
+        String userNameInput = usernameField.getText().trim();
+        String passwordInput = passwordField.getText().trim();
+
+        // Logger to let dev know which function is running
+        LoggerUtil.LOGGER.info("Running Login For the User");
 
         // Validate all fields using ProfileValidator
         // This returns a ValidationResult with field errors
@@ -68,7 +70,7 @@ public class LoginController {
 
         try {
             // Get user details
-            User user = authService.authenticate(userNameInput);
+            User user = authService.getUserByUsername(userNameInput);
 
             if (user == null) {
                 errorLabel.setText("Invalid credentials");
@@ -86,6 +88,9 @@ public class LoginController {
             // Save user in Application Context BEFORE loading UI
             session.login(user);
 
+            // Logger for more info on authentication
+            LoggerUtil.LOGGER.info("User Authenticated Successfully: " + user.getId());
+
             // Load UI based on the role
             if (role == Role.ADMIN) {
                 Parent mainRoot = FXMLLoader.load(getClass().getResource("/view/MainView.fxml"));
@@ -93,6 +98,9 @@ public class LoginController {
                 stage.setScene(new Scene(mainRoot));
                 stage.setTitle("Admin System");
                 errorLabel.setText("");
+
+                // Logger for more info on authorization
+                LoggerUtil.LOGGER.info("User Authorized Successfully: " + user.getRole().name());
             }
 
             else {
@@ -101,9 +109,13 @@ public class LoginController {
                 stage.setScene(new Scene(studentRoot));
                 stage.setTitle("Student Portal");
                 errorLabel.setText("");
+
+                // Logger for more info on authorization
+                LoggerUtil.LOGGER.info("User Authorized Successfully: " + user.getRole().name());
             }
 
         } catch (Exception e) {
+            // chore(), Harry: Add error logger here
             errorLabel.setText("Unable to open student portal: " + e.getMessage());
             e.printStackTrace();
         }
@@ -120,6 +132,9 @@ public class LoginController {
             // Open forgot password dialog
             ForgotPasswordDialog dialog = new ForgotPasswordDialog();
             dialog.show();
+
+            // Logger to let dev know which function is running
+            LoggerUtil.LOGGER.info("Running Forgot Password For the User");
 
             if (!dialog.isSubmitted()) {
                 return;
@@ -152,6 +167,9 @@ public class LoginController {
                     ? AuthVerification.FORGOT_PASSWORD
                     : AuthVerification.VERIFICATION;
 
+            // Logger for user verification type
+            LoggerUtil.LOGGER.info("User Auth Verification Type: " + verificationType.name());
+
             // Assign expiration based on verification type
             LocalDateTime expirationTime = verificationType.name().equals(AuthVerification.VERIFICATION.name())
                     ? verificationExpTime
@@ -165,9 +183,14 @@ public class LoginController {
                     user.getId());
             authService.createVerification(verification);
 
+            // Logger to verify verification record insertion
+            LoggerUtil.LOGGER.info("Verification Queue Inserted Successfully");
+
             // Send email with token
             try {
                 sendVerificationEmail(user, token, verificationType);
+                // Logger to verify email sending
+                LoggerUtil.LOGGER.info("Email Sent Successfully To: " + user.getEmail());
             } catch (Exception e) {
                 showAlert("Email Error", "Failed to send verification email: " + e.getMessage());
                 e.printStackTrace();
@@ -190,7 +213,9 @@ public class LoginController {
 
             // Verify the token against the database
             boolean isTokenValid = authService.verifyToken(user.getId(), userInputToken, verificationType);
-            System.out.println("Token Validation: " + isTokenValid);
+
+            // Logger to verify token validation
+            LoggerUtil.LOGGER.info("Token Validation: " + isTokenValid);
 
             if (!isTokenValid) {
                 showAlert("Invalid Token", "The token is invalid or has expired.");

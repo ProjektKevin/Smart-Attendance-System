@@ -84,11 +84,11 @@ public class RegisterController {
         clearAllErrors();
 
         // Get form values
-        String username = usernameField.getText();
-        String firstName = firstNameField.getText();
-        String lastName = lastNameField.getText();
-        String password = passwordField.getText();
-        String confirmPassword = confirmPasswordField.getText();
+        String username = usernameField.getText().trim();
+        String firstName = firstNameField.getText().trim();
+        String lastName = lastNameField.getText().trim();
+        String password = passwordField.getText().trim();
+        String confirmPassword = confirmPasswordField.getText().trim();
 
         // Validate all fields
         ValidationResult validationResult = AuthValidator.validateRegistration(
@@ -99,10 +99,16 @@ public class RegisterController {
             return;
         }
 
-        // Check if username already exists in database
-        // chore(), Harry: Check username duplicates
-
         try {
+            // Check if username already exists in database
+            User duplicateUser = authService.getUserByUsername(username);
+
+            // Reject if duplicate username
+            if (duplicateUser != null) {
+                usernameError.setText("Username: " + username + "already exists.");
+                return;
+            }
+
             // Hash password
             String hashedPassword = PasswordUtil.hash(password);
 
@@ -110,7 +116,6 @@ public class RegisterController {
              * Complete registration in a transaction
              * Insert user profile and turn email verification to true
              */
-
             boolean registrationSuccess = authService.registerUser(
                     user.getId(),
                     username,

@@ -20,7 +20,7 @@ public class AuthService {
     this.verificationRepo = verificationRepo;
   }
 
-  public User authenticate(String userName) {
+  public User getUserByUsername(String userName) {
     return authRepo.findUserByUsername(userName);
   }
 

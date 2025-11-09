@@ -1,5 +1,9 @@
 package com.smartattendance.util.validation;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 /**
  * Validator Util to validate input fields
  * Base general validations
@@ -180,5 +184,25 @@ public class Validator {
             }
         }
         return false;
+    }
+
+    /**
+     * Method to check if the string matches the regex pattern
+     *
+     * @param regex the regex pattern
+     * @param input the string input
+     * 
+     * @return true if the string is contains at least one digit
+     */
+    public static boolean validateWithRegex(String regex, String input) {
+        try {
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(input);
+            return matcher.find();
+        } catch (PatternSyntaxException e) {
+            // chore(), Harry: Change back to logger if got time
+            System.out.println("Invalid regex pattern: " + e.getDescription());
+            return false;
+        }
     }
 }
