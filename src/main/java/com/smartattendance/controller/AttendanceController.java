@@ -572,7 +572,8 @@ public class AttendanceController implements AttendanceObserver {
             return; // disable if selection exists
         }
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceForm.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceFormView.fxml"));
+
             Parent root = loader.load();
 
             AttendanceFormController formController = loader.getController();
@@ -587,6 +588,7 @@ public class AttendanceController implements AttendanceObserver {
             AttendanceRecord newRecord = formController.getNewRecord();
             if (newRecord != null) {
                 loadAttendanceRecords();
+                showSuccess("Added record successfully.");
             }
 
         } catch (Exception e) {

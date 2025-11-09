@@ -5,13 +5,13 @@ import java.time.LocalDateTime;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.MarkMethod;
-import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.entity.Session;
+import com.smartattendance.model.entity.Student;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.StudentService;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -40,20 +40,50 @@ public class AttendanceFormController {
     }
 
     @FXML
+    public void initialize() {
+        // Populate ComboBox safely
+        if (cmbStatus != null) {
+            cmbStatus.getItems().addAll("Present", "Absent", "Late", "Pending");
+        }
+    }
+
+
+    @FXML
     private void onCreate() {
         try {
+            // System.out.println("|" + cmbStatus.getValue().toUpperCase() + "|"); // for testing
+
+            String status = cmbStatus.getValue();
             int studentId = Integer.parseInt(txtStudentId.getText().trim());
             Student student = studentService.findById(studentId);
 
             if (student == null) {
-                throw new Exception("No student found with ID " + studentId);
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Warning");
+                alert.setHeaderText("No student found with studentId: " + studentId);
+                alert.setContentText("Please enter a valid studentId.");
+                alert.showAndWait();
+                throw new Exception("No student found with studentId: " + studentId);
             }
 
-            AttendanceRecord record = new AttendanceRecord(student, currentSession, AttendanceStatus.valueOf(cmbStatus.getValue()), 0.0, MarkMethod.MANUAL, LocalDateTime.now());
+            if (status == null) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Warning");
+                alert.setHeaderText("No Status Selected");
+                alert.setContentText("Please select a status before submitting.");
+                alert.showAndWait();
+                throw new Exception("No status selected");
+            }
+
+            AttendanceRecord record = new AttendanceRecord(student, currentSession, AttendanceStatus.valueOf(status.toUpperCase()), 0.0, MarkMethod.MANUAL, LocalDateTime.now());
             // record.setStudent(student);
             // record.setSession(currentSession);
             // record.setStatus(cmbStatus.getValue());
-            record.setNote(txtNote.getText());
+            if (txtNote.getText() != null) {
+                record.setNote(txtNote.getText());
+            } else {
+                record.setNote("Manual-created");
+            }
 
             attendanceService.saveRecord(record);
             newRecord = record;
