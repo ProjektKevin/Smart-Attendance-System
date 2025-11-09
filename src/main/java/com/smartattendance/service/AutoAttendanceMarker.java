@@ -116,7 +116,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 // }
                 attendanceRecordRepo.update(record);
                 // System.out.println("Marked " + student.getName() + " as " + status);
-                String message = "Marked " + student.getName() + " as " + status;
+                String message = "Marked " + student.getName() + " (Student Id: "+ student.getStudentId() +")" + " as " + status;
                 for (AttendanceObserver o : observers) {
                     // notify the recognitionService that the attendance of a particular student is marked
                     // o.onAttendanceMarked(record, message);
@@ -133,7 +133,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 // student already marked then update last seen
             } else if (existingRecord.getStatus() == AttendanceStatus.PRESENT || existingRecord.getStatus() == AttendanceStatus.LATE) {
                 long secondsSinceLastSeen = Duration.between(existingRecord.getLastSeen(), now).getSeconds();
-                String message = "Updated last_seen for " + student.getName();
+                String message = "Updated last seen for " + student.getName() + " (StudentId: " + student.getStudentId() + ")";
                 if (secondsSinceLastSeen >= cooldownSeconds) {
                     existingRecord.setLastSeen(now);
                     attendanceRecordRepo.updateLastSeen(record);
@@ -158,7 +158,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                         //     // refresh the attendancceRecords page
                         //     ((AttendanceController) o).loadAttendanceRecords();
                         if (o instanceof LiveRecognitionController) {
-                            ((LiveRecognitionController) o).onAttendanceSkipped(record, "Cooldown active for " + student.getName() + ", skipping re-mark.");
+                            ((LiveRecognitionController) o).onAttendanceSkipped(record, "Cooldown active for " + student.getName() + " (Student Id: "+ student.getStudentId() +")" + ", skipping re-mark.");
                         }
                     }
                 }
@@ -168,7 +168,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 for (AttendanceObserver o : observers) {
                     // notify the recognitionService that the attendance of a particular student is not remarked
                         if (o instanceof LiveRecognitionController) {
-                            ((LiveRecognitionController) o).onAttendanceSkipped(record, "Skipping: already marked as " + existingRecord.getStatus());
+                            ((LiveRecognitionController) o).onAttendanceSkipped(record, "Skipping " + student.getName() + " (Student Id: "+ student.getStudentId() +")" + ": already marked as " + existingRecord.getStatus());
                         }
                     }
             }
