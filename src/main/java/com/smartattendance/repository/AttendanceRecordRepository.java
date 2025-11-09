@@ -356,4 +356,30 @@ public class AttendanceRecordRepository {
             e.printStackTrace();
         }
     }
+
+    public void updateNote(AttendanceRecord record){
+        String sql = "UPDATE attendance SET note = ? WHERE user_id = ? AND session_id = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+                
+            // ps.setTimestamp(1, Timestamp.valueOf(record.getTimestamp()));
+            // ps.setTimestamp(2, Timestamp.valueOf(record.getLastSeen()));
+            ps.setString(1, record.getNote());
+            ps.setInt(2, record.getStudent().getStudentId());
+            ps.setInt(3, record.getSession().getSessionId());
+             // Set both marked_at and last_seen to current timestamp
+            // Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+            // ps.setTimestamp(1, currentTimestamp);
+            // ps.setTimestamp(2, currentTimestamp);
+            // ps.setString(3, record.getStatus());
+            // ps.setInt(4, record.getStudent().getStudentId());
+            // ps.setInt(5, record.getSession().getSessionId());
+            
+            ps.executeUpdate();
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

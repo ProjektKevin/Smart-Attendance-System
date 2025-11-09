@@ -5,9 +5,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.Objects;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -281,7 +281,7 @@ public class AttendanceController implements AttendanceObserver {
 
             for (AttendanceRecord record : records) {
                 originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
-                originalStatuses.put(record.getStudent().getStudentId(), record.getNote());
+                originalNotes.put(record.getStudent().getStudentId(), record.getNote());
             }
         }
     }
@@ -307,7 +307,7 @@ public class AttendanceController implements AttendanceObserver {
                     record.setTimestamp(LocalDateTime.now());
                     // record.setLastSeen(LocalDateTime.now());
                     service.updateStatus(record);
-                    updatedCount++;
+                    // updatedCount++;
 
                     // Update the original status map so subsequent saves work fine
                     originalStatuses.put(record.getStudent().getStudentId(), currentStatus);
@@ -320,10 +320,14 @@ public class AttendanceController implements AttendanceObserver {
                     // record.setTimestamp(LocalDateTime.now());
                     // record.setLastSeen(LocalDateTime.now());
                     service.updateNote(record); // need to change to updateNote
-                    updatedCount++;
+                    // updatedCount++;
 
                     // Update the original notes map so subsequent saves work fine
                     originalNotes.put(record.getStudent().getStudentId(), currentNote);
+                }
+
+                if (statusChanged || noteChanged) {
+                    updatedCount++;
                 }
             }
 

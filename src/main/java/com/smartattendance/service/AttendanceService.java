@@ -193,6 +193,10 @@ public class AttendanceService {
         repo.updateStatus(record);
     }
 
+    public void updateNote(AttendanceRecord record){
+        repo.updateNote(record);
+    }
+
     public String capitalize(String str) {
         return repo.capitalize(str);
     }
