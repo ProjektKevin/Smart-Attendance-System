@@ -10,6 +10,7 @@ import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
+import com.smartattendance.service.recognition.OpenFaceRecognizer;
 import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.LoggerUtil;
@@ -36,6 +37,8 @@ public final class ApplicationContext {
     private static FaceDetectionService faceDetectionService;
     private static FaceProcessingService faceProcessingService;
     private static FaceRecognitionService faceRecognitionService;
+
+    private static OpenFaceRecognizer openFaceRecognizer;
 
     /**
      * Initialize the application context.
@@ -110,6 +113,8 @@ public final class ApplicationContext {
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
             LoggerUtil.LOGGER.info("Face recognition service initialized");
+
+            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
 
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
@@ -226,6 +231,18 @@ public final class ApplicationContext {
     public static FaceRecognitionService getFaceRecognitionService() {
         checkInitialized();
         return faceRecognitionService;
+    }
+
+
+    /**
+     * Get the OpenFaceRecognizer instance (DNN-based).
+     *
+     * @return OpenFaceRecognizer
+     * @throws IllegalStateException if not initialized
+     */
+    public static OpenFaceRecognizer getOpenFaceRecognizer() {
+        checkInitialized();
+        return openFaceRecognizer;
     }
 
     /**

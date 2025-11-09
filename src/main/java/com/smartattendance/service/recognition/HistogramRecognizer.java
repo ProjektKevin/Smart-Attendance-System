@@ -2,13 +2,8 @@ package com.smartattendance.service.recognition;
 
 import java.util.List;
 
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
 import org.opencv.core.Rect;
-import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import com.smartattendance.model.entity.Student;
@@ -17,6 +12,10 @@ import com.smartattendance.service.FaceProcessingService;
 
 public class HistogramRecognizer extends Recognizer {
   private final FaceProcessingService faceProcessingService;
+
+  // Image Dimensions
+  private static final int DEFAULT_FACE_WIDTH = 100;
+  private static final int DEFAULT_FACE_HEIGHT = 100;
 
   public HistogramRecognizer(FaceProcessingService faceProcessingService) {
     super();
@@ -68,7 +67,7 @@ public class HistogramRecognizer extends Recognizer {
     try {
       // Preprocess the input face image
       Rect fullRect = new Rect(0, 0, faceImage.cols(), faceImage.rows());
-      Mat preprocessedFace = faceProcessingService.preprocessFace(faceImage, fullRect);
+      Mat preprocessedFace = faceProcessingService.preprocessFace(faceImage, fullRect, DEFAULT_FACE_WIDTH, DEFAULT_FACE_HEIGHT);
 
       // Compute histogram for the preprocessed face
       Mat inputHistogram = faceProcessingService.computeHistogram(preprocessedFace);
@@ -134,6 +133,5 @@ public class HistogramRecognizer extends Recognizer {
 
     return results;
   }
-
 
 }

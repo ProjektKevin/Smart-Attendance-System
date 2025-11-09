@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
-import org.opencv.imgproc.Imgproc;
 
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
@@ -19,7 +18,7 @@ public class FaceRecognitionService {
   private final StudentRepository studentRepository;
   private Recognizer recognizer;
   private List<Student> enrolledStudents;
-  private RecognitionAlgorithm currentAlgorithm;
+  // private RecognitionAlgorithm currentAlgorithm;
 
   public enum RecognitionAlgorithm {
     HISTOGRAM,
