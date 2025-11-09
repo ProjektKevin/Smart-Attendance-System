@@ -13,7 +13,7 @@ import org.opencv.core.Mat;
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.entity.FaceData;
 import com.smartattendance.model.entity.Student;
-import com.smartattendance.util.MatConversion;
+import com.smartattendance.util.OpenCVUtils;
 
 public class StudentRepository {
 
@@ -132,13 +132,13 @@ public class StudentRepository {
 
                     Student student = new Student(studentId, userName, courseCode);
                     if (histogramBytes != null && histogramBytes.length > 0) {
-                        Mat histogram = MatConversion.bytesToMatHistogram(histogramBytes);
+                        Mat histogram = OpenCVUtils.bytesToMatHistogram(histogramBytes);
                         faceData.setHistogram(histogram);
                     }
 
                     
                     if (embeddingBytes != null && embeddingBytes.length > 0) {
-                        Mat embedding = MatConversion.bytesToMatEmbedding(embeddingBytes);
+                        Mat embedding = OpenCVUtils.bytesToMatEmbedding(embeddingBytes);
                         if (!embedding.empty()) {
                             faceData.setFaceEmbedding(embedding);
                         }
