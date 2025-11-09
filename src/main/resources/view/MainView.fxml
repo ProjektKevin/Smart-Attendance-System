@@ -48,17 +48,6 @@
                         <fx:include source="TestAutoMarkView.fxml" />
                     </content>
                 </Tab>
-                <!-- <Tab fx:id="tabAttendances" text="Attendance">
-                    <content>
-                        <fx:include source="AttendanceView.fxml" />
-                    </content>
-                </Tab> -->
-                <!-- for testing -->
-                <!-- <Tab fx:id="tabStudentAttendances" text="Student Attendance">
-                    <content>
-                        <fx:include source="StudentAttendanceView.fxml" />
-                    </content>
-                </Tab> -->
                 <Tab fx:id="tabLive" text="Live Recognition">
                     <content>
                         <fx:include source="RecognitionView.fxml" />
