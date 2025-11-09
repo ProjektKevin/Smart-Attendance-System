@@ -116,13 +116,13 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 // }
                 attendanceRecordRepo.update(record);
                 // System.out.println("Marked " + student.getName() + " as " + status);
-                String message = "Marked " + student.getName() + " (Student Id: "+ student.getStudentId() +")" + " as " + status;
+                String message = "Marked " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + " as " + status;
                 for (AttendanceObserver o : observers) {
                     // notify the recognitionService that the attendance of a particular student is marked
                     // o.onAttendanceMarked(record, message);
                     if (o instanceof LiveRecognitionController) {
-                            ((LiveRecognitionController) o).onAttendanceMarked(record, message);
-                        }
+                        ((LiveRecognitionController) o).onAttendanceMarked(record, message);
+                    }
                     if (o instanceof AttendanceController) {
                         // refresh the attendancceRecords page
                         ((AttendanceController) o).loadAttendanceRecords();
@@ -138,7 +138,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                     existingRecord.setLastSeen(now);
                     attendanceRecordRepo.updateLastSeen(record);
                     for (AttendanceObserver o : observers) {
-                    // notify the recognitionService that the attendance of a particular student is marked
+                        // notify the recognitionService that the attendance of a particular student is marked
                         // o.onAttendanceMarked(message, record);
                         if (o instanceof LiveRecognitionController) {
                             ((LiveRecognitionController) o).onAttendanceMarked(record, message);
@@ -146,19 +146,19 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                         if (o instanceof AttendanceController) {
                             // refresh the attendancceRecords page
                             ((AttendanceController) o).loadAttendanceRecords();
+                        }
                     }
-                }
                     // System.out.println("Updated last_seen for " + student.getName());
                 } else {
                     // System.out.println("Cooldown active for " + student.getName() + ", skipping re-mark.");
                     for (AttendanceObserver o : observers) {
-                    // notify the recognitionService that the attendance of a particular student is not remarked
+                        // notify the recognitionService that the attendance of a particular student is not remarked
                         // o.onAttendanceMarked(message, record);
                         // if (o instanceof AttendanceController) {
                         //     // refresh the attendancceRecords page
                         //     ((AttendanceController) o).loadAttendanceRecords();
                         if (o instanceof LiveRecognitionController) {
-                            ((LiveRecognitionController) o).onAttendanceSkipped(record, "Cooldown active for " + student.getName() + " (Student Id: "+ student.getStudentId() +")" + ", skipping re-mark.");
+                            ((LiveRecognitionController) o).onAttendanceSkipped(record, "Cooldown active for " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + ", skipping re-mark.");
                         }
                     }
                 }
@@ -167,10 +167,10 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 // onAttendanceSkipped(record, "Skipping: already marked as " + existingRecord.getStatus())
                 for (AttendanceObserver o : observers) {
                     // notify the recognitionService that the attendance of a particular student is not remarked
-                        if (o instanceof LiveRecognitionController) {
-                            ((LiveRecognitionController) o).onAttendanceSkipped(record, "Skipping " + student.getName() + " (Student Id: "+ student.getStudentId() +")" + ": already marked as " + existingRecord.getStatus());
-                        }
+                    if (o instanceof LiveRecognitionController) {
+                        ((LiveRecognitionController) o).onAttendanceSkipped(record, "Skipping " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + ": already marked as " + existingRecord.getStatus());
                     }
+                }
             }
 
             // if (record.getLastSeen() == null) {
@@ -210,14 +210,16 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             if (isClosed) {
                 List<AttendanceRecord> pendingRecords = attendanceRecordRepo.findPendingAttendanceBySessionId(sess.getSessionId(), AttendanceStatus.PENDING);
 
-                for (AttendanceRecord rec : pendingRecords) {
-                    rec.setStatus(AttendanceStatus.ABSENT);
-                    rec.setMethod(MarkMethod.AUTO);
-                    rec.setTimestamp(now);
-                    rec.setNote("Auto-marked as Absent after session closed.");
-                    attendanceRecordRepo.update(rec);
+                if (pendingRecords != null) {
+                    for (AttendanceRecord rec : pendingRecords) {
+                        rec.setStatus(AttendanceStatus.ABSENT);
+                        rec.setMethod(MarkMethod.AUTO);
+                        rec.setTimestamp(now);
+                        rec.setNote("Auto-marked as Absent after session closed.");
+                        attendanceRecordRepo.update(rec);
 
-                    System.out.println("Updated attendance to ABSENT for student: " + rec.getStudent().getName());
+                        System.out.println("Updated attendance to ABSENT for student: " + rec.getStudent().getName());
+                    }
                 }
             }
         }

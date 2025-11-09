@@ -6,6 +6,7 @@ import com.smartattendance.service.RecognitionService;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -58,22 +59,33 @@ public class LiveRecognitionController implements AttendanceObserver {
             switch (type) {
                 case SUCCESS ->
                     // toast.setStyle(toast.getStyle() + "-fx-background-color: #4BB543;"); // Green
-                    toast.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                    toast.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
+                            + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 case ERROR ->
                     // toast.setStyle(toast.getStyle() + "-fx-background-color: #E74C3C;");   // Red
-                    toast.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                    toast.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
+                            + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 case WARNING ->
                     // toast.setStyle(toast.getStyle() + "-fx-background-color: #F1C40F; -fx-text-fill: black;"); // Yellow
-                    toast.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                    toast.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
+                            + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
             }
 
             // Position at top-center of the toastPane
-            toast.setLayoutX((toastPane.getWidth() - toast.getWidth()) / 2);
-            toast.setLayoutY(10);
+            Platform.runLater(() -> {
+                toast.setMaxWidth(Double.MAX_VALUE);
+                toast.setPrefWidth(toastPane.getWidth());
+                toast.setAlignment(Pos.CENTER);
+                toast.setLayoutX(0);
+                toast.setLayoutY(10);
+            });
 
+            // toast.setLayoutX((toastPane.getWidth() - toast.getWidth()) / 2);
+            // toast.setLayoutY(10);
+            // Platform.runLater(() -> {
+            //     toast.setLayoutX((toastPane.getWidth() - toast.getWidth()) / 2);
+            //     toast.setLayoutY(10);
+            // });
             toastPane.getChildren().add(toast);
 
             // Animate fade out after 2 seconds
