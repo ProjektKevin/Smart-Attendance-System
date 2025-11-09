@@ -319,7 +319,7 @@ public class AttendanceController implements AttendanceObserver {
                     // if update note don't have to update marked_at or last_seen time
                     // record.setTimestamp(LocalDateTime.now());
                     // record.setLastSeen(LocalDateTime.now());
-                    service.updateStatus(record);
+                    service.updateNote(record); // need to change to updateNote
                     updatedCount++;
 
                     // Update the original notes map so subsequent saves work fine
