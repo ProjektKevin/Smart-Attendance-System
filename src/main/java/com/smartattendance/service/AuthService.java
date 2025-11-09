@@ -10,8 +10,8 @@ public class AuthService {
   private final AuthRepository authRepo;
   private final VerificationRepository verificationRepo;
 
-  public AuthService(AuthRepository authRepo) {
-    this.authRepo = authRepo;
+  public AuthService() {
+    this.authRepo = new AuthRepository();
     this.verificationRepo = new VerificationRepository();
   }
 

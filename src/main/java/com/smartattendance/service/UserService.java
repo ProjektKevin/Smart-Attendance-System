@@ -17,8 +17,8 @@ public class UserService {
     private final ProfileRepository profileRepository;
     private final CourseRepository courseRepository;
 
-    public UserService(PostgresUserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserService() {
+        this.userRepository = new PostgresUserRepository();
         this.profileRepository = new ProfileRepository();
         this.courseRepository = new CourseRepository();
     }
