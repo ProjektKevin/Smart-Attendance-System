@@ -1,14 +1,16 @@
 package com.smartattendance.repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.smartattendance.model.enums.Role;
 
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.entity.User;
-
-import java.util.List;
-import java.util.ArrayList;
-
-import java.sql.*;
 
 public class PostgresUserRepository {
 

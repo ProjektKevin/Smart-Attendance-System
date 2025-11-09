@@ -1,31 +1,42 @@
 package com.smartattendance.controller;
 
-import com.smartattendance.model.entity.AttendanceRecord;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.smartattendance.model.entity.Session;
-import com.smartattendance.model.entity.Student;
-import com.smartattendance.repository.StudentRepository;
-import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
+import com.smartattendance.util.ControllerRegistry;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.util.Duration;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
-import java.time.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import javafx.util.Duration;
 
 public class SessionController {
     @FXML
@@ -51,6 +62,8 @@ public class SessionController {
     @FXML
     private TableColumn<Session, String> colStatus;
     @FXML
+    private TableColumn<Session, Void> colViewMore;
+    @FXML
     private Button deleteButton;
     @FXML
     private Button startButton;
@@ -58,13 +71,25 @@ public class SessionController {
     private Button stopButton;
     @FXML
     private CheckBox selectAllCheckBox;
+    @FXML 
+    private VBox sessionListContainer;
+    @FXML 
+    private VBox attendanceViewContainer;
 
-    private final SessionService sm = new SessionService();
+    private final SessionService ss = new SessionService();
     private final ObservableList<Session> sessionList = FXCollections.observableArrayList();
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
+    // F_MA: added by felicia handling marking attendance
+    private AttendanceController attendanceController; // store reference
 
     @FXML
     public void initialize() {
+        // Apply initial styling to the info label
+        styleInfoLabel("normal", "Loaded sessions will appear here");
+        
+        attendanceViewContainer.setVisible(false);
+        attendanceViewContainer.setManaged(false);
+        
         // Initialise columns
         colId.setCellValueFactory(new PropertyValueFactory<>("sessionId"));
         colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
@@ -77,6 +102,9 @@ public class SessionController {
 
         // Setup checkbox column
         setupCheckBoxColumn();
+
+        // Setup view more button 
+        setUpViewMoreButton();
 
         // Load sessions from database
         loadSessionsFromDatabase();
@@ -103,6 +131,40 @@ public class SessionController {
         }));
         uiRefresher.setCycleCount(Timeline.INDEFINITE);
         uiRefresher.play();
+    }
+
+    public AttendanceController getAttendanceController() {
+        return attendanceController;
+    }
+
+    // Styles the info label based on message type
+    // @param type "success", "error", "warning", or "normal"
+    // @param message The text to display
+    private void styleInfoLabel(String type, String message) {
+        sessionsInfo.setText(message);
+        
+        // Reset styles first
+        sessionsInfo.setStyle("-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+        
+        switch (type.toLowerCase()) {
+            case "success":
+                sessionsInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "error":
+                sessionsInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "warning":
+                sessionsInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "normal":
+            default:
+                sessionsInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+        }
     }
 
     private void setupCheckBoxColumn() {
@@ -135,9 +197,74 @@ public class SessionController {
         colSelect.setCellValueFactory(cellData -> null);
     }
 
+    private void setUpViewMoreButton() {
+        colViewMore.setCellFactory(param -> new TableCell<>() {
+            private final Button btn = new Button("View More");
+
+            {
+                btn.setOnAction(event -> {
+                    Session session = getTableView().getItems().get(getIndex());
+                    openAttendancePage(session);
+                });
+                btn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(btn);
+                }
+            }
+        });
+    }
+
+    private void openAttendancePage(Session session) {
+        try {
+            // Load the Attendance view fresh and get its controller
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceView.fxml"));
+            Parent attendanceRoot = loader.load();
+            // F_MA: modified by felicia handling marking attendance
+            attendanceController = loader.getController();
+            // AttendanceController attendanceCtrl = loader.getController();
+            // Save globally for AutoAttendanceUpdater to access
+            ControllerRegistry.setAttendanceController(attendanceController);
+            
+
+            // Pass session to the attendance controller
+            attendanceController.setSession(session);
+
+            // Provide a callback so AttendanceController can go back to the sessions list
+            attendanceController.setBackHandler(() -> {
+                // hide attendance view and show session list
+                attendanceViewContainer.getChildren().clear();
+                attendanceViewContainer.setVisible(false);
+                attendanceViewContainer.setManaged(false);
+
+                sessionListContainer.setVisible(true);
+                sessionListContainer.setManaged(true);
+            });
+
+            // Hide session list
+            sessionListContainer.setVisible(false);
+            sessionListContainer.setManaged(false);
+
+            // Put attendance UI into placeholder and show it
+            attendanceViewContainer.getChildren().setAll(attendanceRoot);
+            attendanceViewContainer.setVisible(true);
+            attendanceViewContainer.setManaged(true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Error opening attendance page: " + e.getMessage());
+        }
+    }
+
     private void loadSessionsFromDatabase() {
         try {
-            List<Session> sessions = sm.getAllSessions();
+            List<Session> sessions = ss.getAllSessions();
             boolean statusChanged = false;
 
             // Update status of sessions based on current time (Automate opening and closing of sessions)  
@@ -148,14 +275,14 @@ public class SessionController {
                 // If status needs to be updated, update in database
                 if (!currentStatus.equals(updatedStatus)){
                     s.setStatus(updatedStatus);
-                    sm.updateSessionStatus(s);
+                    ss.updateSessionStatus(s);
                     statusChanged = true;
                 }
             }
 
             // Reload from database to get updated status (if necessary)
             if (statusChanged) {
-                sessions = sm.getAllSessions();
+                sessions = ss.getAllSessions();
             }
             
             // Sort sessions by sessionId in ascending order
@@ -170,12 +297,29 @@ public class SessionController {
                 selectionMap.put(session.getSessionId(), new SimpleBooleanProperty(false));
             }
             
-            sessionsInfo.setText("Loaded " + sessions.size() + " sessions");
+            showInfo("Loaded " + sessions.size() + " sessions");
             updateButtonStates();
         } catch (Exception e) {
-            sessionsInfo.setText("Error loading sessions: " + e.getMessage());
+            showError("Error loading sessions: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    // Helper methods for different message types
+    private void showSuccess(String message) {
+        styleInfoLabel("success", "✓ " + message);
+    }
+
+    private void showError(String message) {
+        styleInfoLabel("error", "✗ " + message);
+    }
+
+    private void showWarning(String message) {
+        styleInfoLabel("warning", "⚠ " + message);
+    }
+
+    private void showInfo(String message) {
+        styleInfoLabel("normal", "ℹ " + message);
     }
 
     // Update button states
@@ -279,12 +423,12 @@ public class SessionController {
 
             if (newSession != null) {
                 loadSessionsFromDatabase(); // Reload to get the new session
-                sessionsInfo.setText("Session " + newSession.getSessionId() + " created successfully!");
+                showSuccess("Session " + newSession.getSessionId() + " created successfully!");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            sessionsInfo.setText("Error creating session: " + e.getMessage());
+            showError("Error creating session: " + e.getMessage());
         }
     }
 
@@ -293,7 +437,7 @@ public class SessionController {
         // Selection of sessions to start
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
-            sessionsInfo.setText("Please select session(s) to start.");
+            showWarning("Please select session(s) to start.");
             return;
         }
 
@@ -301,14 +445,14 @@ public class SessionController {
         for (Session session : selectedSessions) {
             if (!"Open".equals(session.getStatus())) {
                 session.open();
-                sm.updateSessionStatus(session);
+                ss.updateSessionStatus(session);
                 successCount++;
             }
         }
 
         sessionTable.refresh();
         clearAllSelection();
-        sessionsInfo.setText("Started " + successCount + " session(s) successfully.");
+        showSuccess("Started " + successCount + " session(s) successfully.");
     }
 
     @FXML
@@ -316,7 +460,7 @@ public class SessionController {
         // Selection of sessions to stop if session status != "Closed"
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
-            sessionsInfo.setText("Please select session(s) to stop.");
+            showWarning("Please select session(s) to stop.");
             return;
         }
 
@@ -324,14 +468,14 @@ public class SessionController {
         for (Session session : selectedSessions) {
             if (!"Closed".equals(session.getStatus())) {
                 session.close();
-                sm.updateSessionStatus(session);
+                ss.updateSessionStatus(session);
                 successCount++;
             }
         }
 
         sessionTable.refresh();
         clearAllSelection();
-        sessionsInfo.setText("Stopped " + successCount + " session(s) successfully.");
+        showSuccess("Stopped " + successCount + " session(s) successfully.");
     }
 
     @FXML
@@ -339,7 +483,7 @@ public class SessionController {
         // Selection of sessions to delete if session status != "Open"
         List<Session> selectedSessions = getSelectedSessions();
         if (selectedSessions.isEmpty()) {
-            sessionsInfo.setText("Please select session(s) to delete.");
+            showWarning("Please select session(s) to delete.");
             return;
         }
 
@@ -358,12 +502,11 @@ public class SessionController {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 try {
-                    SessionRepository repo = new SessionRepository();
-                    repo.deleteAll();
+                    ss.deleteAll();
                     loadSessionsFromDatabase();
-                    sessionsInfo.setText("Successfully deleted all sessions.");
+                    showSuccess("Successfully deleted all sessions.");
                 } catch (Exception e) {
-                    sessionsInfo.setText("Error deleting all sessions: " + e.getMessage());
+                    showError("Error deleting all sessions: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -373,7 +516,7 @@ public class SessionController {
                     .anyMatch(s -> "Open".equals(s.getStatus()));
 
             if (hasOpenSessions) {
-                sessionsInfo.setText("Cannot delete open sessions. Stop the sessions first.");
+                showWarning("Cannot delete open sessions. Stop the sessions first.");
                 return;
             }
 
@@ -394,14 +537,14 @@ public class SessionController {
                 try {
                     int successCount = 0;
                     for (Session session : selectedSessions) {
-                        sm.deleteSession(session.getSessionId());
+                        ss.deleteSession(session.getSessionId());
                         successCount++;
                     }
                     
                     loadSessionsFromDatabase();
-                    sessionsInfo.setText("Successfully deleted " + successCount + " session(s).");
+                    showSuccess("Successfully deleted " + successCount + " session(s).");
                 } catch (Exception e) {
-                    sessionsInfo.setText("Error deleting sessions: " + e.getMessage());
+                    showError("Error deleting sessions: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -409,8 +552,7 @@ public class SessionController {
     }
 }
 
-// if there is error, alert using notification bar instead of SessionInfo (currently, tooltips cannot work)
-// Cannot remove the selection effect?
-// when course entered does not have any student enrolled, don't allow to create?
-// expand to see student roster (Attendance Record)
-// add user_id
+// Cannot remove the selection effect? Should I also remove the automation of opening/closing of sessions?
+// implement edit session function?
+// ensure view for each type of user (e.g. admin, ta, student, prof) is different
+// cannot create a session from 23:00 to 00:00?

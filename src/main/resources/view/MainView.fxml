@@ -42,9 +42,15 @@
                         <fx:include source="SessionView.fxml" />
                     </content>
                 </Tab>
+                <!-- F_MA: modified by felicia handling marking attendance ##for testing-->
+                <Tab fx:id="tabTestAutoMark" text="Test Auto Mark">
+                    <content>
+                        <fx:include source="TestAutoMarkView.fxml" />
+                    </content>
+                </Tab>
                 <Tab fx:id="tabLive" text="Live Recognition">
                     <content>
-                        <fx:include source="LiveView.fxml" />
+                        <fx:include source="RecognitionView.fxml" />
                     </content>
                 </Tab>
                 <Tab fx:id="tabReports" text="Reports">

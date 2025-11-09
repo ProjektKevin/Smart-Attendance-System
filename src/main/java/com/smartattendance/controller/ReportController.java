@@ -366,31 +366,45 @@
 
 package com.smartattendance.controller;
 
-import com.smartattendance.ApplicationContext;
-import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.Session;
-import com.smartattendance.model.entity.Student;
-import com.smartattendance.service.AttendanceService;
-import com.smartattendance.service.StudentService;
-import com.smartattendance.util.EmailService;
-import com.smartattendance.util.EmailSettings;
-import javafx.application.Platform;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.stage.FileChooser;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+
+import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceStatus;
+import com.smartattendance.model.entity.MarkMethod;
+import com.smartattendance.model.entity.Session;
+import com.smartattendance.model.entity.Student;
+import com.smartattendance.service.AttendanceService;
+import com.smartattendance.service.StudentService;
+import com.smartattendance.util.EmailService;
+import com.smartattendance.util.EmailSettings;
+
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
 
 public class ReportController {
 
@@ -447,10 +461,10 @@ public class ReportController {
             esc(time),
             esc(String.valueOf(s.getSessionId())), // convert int to String
             esc(s.getCourse()),
-            esc(st.getStudentId()),
-            esc(st.getUserName()),
-            esc(r.getStatus()),
-            esc(r.getMethod()),
+            esc(Integer.toString(st.getStudentId())),
+            esc(st.getName()),
+            esc((r.getStatus()).toString()),
+            esc(r.getMethod().toString()),
             String.format("%.2f", r.getConfidence()),
             esc(r.getNote() == null ? "" : r.getNote())
         ));
@@ -529,9 +543,9 @@ public class ReportController {
               r.getTimestamp().toLocalTime().format(tf),
               String.valueOf(r.getSession().getSessionId()), // convert int to String
               r.getSession().getCourse(),
-              r.getStudent().getUserName() + " (" + r.getStudent().getStudentId() + ")",
-              r.getStatus(),
-              r.getMethod(),
+              r.getStudent().getName() + " (" + r.getStudent().getStudentId() + ")",
+              r.getStatus().toString(),
+              r.getMethod().toString(),
               String.format("%.2f", r.getConfidence())
           };
           y = drawRow(cs, x, y, leading, row, widths);
@@ -616,9 +630,9 @@ public class ReportController {
         String course = parts[2].trim();
         if (id.isEmpty() || name.isEmpty()) continue;
 
-        var found = studentService.findById(id);
+        var found = studentService.findById(Integer.parseInt(id));
         if (found == null) {
-          studentService.addStudent(new Student(id, name, course));
+          studentService.addStudent(new Student(Integer.parseInt(id), name, course));
           imported++;
         }
       }
@@ -650,7 +664,7 @@ public class ReportController {
         LocalTime time = LocalTime.parse(p[1].trim(), tf);
         String sessId = p[2].trim();
         String courseId = p[3].trim();
-        String stuId = p[4].trim();
+        int stuId = Integer.parseInt(p[4].trim());
         String stuName = p[5].trim();
         String status = p[6].trim();
         String method = p[7].trim();
@@ -670,8 +684,13 @@ public class ReportController {
 
         Student st = studentService.findById(stuId);
         if (st == null) {
-          st = new Student(stuId, stuName.isEmpty() ? stuId : stuName, "CS?");
-          studentService.addStudent(st);
+            // Validate required fields before creating student
+            if (stuName == null || stuName.trim().isEmpty()) {
+                stuName = "Unknown Student"; // Better default
+            }
+            String actualCourse = courseId != null && !courseId.isEmpty() ? courseId : "Unknown Course";
+            st = new Student(stuId, stuName.trim(), actualCourse);
+            studentService.addStudent(st);
         }
         // Create session - sessId will be auto-generated if 0
         Session sess = new Session(sessionId,
@@ -679,9 +698,9 @@ public class ReportController {
             date, LocalTime.of(9,0), LocalTime.of(10,0), "Room D", 15, "PENDING");
 
         AttendanceRecord rec = new AttendanceRecord(st, sess,
-            (status.isEmpty() ? "Present" : status),
-            (method.isEmpty() ? "Import" : method),
-            conf, LocalDateTime.of(date, time));
+            (status.isEmpty() ? AttendanceStatus.ABSENT : AttendanceStatus.valueOf(status.toUpperCase())),
+            conf, (method.isEmpty() ? MarkMethod.MANUAL : MarkMethod.valueOf(method.toUpperCase())),
+            LocalDateTime.of(date, time));
         rec.setNote(note);
         ApplicationContext.getAttendanceService().markAttendance(rec);
         imported++;

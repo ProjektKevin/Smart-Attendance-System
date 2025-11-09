@@ -98,4 +98,8 @@ public class Session extends AbstractEntity {
   public void setStatus(String status){
     this.status = status;
   }
+
+  // public boolean isOpen() {
+  //   return status == "Open";
+  // }
 }

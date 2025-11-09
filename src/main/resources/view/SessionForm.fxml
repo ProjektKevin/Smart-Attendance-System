@@ -11,8 +11,8 @@
     <Label text="Create New Session" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
 
     <GridPane hgap="10" vgap="10">
-        <Label text="Course ID:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-        <TextField fx:id="txtCourse" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+        <Label text="Course Code:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+        <ComboBox fx:id="cmbCourse" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="200" />
 
         <Label text="Date:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
         <DatePicker fx:id="datePicker" GridPane.rowIndex="2" GridPane.columnIndex="1" />

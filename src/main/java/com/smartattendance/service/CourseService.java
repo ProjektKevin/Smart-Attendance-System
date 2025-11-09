@@ -9,8 +9,8 @@ import com.smartattendance.repository.CourseRepository;
 public class CourseService {
     public final CourseRepository courseRepo;
 
-    public CourseService(CourseRepository courseRepository) {
-        this.courseRepo = courseRepository;
+    public CourseService() {
+        this.courseRepo = new CourseRepository();
     }
 
     // ==================== Entity Methods ====================

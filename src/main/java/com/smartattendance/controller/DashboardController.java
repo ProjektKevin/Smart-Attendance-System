@@ -305,7 +305,7 @@ public class DashboardController {
             if (keep) {
                 rows.add(new ActivityItem(
                     LocalDateTime.now().minusMinutes((i + 1) * 5).format(fmt),
-                    s.getUserName(), status));
+                    s.getName(), status));
             }
         }
         recentTable.setItems(FXCollections.observableArrayList(rows));

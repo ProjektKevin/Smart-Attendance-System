@@ -10,9 +10,11 @@
         <TextField fx:id="thresholdField" GridPane.rowIndex="1" GridPane.columnIndex="1" />
         <Label text="Late Threshold (min)" GridPane.rowIndex="2" GridPane.columnIndex="0" />
         <TextField fx:id="lateField" GridPane.rowIndex="2" GridPane.columnIndex="1" />
-        <Label text="Database Path" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-        <TextField fx:id="dbPathField" GridPane.rowIndex="3" GridPane.columnIndex="1" />
-        <Button text="Save" onAction="#onSaveSettings" GridPane.rowIndex="4"
-            GridPane.columnIndex="1" />
+        <!-- F_MA: modified by felicia handling marking attendance -->
+        <Label text="Cooldown Time (sec)" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+        <TextField fx:id="cooldownField" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+        <Label text="Database Path" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+        <TextField fx:id="dbPathField" GridPane.rowIndex="4" GridPane.columnIndex="1" />
+        <Button text="Save" onAction="#onSaveSettings" GridPane.rowIndex="5" GridPane.columnIndex="1" />
     </children>
 </GridPane>

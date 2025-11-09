@@ -1,16 +1,21 @@
 package com.smartattendance.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+
 import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.AttendanceStatus;
+import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.repository.StudentRepository;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
+// public class SessionService {
+//     private final Map<String, Session> sessions = new HashMap<>();
 
 public class SessionService {
     private final SessionRepository repo;
@@ -43,6 +48,11 @@ public class SessionService {
         repo.deleteById(id);
     }
 
+    // Delete all sessions
+    public void deleteAll(){
+        repo.deleteAll();
+    }
+
     // Update session status
     public void updateSessionStatus(Session s){
         repo.updateStatus(s.getSessionId(), s.getStatus());
@@ -57,12 +67,13 @@ public class SessionService {
         List<Student> enrolledStudents = studentRepo.findByCourse(s.getCourse());
         
         for (Student student : enrolledStudents) {
+            // F_MA: modified by felicia handling marking attendance
             AttendanceRecord record = new AttendanceRecord(
                 student,
                 s,
-                "Pending", // Default status
-                "-", // Default method
+                AttendanceStatus.PENDING, // Default status
                 0.0, // Default confidence
+                MarkMethod.NONE,      // Default method
                 LocalDateTime.now() // Default LocalDateTime
             );
             record.setNote("Auto-created with session"); // Default note

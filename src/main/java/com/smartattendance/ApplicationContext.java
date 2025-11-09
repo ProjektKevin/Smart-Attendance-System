@@ -1,21 +1,20 @@
 package com.smartattendance;
 
-import com.smartattendance.service.AuthService;
-import com.smartattendance.service.CourseService;
-import com.smartattendance.service.UserService;
-import com.smartattendance.service.ProfileService;
-import com.smartattendance.service.AttendanceService;
-import com.smartattendance.service.FaceDetectionService;
-import com.smartattendance.service.FaceProcessingService;
-import com.smartattendance.service.FaceRecognitionService;
-import com.smartattendance.service.StudentService;
 import com.smartattendance.model.entity.AuthSession;
-
 import com.smartattendance.repository.AuthRepository;
 import com.smartattendance.repository.CourseRepository;
 import com.smartattendance.repository.PostgresUserRepository;
 import com.smartattendance.repository.ProfileRepository;
-
+import com.smartattendance.service.AttendanceService;
+import com.smartattendance.service.AuthService;
+import com.smartattendance.service.CourseService;
+import com.smartattendance.service.FaceDetectionService;
+import com.smartattendance.service.FaceProcessingService;
+import com.smartattendance.service.FaceRecognitionService;
+import com.smartattendance.service.ProfileService;
+import com.smartattendance.service.StudentService;
+import com.smartattendance.service.UserService;
+import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.LoggerUtil;
 
@@ -31,6 +30,11 @@ public final class ApplicationContext {
     private static AttendanceService attendanceService;
     private static ProfileService profileService;
     private static CourseService courseService;
+
+    // Busines Utils & Controller
+    // F_MA: added by felicia handling marking attendance
+    private static AutoAttendanceUpdater autoAttendanceUpdater;
+    // private static AttendanceController attendanceController;
 
     // DB Repositories
     private static AuthRepository authRepository;
@@ -71,7 +75,7 @@ public final class ApplicationContext {
         authRepository = new AuthRepository();
         userRepository = new PostgresUserRepository();
         profileRepository = new ProfileRepository();
-        courseRepository = new CourseRepository();
+        // courseRepository = new CourseRepository();
 
         // Initialize services
         authService = new AuthService(authRepository);
@@ -79,7 +83,15 @@ public final class ApplicationContext {
         studentService = new StudentService();
         attendanceService = new AttendanceService();
         profileService = new ProfileService(profileRepository);
-        courseService = new CourseService(courseRepository);
+        courseService = new CourseService();
+        // F_MA: added by felicia handling marking attendance
+        attendanceService = new AttendanceService();
+
+        // F_MA: added by felicia handling marking attendance
+        // Start auto-attendance updater every 60 seconds
+        autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
+        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
+        autoAttendanceUpdater.startAutoUpdate(60);
 
         initialized = true;
     }
@@ -250,6 +262,12 @@ public final class ApplicationContext {
     public static void shutdown() {
         if (!initialized) {
             return;
+        }
+
+        // F_MA: added by felicia handling marking attendance
+        // Stop auto attendance updater
+        if (autoAttendanceUpdater != null) {
+            autoAttendanceUpdater.stopAutoUpdate();
         }
 
         // chore(), Harry: Add cleanup logic here (close database connections, release
