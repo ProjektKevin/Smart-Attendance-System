@@ -8,6 +8,8 @@ package com.smartattendance.model.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AutoAttendanceMarker;
