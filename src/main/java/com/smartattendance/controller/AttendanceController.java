@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,7 @@ import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
+import com.smartattendance.service.StudentService;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -78,6 +80,7 @@ public class AttendanceController implements AttendanceObserver {
     private TableColumn<AttendanceRecord, Boolean> colSelect;
 
     private final AttendanceService service = new AttendanceService();
+    private final StudentService studentService = new StudentService();
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
     private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
     private Session currentSession;
@@ -125,27 +128,27 @@ public class AttendanceController implements AttendanceObserver {
     // @param message The text to display
     private void styleInfoLabel(String type, String message) {
         attendanceInfo.setText(message);
-        
+
         // Reset styles first
         attendanceInfo.setStyle("-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
-        
+
         switch (type.toLowerCase()) {
             case "success":
-                attendanceInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                attendanceInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
+                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "error":
-                attendanceInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                attendanceInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
+                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "warning":
-                attendanceInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                attendanceInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
+                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "normal":
             default:
-                attendanceInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                attendanceInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; "
+                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
         }
     }
@@ -572,12 +575,40 @@ public class AttendanceController implements AttendanceObserver {
             return; // disable if selection exists
         }
         try {
+            // 1️. Get all students in this session
+            List<Student> allStudents = studentService.getStudentsBySessionId(currentSession);
+
+            // 2. Get all existing attendance records
+            List<AttendanceRecord> existingRecords = attendanceService.findBySessionId(currentSession.getSessionId());
+
+            // 3. Extract student IDs that already have records
+            Set<Integer> existingStudentIds = existingRecords.stream()
+                    .map(r -> r.getStudent().getStudentId())
+                    .collect(java.util.stream.Collectors.toSet());
+
+            // 4. Filter for students not yet added
+            List<Student> remainingStudents = allStudents.stream()
+                    .filter(s -> !existingStudentIds.contains(s.getStudentId()))
+                    .toList();
+
+            // 5. If no remaining students, show info and return
+            if (remainingStudents.isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("No New Records");
+                alert.setHeaderText(null);
+                alert.setContentText("All students enrolled in this session have attendance records.\nNo new record can be created.");
+                alert.showAndWait();
+                return; // stop here
+            }
+
+            // 6. Otherwise open the form    
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceFormView.fxml"));
 
             Parent root = loader.load();
 
             AttendanceFormController formController = loader.getController();
             formController.setSession(currentSession);
+            formController.populateStudents();
 
             Stage dialog = new Stage();
             dialog.setTitle("Create Attendance Record");

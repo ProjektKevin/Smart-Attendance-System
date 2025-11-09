@@ -1,6 +1,8 @@
 package com.smartattendance.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
@@ -19,7 +21,7 @@ import javafx.stage.Stage;
 public class AttendanceFormController {
 
     @FXML
-    private TextField txtStudentId;
+    private ComboBox<String> cmbStudentId;
     @FXML
     private ComboBox<String> cmbStatus;
     @FXML
@@ -47,24 +49,63 @@ public class AttendanceFormController {
         }
     }
 
+    public void populateStudents() {
+        if (cmbStudentId != null && currentSession != null) {
+            // 1. Get all students for this session
+            List<Student> allStudents = studentService.getStudentsBySessionId(currentSession);
+
+            // 2. Get all attendance records for this session
+            List<AttendanceRecord> existingRecords = attendanceService.findBySessionId(currentSession.getSessionId());
+
+            // 3. Extract student IDs that already have attendance records
+            Set<Integer> existingStudentIds = existingRecords.stream()
+                    .map(record -> record.getStudent().getStudentId())
+                    .collect(java.util.stream.Collectors.toSet());
+
+            // 4. Add only students who are not yet marked
+            allStudents.stream()
+                    .filter(student -> !existingStudentIds.contains(student.getStudentId()))
+                    .forEach(student
+                            -> cmbStudentId.getItems().add(student.getStudentId() + " - " + student.getName())
+                    );
+            // studentService.getStudentsBySessionId(currentSession).forEach(student
+            //         -> cmbStudentId.getItems().add(String.valueOf(student.getStudentId() + " - " + student.getName()))
+            // );
+        }
+    }
 
     @FXML
     private void onCreate() {
         try {
             // System.out.println("|" + cmbStatus.getValue().toUpperCase() + "|"); // for testing
-
+            int studentId = 0;
+            Student student = null;
             String status = cmbStatus.getValue();
-            int studentId = Integer.parseInt(txtStudentId.getText().trim());
-            Student student = studentService.findById(studentId);
+            // int studentId = Integer.parseInt(cmbStudentId.getValue());
+            // int trimStudentId;
 
-            if (student == null) {
+            if (cmbStudentId.getValue() == null) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Warning");
-                alert.setHeaderText("No student found with studentId: " + studentId);
-                alert.setContentText("Please enter a valid studentId.");
+                alert.setHeaderText("No student selected");
+                alert.setContentText("Please select a student.");
                 alert.showAndWait();
-                throw new Exception("No student found with studentId: " + studentId);
+                throw new Exception("No student selected");
+            } else {
+                studentId = Integer.parseInt(cmbStudentId.getValue().split("-")[0].trim()); // get the part before '-'
+                student = studentService.findById(studentId);
             }
+
+            
+
+            // if (student == null) {
+            //     Alert alert = new Alert(Alert.AlertType.WARNING);
+            //     alert.setTitle("Warning");
+            //     alert.setHeaderText("No student found with studentId: " + studentId);
+            //     alert.setContentText("Please enter a valid studentId.");
+            //     alert.showAndWait();
+            //     throw new Exception("No student found with studentId: " + studentId);
+            // }
 
             if (status == null) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -79,7 +120,7 @@ public class AttendanceFormController {
             // record.setStudent(student);
             // record.setSession(currentSession);
             // record.setStatus(cmbStatus.getValue());
-            if (txtNote.getText() != null) {
+            if (txtNote.getText() != "") {
                 record.setNote(txtNote.getText());
             } else {
                 record.setNote("Manual-created");
@@ -89,7 +130,7 @@ public class AttendanceFormController {
             newRecord = record;
 
             // Close the dialog
-            Stage stage = (Stage) txtStudentId.getScene().getWindow();
+            Stage stage = (Stage) cmbStudentId.getScene().getWindow();
             stage.close();
 
         } catch (NumberFormatException e) {
@@ -101,7 +142,7 @@ public class AttendanceFormController {
 
     @FXML
     private void onCancel() {
-        Stage stage = (Stage) txtStudentId.getScene().getWindow();
+        Stage stage = (Stage) cmbStudentId.getScene().getWindow();
         stage.close();
     }
 }

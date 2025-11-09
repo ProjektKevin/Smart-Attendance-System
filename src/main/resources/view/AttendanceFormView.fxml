@@ -16,7 +16,8 @@
 
     <GridPane hgap="10" vgap="10">
         <Label text="Student ID:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="txtStudentId" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <!-- <TextField fx:id="txtStudentId" GridPane.rowIndex="0" GridPane.columnIndex="1"/> -->
+        <ComboBox fx:id="cmbStudentId" GridPane.rowIndex="0" GridPane.columnIndex="1" promptText="Select Student"/>
 
         <Label text="Status:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <ComboBox fx:id="cmbStatus" GridPane.rowIndex="1" GridPane.columnIndex="1" promptText="Select Status"/>
