@@ -8,12 +8,14 @@ public class Student {
   // chore(): Link back to course id if done
   private String course;
 
+  private FaceData faceData;
+
   /**
    * Custom constructor which sets student profile
    * 
    * @param studentId The id of the profile
    * @param user      The user object to set authentication
-   * @param course     The course the student is enrolled in
+   * @param course    The course the student is enrolled in
    */
   public Student(String studentId, String userName, String course) {
     this.studentId = studentId;
@@ -43,5 +45,13 @@ public class Student {
 
   public void setCourse(String course) {
     this.course = course;
+  }
+
+  public FaceData getFaceData() {
+    return faceData;
+  }
+
+  public void setFaceData(FaceData faceData) {
+    this.faceData = faceData;
   }
 }

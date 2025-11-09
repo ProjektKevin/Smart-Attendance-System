@@ -19,6 +19,7 @@ public class FaceDetectionService {
     // Color parameters for face detection
     private static final Scalar DEFAULT_RECT_COLOR = new Scalar(0, 255, 0); // Green
     private static final Scalar ERROR_RECT_COLOR = new Scalar(0, 0, 255); // Red
+    private static final Scalar UNKNOWN_RECT_COLOR = new Scalar(255, 165, 0); // Orange
     private static final int DEFAULT_RECT_THICKNESS = 2;
 
     /**
@@ -100,6 +101,52 @@ public class FaceDetectionService {
         // Draw all rectangles with color
         for (Rect rect : facesArray) {
             Imgproc.rectangle(frame, rect.tl(), rect.br(), color, DEFAULT_RECT_THICKNESS);
+        }
+
+        return faceCount;
+    }
+
+    public int drawFaceRectanglesWithLabels(Mat frame, MatOfRect faces, String[] recognizedNames) {
+        if (frame == null || frame.empty() || faces == null) {
+            return 0;
+        }
+
+        Rect[] facesArray = faces.toArray();
+        int faceCount = facesArray.length;
+
+        for (int i = 0; i < facesArray.length; i++) {
+            Rect rect = facesArray[i];
+
+            // Determine color based on recognition status
+            boolean isRecognized = (recognizedNames != null &&
+                    i < recognizedNames.length &&
+                    recognizedNames[i] != null &&
+                    !recognizedNames[i].equals("Unknown"));
+
+            Scalar color = isRecognized ? DEFAULT_RECT_COLOR : UNKNOWN_RECT_COLOR;
+
+            // Draw rectangle
+            Imgproc.rectangle(frame, rect.tl(), rect.br(), color, DEFAULT_RECT_THICKNESS);
+
+            // Draw labels
+            if (recognizedNames != null && i < recognizedNames.length) {
+                String label = recognizedNames[i] != null ? recognizedNames[i] : "Unknown";
+
+                // Draw background for text
+                int baseline[] = { 0 };
+                Size textSize = Imgproc.getTextSize(label, Imgproc.FONT_HERSHEY_SIMPLEX,
+                        0.6, 2, baseline);
+
+                Imgproc.rectangle(frame,
+                        new org.opencv.core.Point(rect.x, rect.y - textSize.height - 10),
+                        new org.opencv.core.Point(rect.x + textSize.width, rect.y),
+                        color, -1); // Filled rectangle
+
+                // Draw text
+                Imgproc.putText(frame, label,
+                        new org.opencv.core.Point(rect.x, rect.y - 5),
+                        Imgproc.FONT_HERSHEY_SIMPLEX, 0.6, new Scalar(255, 255, 255), 2);
+            }
         }
 
         return faceCount;

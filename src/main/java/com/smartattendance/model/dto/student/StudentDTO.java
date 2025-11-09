@@ -4,6 +4,7 @@ public class StudentDTO {
     private Integer id;
     private String fullName;
     private String courseName;
+    
 
     /**
      * Constructor for StudentDTO
