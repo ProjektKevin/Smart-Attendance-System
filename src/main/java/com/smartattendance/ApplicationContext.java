@@ -7,6 +7,7 @@ import com.smartattendance.service.CourseService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
+import com.smartattendance.service.ImageService;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
@@ -26,6 +27,7 @@ public final class ApplicationContext {
     private static AttendanceService attendanceService;
     private static ProfileService profileService;
     private static CourseService courseService;
+    private static ImageService imageService;
 
     // Busines Utils & Controller
     // F_MA: added by felicia handling marking attendance
@@ -110,6 +112,10 @@ public final class ApplicationContext {
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
             LoggerUtil.LOGGER.info("Face recognition service initialized");
+
+            // Initialize Image Service
+            imageService = new ImageService(faceProcessingService);
+            LoggerUtil.LOGGER.info("Image service initialized");
 
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
@@ -226,6 +232,17 @@ public final class ApplicationContext {
     public static FaceRecognitionService getFaceRecognitionService() {
         checkInitialized();
         return faceRecognitionService;
+    }
+
+    /**
+     * Get the ImageService instance.
+     *
+     * @return ImageService
+     * @throws IllegalStateException if not initialized
+     */
+    public static ImageService getImageService() {
+        checkInitialized();
+        return imageService;
     }
 
     /**

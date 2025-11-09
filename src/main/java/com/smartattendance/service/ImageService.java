@@ -39,15 +39,14 @@ public class ImageService {
     private final ImageRepository imageRepository;
     private final HistogramRecognizer histogramRecognizer;
     private final AuthSession session = ApplicationContext.getAuthSession();
-    private final FaceProcessingService faceProcessingService = ApplicationContext.getFaceProcessingService();
 
     /**
      * Initialize ImageService with repository, processing service, and recognizer
      * All are initialized internally
      */
-    public ImageService() {
+    public ImageService(FaceProcessingService faceProcessingService) {
         this.imageRepository = new ImageRepository();
-        this.histogramRecognizer = new HistogramRecognizer(this.faceProcessingService);
+        this.histogramRecognizer = new HistogramRecognizer(faceProcessingService);
     }
 
     /**

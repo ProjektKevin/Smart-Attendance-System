@@ -62,7 +62,7 @@ public class EnrollmentController {
 	// Dependencies
 	private final AuthSession session = ApplicationContext.getAuthSession();
 	private final FaceDetectionService faceDetectionService = ApplicationContext.getFaceDetectionService();
-	private final ImageService imageService = new ImageService();
+	private final ImageService imageService = ApplicationContext.getImageService();
 
 	/**
 	 * Shared frame between the display thread and capture thread.
