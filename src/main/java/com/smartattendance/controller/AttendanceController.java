@@ -35,8 +35,10 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+
 
 public class AttendanceController implements AttendanceObserver {
 
@@ -186,28 +188,48 @@ public class AttendanceController implements AttendanceObserver {
                 -> new SimpleStringProperty(cellData.getValue().getNote() != null ? cellData.getValue().getNote() : "")
         );
 
-        colNote.setCellFactory(column -> new TextFieldTableCell<AttendanceRecord, String>() {
+        colNote.setCellFactory(column -> new TableCell<AttendanceRecord, String>() {
             private final Label label = new Label();
             private final ScrollPane scroll = new ScrollPane();
-            private final Label editIcon = new Label("\u270E"); // Unicode pencil
+            private final javafx.scene.control.Button editButton = new javafx.scene.control.Button();
+            private final HBox hbox = new HBox(5); // spacing between label and button
 
             {
+                // Configure label
                 label.setWrapText(true);
-                label.setTooltip(new Tooltip("Double-click to edit"));
+                label.setTooltip(new Tooltip("Click pencil to edit"));
 
+                // Configure scroll
                 scroll.setContent(label);
                 scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
                 scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
                 scroll.setFitToWidth(true);
-                scroll.setPrefHeight(50); // limit height of cell
+                scroll.setPrefHeight(50);
                 scroll.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
 
-                editIcon.setStyle("-fx-opacity: 0.6; -fx-font-size: 12;");
+                // Configure pencil button with icon
+                ImageView pencilIcon = new ImageView(new Image(getClass().getResourceAsStream("/icons/pencil_2168906.png")));
+                pencilIcon.setFitWidth(14);
+                pencilIcon.setFitHeight(14);
+                editButton.setGraphic(pencilIcon);
+                editButton.setText(""); // remove any text
+                editButton.setStyle("-fx-background-color: transparent;");
+                editButton.setOnAction(e -> startEditing());
+
+                hbox.getChildren().addAll(scroll, editButton);
+                hbox.setAlignment(Pos.TOP_LEFT);
+            }
+
+            private void startEditing() {
+                startEdit();
             }
 
             @Override
             public void startEdit() {
                 super.startEdit();
+                if (isEmpty()) {
+                    return;
+                }
 
                 javafx.scene.control.TextField textField = new javafx.scene.control.TextField(getItem());
                 textField.setOnAction(e -> commitEdit(textField.getText()));
@@ -240,10 +262,8 @@ public class AttendanceController implements AttendanceObserver {
 
             private void updateDisplay(String text) {
                 label.setText(text);
-                scroll.setContent(label);
-                HBox box = new HBox(5, scroll, editIcon);
-                box.setAlignment(Pos.TOP_LEFT);
-                setGraphic(box);
+                scroll.setContent(label); // ensure scroll wraps label
+                setGraphic(hbox);
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             }
         });
@@ -337,7 +357,6 @@ public class AttendanceController implements AttendanceObserver {
         //         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         //     }
         // });
-
         // F_MA: added by felicia handling marking attendance
         // colNote.setCellFactory(TextFieldTableCell.forTableColumn());
         colNote.setOnEditCommit(event -> {
