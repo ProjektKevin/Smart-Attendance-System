@@ -8,6 +8,7 @@ public class Student {
     // this might become course object when implemented
     // chore(): Link back to course id if done
     private String course;
+    private FaceData faceData;
 
     /**
      * Custom constructor which sets student profile
@@ -44,5 +45,13 @@ public class Student {
 
     public void setCourse(String course) {
         this.course = course;
+    }
+
+    public FaceData getFaceData() {
+        return faceData;
+    }
+
+    public void setFaceData(FaceData faceData) {
+        this.faceData = faceData;
     }
 }
