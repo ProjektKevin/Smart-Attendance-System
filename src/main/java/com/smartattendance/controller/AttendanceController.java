@@ -23,9 +23,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
@@ -34,11 +36,11 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-
+import javafx.scene.layout.StackPane;
 
 public class AttendanceController implements AttendanceObserver {
 
@@ -191,15 +193,14 @@ public class AttendanceController implements AttendanceObserver {
         colNote.setCellFactory(column -> new TableCell<AttendanceRecord, String>() {
             private final Label label = new Label();
             private final ScrollPane scroll = new ScrollPane();
-            private final javafx.scene.control.Button editButton = new javafx.scene.control.Button();
-            private final HBox hbox = new HBox(5); // spacing between label and button
+            private final Button editButton = new Button();
+            private final StackPane stack = new StackPane();
 
             {
-                // Configure label
                 label.setWrapText(true);
+                label.setPadding(new Insets(5));
                 label.setTooltip(new Tooltip("Click pencil to edit"));
 
-                // Configure scroll
                 scroll.setContent(label);
                 scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
                 scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -207,31 +208,25 @@ public class AttendanceController implements AttendanceObserver {
                 scroll.setPrefHeight(50);
                 scroll.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
 
-                // Configure pencil button with icon
-                ImageView pencilIcon = new ImageView(new Image(getClass().getResourceAsStream("/icons/pencil_2168906.png")));
+                // Pencil icon as button
+                ImageView pencilIcon = new ImageView(new Image(getClass().getResourceAsStream("/icons/pencil_431.png")));
                 pencilIcon.setFitWidth(14);
                 pencilIcon.setFitHeight(14);
                 editButton.setGraphic(pencilIcon);
-                editButton.setText(""); // remove any text
+                editButton.setText("");
                 editButton.setStyle("-fx-background-color: transparent;");
-                editButton.setOnAction(e -> startEditing());
+                editButton.setOnAction(e -> startEdit());
 
-                hbox.getChildren().addAll(scroll, editButton);
-                hbox.setAlignment(Pos.TOP_LEFT);
-            }
-
-            private void startEditing() {
-                startEdit();
+                // StackPane overlays button on top-right
+                StackPane.setAlignment(editButton, Pos.TOP_RIGHT);
+                stack.getChildren().addAll(scroll, editButton);
             }
 
             @Override
             public void startEdit() {
                 super.startEdit();
-                if (isEmpty()) {
-                    return;
-                }
 
-                javafx.scene.control.TextField textField = new javafx.scene.control.TextField(getItem());
+                TextField textField = new TextField(getItem());
                 textField.setOnAction(e -> commitEdit(textField.getText()));
                 textField.focusedProperty().addListener((obs, oldV, newV) -> {
                     if (!newV) {
@@ -262,8 +257,7 @@ public class AttendanceController implements AttendanceObserver {
 
             private void updateDisplay(String text) {
                 label.setText(text);
-                scroll.setContent(label); // ensure scroll wraps label
-                setGraphic(hbox);
+                setGraphic(stack);
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             }
         });
