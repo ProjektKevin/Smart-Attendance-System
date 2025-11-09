@@ -5,12 +5,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
-import com.smartattendance.config.Config;
 
 public class RecognitionService {
     // Use shared attendance service so Reports can see the records
@@ -41,7 +41,10 @@ public class RecognitionService {
 
         try {
             // 1️⃣ Create a Student
-            Student s = new Student(1, "harry", "CS102");
+            // Student s = new Student(1, "harry", "CS102");
+
+            // 1️⃣ Create a Student
+            Student s = new Student(3, "felicia", "CS104");
 
             // 2️⃣ Create a Session
             // Session sess = new Session(
@@ -99,13 +102,24 @@ public class RecognitionService {
             //         "Open"
             // );
 
+            // Session sess = new Session(
+            //         9,
+            //         "CS102",
+            //         LocalDate.now(),
+            //         LocalTime.of(01, 45),
+            //         LocalTime.of(02, 30),
+            //         "Room 5",
+            //         15,
+            //         "Open"
+            // );
+
             Session sess = new Session(
-                    9,
-                    "CS102",
+                    10,
+                    "CS104",
                     LocalDate.now(),
-                    LocalTime.of(01, 45),
-                    LocalTime.of(02, 30),
-                    "Room 5",
+                    LocalTime.of(9, 15),
+                    LocalTime.of(10, 00),
+                    "Room D",
                     15,
                     "Open"
             );

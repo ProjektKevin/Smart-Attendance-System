@@ -35,7 +35,7 @@ public class AttendanceRecordRepository {
     }
     
     // helper class to convert first character to upper case for mark method and attendance status
-    public static String capitalize(String str) {
+    public String capitalize(String str) {
         if (str == null || str.isEmpty()) {
             return str;
         }
@@ -92,7 +92,7 @@ public class AttendanceRecordRepository {
     // select by session_id - returns multiple records for a session
     public List<AttendanceRecord> findBySessionId(int sessionId) {
         List<AttendanceRecord> records = new ArrayList<>();
-        String sql = "SELECT user_id, session_id, note, confidence, marked_at, last_seen, method, status FROM attendance WHERE session_id = ?";
+        String sql = "SELECT user_id, session_id, note, confidence, marked_at, last_seen, method, status FROM attendance WHERE session_id = ? ORDER BY user_id ASC";
         
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

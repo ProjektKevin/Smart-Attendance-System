@@ -75,7 +75,7 @@ public final class ApplicationContext {
         authRepository = new AuthRepository();
         userRepository = new PostgresUserRepository();
         profileRepository = new ProfileRepository();
-        courseRepository = new CourseRepository();
+        // courseRepository = new CourseRepository();
 
         // Initialize services
         authService = new AuthService(authRepository);
@@ -83,7 +83,7 @@ public final class ApplicationContext {
         studentService = new StudentService();
         attendanceService = new AttendanceService();
         profileService = new ProfileService(profileRepository);
-        courseService = new CourseService(courseRepository);
+        courseService = new CourseService();
         // F_MA: added by felicia handling marking attendance
         attendanceService = new AttendanceService();
 

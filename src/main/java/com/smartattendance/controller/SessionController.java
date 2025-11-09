@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.smartattendance.model.entity.Session;
-import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
 import com.smartattendance.util.ControllerRegistry;
@@ -77,7 +76,7 @@ public class SessionController {
     @FXML 
     private VBox attendanceViewContainer;
 
-    private final SessionService sm = new SessionService();
+    private final SessionService ss = new SessionService();
     private final ObservableList<Session> sessionList = FXCollections.observableArrayList();
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
     // F_MA: added by felicia handling marking attendance
@@ -265,7 +264,7 @@ public class SessionController {
 
     private void loadSessionsFromDatabase() {
         try {
-            List<Session> sessions = sm.getAllSessions();
+            List<Session> sessions = ss.getAllSessions();
             boolean statusChanged = false;
 
             // Update status of sessions based on current time (Automate opening and closing of sessions)  
@@ -276,14 +275,14 @@ public class SessionController {
                 // If status needs to be updated, update in database
                 if (!currentStatus.equals(updatedStatus)){
                     s.setStatus(updatedStatus);
-                    sm.updateSessionStatus(s);
+                    ss.updateSessionStatus(s);
                     statusChanged = true;
                 }
             }
 
             // Reload from database to get updated status (if necessary)
             if (statusChanged) {
-                sessions = sm.getAllSessions();
+                sessions = ss.getAllSessions();
             }
             
             // Sort sessions by sessionId in ascending order
@@ -446,7 +445,7 @@ public class SessionController {
         for (Session session : selectedSessions) {
             if (!"Open".equals(session.getStatus())) {
                 session.open();
-                sm.updateSessionStatus(session);
+                ss.updateSessionStatus(session);
                 successCount++;
             }
         }
@@ -469,7 +468,7 @@ public class SessionController {
         for (Session session : selectedSessions) {
             if (!"Closed".equals(session.getStatus())) {
                 session.close();
-                sm.updateSessionStatus(session);
+                ss.updateSessionStatus(session);
                 successCount++;
             }
         }
@@ -503,8 +502,7 @@ public class SessionController {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 try {
-                    SessionRepository repo = new SessionRepository();
-                    repo.deleteAll();
+                    ss.deleteAll();
                     loadSessionsFromDatabase();
                     showSuccess("Successfully deleted all sessions.");
                 } catch (Exception e) {
@@ -539,7 +537,7 @@ public class SessionController {
                 try {
                     int successCount = 0;
                     for (Session session : selectedSessions) {
-                        sm.deleteSession(session.getSessionId());
+                        ss.deleteSession(session.getSessionId());
                         successCount++;
                     }
                     
@@ -554,9 +552,7 @@ public class SessionController {
     }
 }
 
-// if there is error, alert using notification bar instead of SessionInfo (currently, tooltips cannot work)
 // Cannot remove the selection effect? Should I also remove the automation of opening/closing of sessions?
-// when course entered does not have any student enrolled, don't allow to create?
 // implement edit session function?
 // ensure view for each type of user (e.g. admin, ta, student, prof) is different
 // cannot create a session from 23:00 to 00:00?

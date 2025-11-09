@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.smartattendance.repository.AttendanceRecordRepository;
-import com.smartattendance.service.AutoAttendanceMarker;
 import com.smartattendance.service.AttendanceObserver;
+import com.smartattendance.service.AutoAttendanceMarker;
 
 public class AttendanceRecord {
 

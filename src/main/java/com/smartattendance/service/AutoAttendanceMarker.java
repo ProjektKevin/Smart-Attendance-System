@@ -12,7 +12,6 @@ import java.util.List;
 import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.controller.LiveRecognitionController;
-import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.MarkMethod;
@@ -108,6 +107,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 record.setStatus(status);
                 record.setTimestamp(now);
                 record.setMethod(MarkMethod.AUTO);
+                record.setNote("Auto-marked via face recognition");
 
                 System.out.println("run until here 7"); // for testing
 
