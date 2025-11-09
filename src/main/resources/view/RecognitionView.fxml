@@ -48,14 +48,6 @@
               <Font name="System Bold" size="14" />
             </font>
           </Button>
-
-          <Button fx:id="stopButton" text="Stop Recognition" onAction="#stopRecognition"
-            disable="true"
-            style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;">
-            <font>
-              <Font name="System Bold" size="14" />
-            </font>
-          </Button>
         </HBox>
       </VBox>
     </center>
