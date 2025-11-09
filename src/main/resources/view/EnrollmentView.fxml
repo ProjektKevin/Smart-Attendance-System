@@ -6,65 +6,45 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
+<ScrollPane xmlns="http://javafx.com/javafx"
     xmlns:fx="http://javafx.com/fxml"
     fx:controller="com.smartattendance.controller.student.EnrollmentController"
-    style="-fx-background-color: #f5f5f5;">
+    fitToWidth="true" fitToHeight="true" style="-fx-background-color: transparent;">
 
-    <!-- Top Bar -->
-    <top>
-        <HBox style="-fx-background-color: #2196F3; -fx-padding: 15;"
-            alignment="CENTER_LEFT"
-            spacing="15">
-            <Label text="Student Enrollment" style="-fx-text-fill: white;">
-                <font>
-                    <Font name="System Bold" size="20" />
-                </font>
-            </Label>
-        </HBox>
-    </top>
+    <BorderPane>
+        <!-- Top Bar -->
+        <top>
+            <VBox spacing="10" style="-fx-padding: 15;">
+                <Label text="Student Enrollment System">
+                    <font>
+                        <Font name="System Bold" size="24" />
+                    </font>
+                </Label>
+                <Label fx:id="statusLabel" text="Status: Camera not started">
+                    <font>
+                        <Font size="14" />
+                    </font>
+                </Label>
+            </VBox>
+        </top>
 
-    <!-- Center - Camera View with Scrollable Content -->
-    <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: #f5f5f5;">
-            <VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 20;">
-
-                <!-- Status Label - Shows face detection status -->
-                <HBox alignment="CENTER"
-                    style="-fx-background-color: #FFFFFF;
-                           -fx-padding: 10;
-                           -fx-border-radius: 5;
-                           -fx-background-radius: 5;
-                           -fx-border-color: #cccccc;
-                           -fx-border-width: 1;">
-                    <Label text="Status: " style="-fx-font-weight: bold; -fx-font-size: 14;" />
-                    <Label fx:id="statusLabel"
-                        text="Camera not started"
-                        style="-fx-font-size: 14; -fx-text-fill: #666666;" />
-                </HBox>
-
-                <!-- Camera Display - Responsive -->
-                <VBox alignment="CENTER"
-                    style="-fx-background-color: #000000;
-                             -fx-border-color: #cccccc;
-                             -fx-border-width: 2;
-                             -fx-padding: 10;"
-                    prefHeight="400">
-
-                    <!-- Note: Changed fx:id from "cameraView" to "currentFrame" to match your
-                    controller -->
+        <!-- Center - Camera Feed -->
+        <center>
+            <VBox spacing="15" alignment="TOP_CENTER" style="-fx-padding: 20;">
+                <!-- Camera Display -->
+                <VBox alignment="CENTER" spacing="10">
+                    <Label text="Live Camera Feed" style="-fx-font-size: 16; -fx-font-weight: bold;" />
                     <ImageView fx:id="currentFrame"
-                        fitWidth="700"
-                        fitHeight="350"
-                        preserveRatio="true"
-                        style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 0);" />
+                        fitHeight="480" fitWidth="640" preserveRatio="true"
+                        style="-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 2);
+                                 -fx-background-color: #000000;
+                                 -fx-border-color: #cccccc;
+                                 -fx-border-width: 2;
+                                 -fx-padding: 10;" />
                 </VBox>
 
                 <!-- Camera Controls -->
-                <HBox alignment="CENTER" spacing="15">
-                    <!-- Note: Changed fx:id from "startCameraButton" to "button" to match your
-                    controller -->
-                    <!-- Also changed onAction to match your method name "startCamera" -->
+                <HBox spacing="15" alignment="CENTER">
                     <Button fx:id="button"
                         text="Start Camera"
                         onAction="#startCamera"
@@ -73,62 +53,112 @@
                                    -fx-font-size: 14;
                                    -fx-padding: 10 20;
                                    -fx-min-width: 150;">
+                        <font>
+                            <Font name="System Bold" size="14" />
+                        </font>
+                        <cursor>
+                            <javafx.scene.Cursor fx:constant="HAND" />
+                        </cursor>
+                    </Button>
+
+                    <Button fx:id="captureButton"
+                        text="Capture Faces"
+                        onAction="#startCapture"
+                        disable="true"
+                        style="-fx-background-color: #2196F3;
+                                   -fx-text-fill: white;
+                                   -fx-font-size: 14;
+                                   -fx-padding: 10 20;
+                                   -fx-min-width: 150;">
+                        <font>
+                            <Font name="System Bold" size="14" />
+                        </font>
                         <cursor>
                             <javafx.scene.Cursor fx:constant="HAND" />
                         </cursor>
                     </Button>
                 </HBox>
+            </VBox>
+        </center>
+
+        <!-- Right Panel - Instructions and Info -->
+        <right>
+            <VBox spacing="15" style="-fx-background-color: #ecf0f1; -fx-padding: 20;" prefWidth="320">
+                <Label text="Enrollment Guide" style="-fx-font-size: 16; -fx-font-weight: bold;" />
+
+                <Separator />
 
                 <!-- Instructions -->
-                <VBox alignment="TOP_LEFT" spacing="10"
-                    style="-fx-background-color: #E3F2FD;
+                <VBox spacing="10"
+                    style="-fx-background-color: white;
                              -fx-padding: 15;
-                             -fx-border-radius: 5;
-                             -fx-background-radius: 5;
-                             -fx-wrap-text: true;"
-                    maxWidth="600">
-                    <Label text="Instructions:" style="-fx-font-weight: bold; -fx-font-size: 14;" />
-                    <Label text="1. Click 'Start Camera' to begin" style="-fx-font-size: 12;" wrapText="true" />
-                    <Label text="2. Position your face in the center of the frame"
-                        style="-fx-font-size: 12;" wrapText="true" />
-                    <Label text="3. Watch for the status message above" style="-fx-font-size: 12;" wrapText="true" />
-                    <Label text="4. Green rectangle = 1 face (perfect for enrollment)"
-                        style="-fx-font-size: 12; -fx-text-fill: #4CAF50; -fx-font-weight: bold;" wrapText="true" />
-                    <Label text="5. Orange = No face detected"
-                        style="-fx-font-size: 12; -fx-text-fill: #FF9800;" wrapText="true" />
-                    <Label text="6. Red = Multiple faces (remove others from frame)"
-                        style="-fx-font-size: 12; -fx-text-fill: #f44336;" wrapText="true" />
+                             -fx-background-radius: 5;">
+                    <Label text="Instructions:" style="-fx-font-weight: bold; -fx-font-size: 13;" />
+                    <Label text="1. Click 'Start Camera' to begin" style="-fx-font-size: 11;" wrapText="true" />
+                    <Label text="2. Position your face in center" style="-fx-font-size: 11;" wrapText="true" />
+                    <Label text="3. Look directly at camera" style="-fx-font-size: 11;" wrapText="true" />
+                    <Label text="4. Keep steady for detection" style="-fx-font-size: 11;" wrapText="true" />
+                    <Label text="5. Wait for confirmation message" style="-fx-font-size: 11;" wrapText="true" />
                 </VBox>
 
+                <Separator />
+
+                <!-- Face Detection Status -->
+                <VBox spacing="8"
+                    style="-fx-background-color: white;
+                             -fx-padding: 15;
+                             -fx-background-radius: 5;">
+                    <Label text="Detection Status:" style="-fx-font-weight: bold; -fx-font-size: 13;" />
+                    <Label text="🟢 Green = 1 face (Perfect)" style="-fx-font-size: 11; -fx-text-fill: #4CAF50;" wrapText="true" />
+                    <Label text="🟠 Orange = No face" style="-fx-font-size: 11; -fx-text-fill: #FF9800;" wrapText="true" />
+                    <Label text="🔴 Red = Multiple faces" style="-fx-font-size: 11; -fx-text-fill: #f44336;" wrapText="true" />
+                </VBox>
+
+                <Separator />
+
+                <!-- Requirements -->
+                <VBox spacing="8"
+                    style="-fx-background-color: white;
+                             -fx-padding: 15;
+                             -fx-background-radius: 5;">
+                    <Label text="Requirements:" style="-fx-font-weight: bold; -fx-font-size: 13;" />
+                    <Label text="✓ Good lighting" style="-fx-font-size: 11;" wrapText="true" />
+                    <Label text="✓ Clear face visibility" style="-fx-font-size: 11;" wrapText="true" />
+                    <Label text="✓ No glasses (optional)" style="-fx-font-size: 11;" wrapText="true" />
+                    <Label text="✓ Remove obstacles" style="-fx-font-size: 11;" wrapText="true" />
+                </VBox>
+
+                <Separator />
+
+                <!-- Tips -->
+                <VBox spacing="8"
+                    style="-fx-background-color: #FFF3E0;
+                             -fx-padding: 15;
+                             -fx-background-radius: 5;">
+                    <Label text="💡 Tips:" style="-fx-font-weight: bold; -fx-font-size: 12;" />
+                    <Label text="Move slowly and naturally" style="-fx-font-size: 10;" wrapText="true" />
+                    <Label text="Stay within frame center" style="-fx-font-size: 10;" wrapText="true" />
+                    <Label text="Ensure face is 60-80% of frame" style="-fx-font-size: 10;" wrapText="true" />
+                </VBox>
             </VBox>
-        </ScrollPane>
-    </center>
+        </right>
 
-    <!-- Bottom - Action Buttons -->
-    <!-- <bottom>
-        <HBox alignment="CENTER" spacing="15" style="-fx-padding: 20;">
-            <Button fx:id="enrollButton"
-                text="Enroll"
-                onAction="#enrollFace"
-                style="-fx-background-color: #2196F3; 
-                           -fx-text-fill: white; 
-                           -fx-font-size: 16;
-                           -fx-padding: 12 30;">
-                <cursor>
-                    <javafx.scene.Cursor fx:constant="HAND" />
-                </cursor>
-            </Button>
-
-            <Button text="Back"
-                style="-fx-background-color: #9E9E9E; 
-                           -fx-text-fill: white; 
-                           -fx-font-size: 16;
-                           -fx-padding: 12 30;">
-                <cursor>
-                    <javafx.scene.Cursor fx:constant="HAND" />
-                </cursor>
-            </Button>
-        </HBox>
-    </bottom> -->
-
-</BorderPane>
+        <!-- Bottom - Status Bar -->
+        <bottom>
+            <HBox spacing="10" alignment="CENTER_LEFT"
+                style="-fx-background-color: #eeeeee; -fx-padding: 10;">
+                <Label text="Camera: Ready">
+                    <font>
+                        <Font size="12" />
+                    </font>
+                </Label>
+                <Separator orientation="VERTICAL" />
+                <Label text="Enrollment System Active">
+                    <font>
+                        <Font size="12" />
+                    </font>
+                </Label>
+            </HBox>
+        </bottom>
+    </BorderPane>
+</ScrollPane>
