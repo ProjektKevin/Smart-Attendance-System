@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.Objects;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -31,6 +32,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 
 public class AttendanceController implements AttendanceObserver {
 
@@ -58,7 +60,10 @@ public class AttendanceController implements AttendanceObserver {
     private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
     private Session currentSession;
     private Runnable backHandler;
+
+    // Track original valeus for comparison
     private final Map<Integer, String> originalStatuses = new HashMap<>();
+    private final Map<Integer, String> originalNotes = new HashMap<>();
 
     // Formatter for timestamp display
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -176,7 +181,15 @@ public class AttendanceController implements AttendanceObserver {
         colMethod.setCellValueFactory(cellData ->
             new SimpleStringProperty(service.capitalize(cellData.getValue().getMethod().name()))
         );
+
+        // Configure note column to be editable
         colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
+        // F_MA: added by felicia handling marking attendance
+        colNote.setCellFactory(TextFieldTableCell.forTableColumn());
+        colNote.setOnEditCommit(event -> {
+            AttendanceRecord record = event.getRowValue();
+            record.setNote(event.getNewValue()); // update in-memory only
+        });
 
         // Configure marked_at column with proper formatting
         colMarkedAt.setCellValueFactory(cellData -> {
@@ -264,8 +277,11 @@ public class AttendanceController implements AttendanceObserver {
 
             // Store the original statuses for change detection
             originalStatuses.clear();
+            originalNotes.clear();
+
             for (AttendanceRecord record : records) {
                 originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
+                originalStatuses.put(record.getStudent().getStudentId(), record.getNote());
             }
         }
     }
@@ -277,9 +293,16 @@ public class AttendanceController implements AttendanceObserver {
             for (AttendanceRecord record : attendanceList) {
                 String originalStatus = originalStatuses.get(record.getStudent().getStudentId());
                 String currentStatus = record.getStatus().toString();
+                String originalNote = originalNotes.get(record.getStudent().getStudentId());
+                String currentNote = record.getNote();
+
+                boolean statusChanged = !Objects.equals(originalStatus, currentStatus);
+                boolean noteChanged = !Objects.equals(originalNote, currentNote);
+
 
                 // Only update if status actually changed
-                if (!java.util.Objects.equals(originalStatus, currentStatus)) {
+                // if (!java.util.Objects.equals(originalStatus, currentStatus)) {
+                if (statusChanged) {
                     // F_MA: modified by felicia handling marking attendance
                     record.setTimestamp(LocalDateTime.now());
                     // record.setLastSeen(LocalDateTime.now());
@@ -288,6 +311,19 @@ public class AttendanceController implements AttendanceObserver {
 
                     // Update the original status map so subsequent saves work fine
                     originalStatuses.put(record.getStudent().getStudentId(), currentStatus);
+                }
+
+                // Only update if note actually changed
+                if (noteChanged) {
+                    // F_MA: modified by felicia handling marking attendance
+                    // if update note don't have to update marked_at or last_seen time
+                    // record.setTimestamp(LocalDateTime.now());
+                    // record.setLastSeen(LocalDateTime.now());
+                    service.updateStatus(record);
+                    updatedCount++;
+
+                    // Update the original notes map so subsequent saves work fine
+                    originalNotes.put(record.getStudent().getStudentId(), currentNote);
                 }
             }
 
