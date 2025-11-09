@@ -70,7 +70,7 @@ public class RecognitionController {
     private static int cameraId = 0;
 
     // Recognition tracking
-    private Set<String> recognizedStudentIds = new HashSet<>();
+    private Set<Integer> recognizedStudentIds = new HashSet<>();
     private int totalDetections = 0;
     private long lastFrameTime = 0;
     private double currentFps = 0.0;
