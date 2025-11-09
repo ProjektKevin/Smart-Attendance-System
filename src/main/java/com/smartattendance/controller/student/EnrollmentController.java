@@ -5,6 +5,7 @@ import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.ImageService;
 import com.smartattendance.util.OpenCVUtils;
+import com.smartattendance.util.security.LoggerUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -153,7 +154,7 @@ public class EnrollmentController {
 	/**
 	 * Start capturing face images at 1-second intervals
 	 * PHASE 1: Capture and save images
-	 * Only captures when exactly 1 face is detected
+	 * Captures when at least 1 face is detected (handles multiple face detections)
 	 *
 	 * @param event the capture button event
 	 */
@@ -179,22 +180,38 @@ public class EnrollmentController {
 			Runnable captureTask = new Runnable() {
 				@Override
 				public void run() {
+					LoggerUtil.LOGGER
+							.info("Starting Enrollment Capture for Student: " + session.getCurrentUser().getUserName());
+
 					if (!capturing || captureCount.get() >= MAX_CAPTURES) {
+						LoggerUtil.LOGGER
+								.info("Stopping Enrollment Capture for Student: "
+										+ session.getCurrentUser().getUserName());
 						stopCapture();
 						return;
 					}
 
-					// Only capture if exactly 1 face is detected
-					if (cachedFaces.toArray().length == 1) {
-						// PHASE 1: Save image and store metadata
-						synchronized (frameLock) {
+					// Move synchronization BEFORE face count check to prevent race condition
+					// This ensures the face count and frame capture are atomic
+					synchronized (frameLock) {
+						int faceCount = cachedFaces.toArray().length;
+
+						// Capture face if there is only one person
+						if (faceCount == 1) {
+							// Save image and store metadata
 							int studentId = session.getCurrentUser().getId();
+							LoggerUtil.LOGGER.info("Attempting to save image for student: " + studentId);
 							if (imageService.captureAndSaveImage(studentId, sharedFrame)) {
 								int count = captureCount.incrementAndGet();
+								LoggerUtil.LOGGER.info("Successfully captured image " + count);
 								Platform.runLater(() -> {
 									statusLabel.setText("Status: Capturing faces (" + count + "/" + MAX_CAPTURES + ")");
 								});
+							} else {
+								System.err.println("Failed to save image for student: " + studentId);
 							}
+						} else {
+							LoggerUtil.LOGGER.info("No face detected in current frame");
 						}
 					}
 				}
@@ -209,7 +226,7 @@ public class EnrollmentController {
 
 	/**
 	 * Stop capturing face images
-	 * Triggers PHASE 2-4: Train, Persist, and Cleanup
+	 * Train, Persist, and Cleanup
 	 */
 	private void stopCapture() {
 		this.capturing = false;
@@ -292,7 +309,8 @@ public class EnrollmentController {
 					int faceCount = faceDetectionService.drawFaceRectangles(frame, faces);
 
 					if (faceCount != 1) {
-						System.out.println("Too many people for enrollment");
+						// chore(), Harry: Change it to warning level log
+						System.out.println("Expected 1 face, but detected " + faceCount);
 					}
 
 					// Convert and show the frame to user

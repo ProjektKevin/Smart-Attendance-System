@@ -12,11 +12,13 @@ import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.model.entity.FaceData;
 import com.smartattendance.model.entity.Image;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.ImageRepository;
 import com.smartattendance.service.recognition.HistogramRecognizer;
+import com.smartattendance.util.OpenCVUtils;
 import com.smartattendance.util.security.LoggerUtil;
 
 /**
@@ -35,8 +37,9 @@ public class ImageService {
     private static final String CAPTURE_DIR = "captured_faces";
 
     private final ImageRepository imageRepository;
-    private final FaceProcessingService faceProcessingService;
     private final HistogramRecognizer histogramRecognizer;
+    private final AuthSession session = ApplicationContext.getAuthSession();
+    private final FaceProcessingService faceProcessingService = ApplicationContext.getFaceProcessingService();
 
     /**
      * Initialize ImageService with repository, processing service, and recognizer
@@ -44,7 +47,6 @@ public class ImageService {
      */
     public ImageService() {
         this.imageRepository = new ImageRepository();
-        this.faceProcessingService = new FaceProcessingService(ApplicationContext.getFaceDetectionService());
         this.histogramRecognizer = new HistogramRecognizer(this.faceProcessingService);
     }
 
@@ -56,19 +58,25 @@ public class ImageService {
      * @return true if save was successful, false otherwise
      */
     public boolean captureAndSaveImage(int studentId, Mat frame) {
+        LoggerUtil.LOGGER.info("Running Capture and Save Image Function for Student: " + studentId);
+
         if (frame == null || frame.empty()) {
-            System.err.println("Cannot capture: frame is empty");
+            System.err.println("Frame is null or empty");
             return false;
         }
 
         try {
-            // Step 1: Save image to disk with organized directory structure
+            // Save image to disk with organized directory structure
+            LoggerUtil.LOGGER.info("Saving Image to Local Disk");
             String imagePath = saveImageToDisk(studentId, frame);
+            LoggerUtil.LOGGER.info("Image saved to: " + imagePath);
 
-            // Step 2: Insert metadata to student_image table
+            // Insert metadata to student_image table
+            LoggerUtil.LOGGER.info("Inserting Metadata to the Database");
             int imageId = imageRepository.insertStudentImage(studentId, imagePath);
 
             if (imageId > 0) {
+                LoggerUtil.LOGGER.info("Image recorded with ID " + imageId);
                 LoggerUtil.LOGGER.info("Image saved and recorded: " + imagePath);
                 return true;
             } else {
@@ -77,7 +85,7 @@ public class ImageService {
             }
 
         } catch (Exception e) {
-            System.err.println("Error capturing image: " + e.getMessage());
+            System.err.println("Exception during capture - " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -93,12 +101,12 @@ public class ImageService {
      * @return true if training and persistence successful, false otherwise
      */
     public boolean trainAndPersistEnrollment() {
+        // Get student ID from current logged-in user
+        Integer studentId = session.getCurrentUser().getId();
+        String studentName = session.getCurrentUser().getUserName();
         try {
-            // Get student ID from current logged-in user
-            int studentId = ApplicationContext.getCurrentUser().getUser_id();
-            String studentName = ApplicationContext.getCurrentUser().getName();
-
-            LoggerUtil.LOGGER.info("Starting enrollment training for student: " + studentName + " (ID: " + studentId + ")");
+            LoggerUtil.LOGGER
+                    .info("Starting enrollment training for student: " + studentName + " (ID: " + studentId + ")");
 
             // Load all images from disk
             List<Mat> enrollmentImages = loadImagesFromDisk(studentId);
@@ -142,9 +150,9 @@ public class ImageService {
 
             // Persist to database
             LoggerUtil.LOGGER.info("Persisting average histogram to database");
-            String histogramData = serializeHistogram(averageHistogram);
+            byte[] histogramBytes = OpenCVUtils.matHistogramToBytes(averageHistogram);
 
-            boolean persistSuccess = imageRepository.insertFaceData(0, studentId, histogramData);
+            boolean persistSuccess = imageRepository.insertFaceData(studentId, histogramBytes);
 
             if (!persistSuccess) {
                 System.err.println("Failed to persist histogram to database");
@@ -183,7 +191,7 @@ public class ImageService {
      * @param studentId the student ID
      * @return list of Mat images loaded from disk
      */
-    private List<Mat> loadImagesFromDisk(int studentId) {
+    private List<Mat> loadImagesFromDisk(Integer studentId) {
         List<Mat> images = new ArrayList<>();
 
         String studentDir = CAPTURE_DIR + File.separator + studentId;
@@ -226,7 +234,7 @@ public class ImageService {
      *
      * @param studentId the student ID
      */
-    private void cleanupCapturedImages(int studentId) {
+    private void cleanupCapturedImages(Integer studentId) {
         String studentDir = CAPTURE_DIR + File.separator + studentId;
         Path path = Paths.get(studentDir);
 
@@ -262,42 +270,56 @@ public class ImageService {
         // Create student-specific directory
         String studentDir = CAPTURE_DIR + File.separator + studentId;
         File dir = new File(studentDir);
+        LoggerUtil.LOGGER.info("Student directory: " + studentDir);
+
         if (!dir.exists()) {
-            dir.mkdirs();
+            boolean created = dir.mkdirs();
+            LoggerUtil.LOGGER.info("Directory created: " + created);
+        } else {
+            LoggerUtil.LOGGER.info("Directory already exists");
         }
 
         // Create filename with timestamp
         String filename = studentDir + File.separator + "face_" + System.currentTimeMillis() + ".jpg";
+        LoggerUtil.LOGGER.info("Saving image to: " + filename);
 
         // Save the image
         boolean success = Imgcodecs.imwrite(filename, frame);
+        LoggerUtil.LOGGER.info("Imgcodecs.imwrite result: " + success);
 
         if (!success) {
             throw new RuntimeException("Failed to write image to disk: " + filename);
         }
 
+        LoggerUtil.LOGGER.info("Image successfully saved");
         return filename;
     }
 
     /**
-     * Convert histogram Mat to serialized string format (CSV)
-     * The histogram is a 256x1 matrix (one value for each gray level)
+     * Load histogram from byte array (from database)
+     * Used for face recognition when comparing against enrolled student histograms
      *
-     * @param histogram the histogram Mat
-     * @return CSV string representation (e.g., "0.1,0.2,0.3,...")
+     * @param histogramBytes the histogram as byte array
+     * @return Mat histogram object for comparison
      */
-    private String serializeHistogram(Mat histogram) {
-        StringBuilder sb = new StringBuilder();
+    public Mat loadHistogramFromBytes(byte[] histogramBytes) {
+        return OpenCVUtils.bytesToMatHistogram(histogramBytes);
+    }
 
-        // Iterate through each bin in the histogram (256 bins for grayscale)
-        for (int i = 0; i < histogram.rows(); i++) {
-            double value = histogram.get(i, 0)[0];
-            if (i > 0)
-                sb.append(",");
-            sb.append(String.format("%.4f", value)); // Format to 4 decimal places
+    /**
+     * Get trained histogram for a student from database
+     * Used during face recognition to compare against captured face
+     *
+     * @param studentId the student ID
+     * @return Mat histogram, or empty Mat if not found
+     */
+    public Mat getStudentHistogram(int studentId) {
+        byte[] histogramBytes = imageRepository.getHistogramByStudentId(studentId);
+        if (histogramBytes == null) {
+            System.err.println("No histogram found for student: " + studentId);
+            return new Mat();
         }
-
-        return sb.toString();
+        return loadHistogramFromBytes(histogramBytes);
     }
 
     /**

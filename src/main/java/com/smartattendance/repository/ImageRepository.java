@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,23 +48,22 @@ public class ImageRepository {
     }
 
     /**
-     * PHASE 2: Insert face data (histogram) for a student image
+     * PHASE 2: Insert face data (histogram) for a student
      * This is called during background processing phase after histogram is computed
+     * Uses byte array format for binary histogram storage
      *
-     * @param imageId the image_id from student_image table
      * @param studentId the student ID
-     * @param histogramData the histogram as a serialized string (CSV format)
+     * @param histogramBytes the histogram as byte array (binary format)
      * @return true if insert was successful, false otherwise
      */
-    public boolean insertFaceData(int imageId, int studentId, String histogramData) {
-        String sql = "INSERT INTO face_data (image_id, student_id, avg_histogram) VALUES (?, ?, ?);";
+    public boolean insertFaceData(int studentId, byte[] histogramBytes) {
+        String sql = "INSERT INTO face_data (student_id, avg_histogram) VALUES (?, ?);";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, imageId);
-            ps.setInt(2, studentId);
-            ps.setString(3, histogramData);
+            ps.setInt(1, studentId);
+            ps.setBytes(2, histogramBytes);  // Use setBytes for binary data
 
             ps.executeUpdate();
             return true;
@@ -169,5 +167,34 @@ public class ImageRepository {
         }
 
         return 0;
+    }
+
+    /**
+     * Retrieve histogram bytes for a student from face_data table
+     * Used for face recognition - loads the trained average histogram
+     *
+     * @param studentId the student ID
+     * @return histogram as byte array, or null if not found
+     */
+    public byte[] getHistogramByStudentId(int studentId) {
+        String sql = "SELECT avg_histogram FROM face_data WHERE student_id = ? LIMIT 1;";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, studentId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBytes("avg_histogram");
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error retrieving histogram for student " + studentId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
