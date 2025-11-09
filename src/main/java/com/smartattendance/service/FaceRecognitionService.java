@@ -1,5 +1,6 @@
 package com.smartattendance.service;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Mat;
@@ -7,6 +8,7 @@ import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.repository.StudentRepository;
 import com.smartattendance.service.recognition.HistogramRecognizer;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.service.recognition.Recognizer;
@@ -14,20 +16,22 @@ import com.smartattendance.service.recognition.Recognizer;
 public class FaceRecognitionService {
   private final FaceDetectionService faceDetectionService;
   private final FaceProcessingService faceProcessingService;
+  private final StudentRepository studentRepository;
   private Recognizer recognizer;
   private List<Student> enrolledStudents;
   private RecognitionAlgorithm currentAlgorithm;
 
   public enum RecognitionAlgorithm {
     HISTOGRAM,
-    DNN 
+    DNN
   }
 
   // ----- Constructor -----
   public FaceRecognitionService(FaceDetectionService faceDetectionService) {
     this.faceDetectionService = faceDetectionService;
     this.faceProcessingService = new FaceProcessingService(faceDetectionService);
-    this.recognizer = new HistogramRecognizer(faceProcessingService, 70.0);
+    this.studentRepository = new StudentRepository();
+    this.recognizer = new HistogramRecognizer(faceProcessingService, 50.0);
     this.enrolledStudents = new ArrayList<>();
 
     System.out.println("FaceRecognitionService initialized with HistogramRecognizer");
@@ -84,7 +88,22 @@ public class FaceRecognitionService {
   }
 
   // ----- Student Session Management ------
-  public int loadSessionStudents() {
-    return 0; // Placeholder for actual implementation
+  public int loadEnrolledStudentsByCourse(String courseCode) throws SQLException {
+    System.out.println("Loading enrolled students for course: " + courseCode);
+
+    // Fetch students from repository
+    List<Student> students = studentRepository.fetchEnrolledStudentsByCourse(courseCode);
+
+    // Update internal list
+    if (students == null) {
+      this.enrolledStudents = new ArrayList<>();
+    } else {
+      this.enrolledStudents = students;
+    }
+
+    System.out.println("Loaded " + students.size() + " students for course " + courseCode);
+    return students.size();
   }
+
+  
 }

@@ -314,18 +314,9 @@ public class RecognitionController {
 
         // Create log entry
         String timestamp = LocalDateTime.now().format(timeFormatter);
-        String statusIcon;
 
-        if (confidence >= 80.0) {
-            statusIcon = "✓"; // High confidence
-        } else if (confidence >= 70.0) {
-            statusIcon = "~"; // Medium confidence
-        } else {
-            statusIcon = "?"; // Low confidence
-        }
-
-        String logEntry = String.format("%s [%s] %s (ID: %s) - %.1f%%",
-                statusIcon, timestamp, studentName, studentId, confidence);
+        String logEntry = String.format("[%s] %s (ID: %s) - %.1f%%",
+                timestamp, studentName, studentId, confidence);
 
         final int uniqueCount = recognizedStudentIds.size();
 
@@ -378,7 +369,7 @@ public class RecognitionController {
         new Thread(() -> {
           try {
                 // Load students from database
-                int studentCount = faceRecognitionService.loadSessionStudents();
+                int studentCount = faceRecognitionService.loadEnrolledStudentsByCourse("CS102"); // TODO: dynamic course code
 
                 // Update UI on JavaFX thread
                 Platform.runLater(() -> {
