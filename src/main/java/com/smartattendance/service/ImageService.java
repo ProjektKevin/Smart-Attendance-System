@@ -38,7 +38,6 @@ public class ImageService {
 
     private final ImageRepository imageRepository;
     private final HistogramRecognizer histogramRecognizer;
-    private final AuthSession session = ApplicationContext.getAuthSession();
 
     /**
      * Initialize ImageService with repository, processing service, and recognizer
@@ -99,7 +98,7 @@ public class ImageService {
      *
      * @return true if training and persistence successful, false otherwise
      */
-    public boolean trainAndPersistEnrollment() {
+    public boolean trainAndPersistEnrollment(AuthSession session) {
         // Get student ID from current logged-in user
         Integer studentId = session.getCurrentUser().getId();
         String studentName = session.getCurrentUser().getUserName();

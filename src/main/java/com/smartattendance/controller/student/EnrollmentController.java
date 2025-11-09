@@ -255,7 +255,7 @@ public class EnrollmentController {
 				}
 
 				enrollmentExecutor.submit(() -> {
-					boolean success = imageService.trainAndPersistEnrollment();
+					boolean success = imageService.trainAndPersistEnrollment(session);
 
 					// Update UI with final result
 					Platform.runLater(() -> {

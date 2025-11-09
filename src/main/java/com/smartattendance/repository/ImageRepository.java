@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,13 +26,17 @@ public class ImageRepository {
      * @return the generated image_id, or -1 if insert failed
      */
     public int insertStudentImage(int studentId, String imagePath) {
-        String sql = "INSERT INTO student_image (student_id, image_url) VALUES (?, ?) RETURNING image_id;";
+        String sql = "INSERT INTO student_image (student_id, image_url, added_at) VALUES (?, ?, ?) RETURNING image_id;";
+
+        // Conversion from java local date time to timestamp in sql
+        java.sql.Timestamp sqlCurrentTime = java.sql.Timestamp.valueOf(LocalDateTime.now());
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, studentId);
             ps.setString(2, imagePath);
+            ps.setTimestamp(3, sqlCurrentTime);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -52,18 +57,22 @@ public class ImageRepository {
      * This is called during background processing phase after histogram is computed
      * Uses byte array format for binary histogram storage
      *
-     * @param studentId the student ID
+     * @param studentId      the student ID
      * @param histogramBytes the histogram as byte array (binary format)
      * @return true if insert was successful, false otherwise
      */
     public boolean insertFaceData(int studentId, byte[] histogramBytes) {
-        String sql = "INSERT INTO face_data (student_id, avg_histogram) VALUES (?, ?);";
+        String sql = "INSERT INTO face_data (student_id, avg_histogram, created_at) VALUES (?, ?, ?);";
+
+        // Conversion from java local date time to timestamp in sql
+        java.sql.Timestamp sqlCurrentTime = java.sql.Timestamp.valueOf(LocalDateTime.now());
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, studentId);
-            ps.setBytes(2, histogramBytes);  // Use setBytes for binary data
+            ps.setBytes(2, histogramBytes); // Use setBytes for binary data
+            ps.setTimestamp(3, sqlCurrentTime);
 
             ps.executeUpdate();
             return true;
@@ -87,17 +96,16 @@ public class ImageRepository {
         String sql = "SELECT image_id, student_id, image_url FROM student_image WHERE student_id = ? ORDER BY added_at DESC;";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, studentId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     images.add(new Image(
-                        rs.getInt("image_id"),
-                        String.valueOf(rs.getInt("student_id")),
-                        rs.getString("image_url")
-                    ));
+                            rs.getInt("image_id"),
+                            String.valueOf(rs.getInt("student_id")),
+                            rs.getString("image_url")));
                 }
             }
 
@@ -119,17 +127,16 @@ public class ImageRepository {
         String sql = "SELECT image_id, student_id, image_url FROM student_image WHERE image_id = ?;";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, imageId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return new Image(
-                        rs.getInt("image_id"),
-                        String.valueOf(rs.getInt("student_id")),
-                        rs.getString("image_url")
-                    );
+                            rs.getInt("image_id"),
+                            String.valueOf(rs.getInt("student_id")),
+                            rs.getString("image_url"));
                 }
             }
 
@@ -151,7 +158,7 @@ public class ImageRepository {
         String sql = "SELECT COUNT(*) as count FROM student_image WHERE student_id = ?;";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, studentId);
 
@@ -180,7 +187,7 @@ public class ImageRepository {
         String sql = "SELECT avg_histogram FROM face_data WHERE student_id = ? LIMIT 1;";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, studentId);
 
