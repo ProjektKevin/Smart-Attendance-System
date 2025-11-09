@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -18,6 +19,7 @@ import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -26,9 +28,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -41,11 +45,19 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class AttendanceController implements AttendanceObserver {
 
     @FXML
+    private Label attendanceInfo;
+    @FXML
     private Label lblSessionTitle;
+    @FXML
+    private Button createButton;
+    @FXML
+    private Button deleteButton;
     @FXML
     private TableView<AttendanceRecord> attendanceTable;
     @FXML
@@ -62,6 +74,8 @@ public class AttendanceController implements AttendanceObserver {
     private TableColumn<AttendanceRecord, String> colLastSeen;
     @FXML
     private TableColumn<AttendanceRecord, String> colNote;
+    @FXML
+    private TableColumn<AttendanceRecord, Boolean> colSelect;
 
     private final AttendanceService service = new AttendanceService();
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
@@ -69,12 +83,15 @@ public class AttendanceController implements AttendanceObserver {
     private Session currentSession;
     private Runnable backHandler;
 
-    // Track original valeus for comparison
+    // Track original valuees for comparison
     private final Map<Integer, String> originalStatuses = new HashMap<>();
     private final Map<Integer, String> originalNotes = new HashMap<>();
 
     // Formatter for timestamp display
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    // Track selections of attendance records
+    private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
 
     @Override
     public void onAttendanceMarked(AttendanceRecord record, String message) {
@@ -86,6 +103,53 @@ public class AttendanceController implements AttendanceObserver {
         Platform.runLater(this::loadAttendanceRecords);
     }
 
+    // Helper methods for different message types
+    private void showSuccess(String message) {
+        styleInfoLabel("success", "✓ " + message);
+    }
+
+    private void showError(String message) {
+        styleInfoLabel("error", "✗ " + message);
+    }
+
+    private void showWarning(String message) {
+        styleInfoLabel("warning", "⚠ " + message);
+    }
+
+    private void showInfo(String message) {
+        styleInfoLabel("normal", "ℹ " + message);
+    }
+
+    // Styles the info label based on message type
+    // @param type "success", "error", "warning", or "normal"
+    // @param message The text to display
+    private void styleInfoLabel(String type, String message) {
+        attendanceInfo.setText(message);
+        
+        // Reset styles first
+        attendanceInfo.setStyle("-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
+        
+        switch (type.toLowerCase()) {
+            case "success":
+                attendanceInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "error":
+                attendanceInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "warning":
+                attendanceInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+            case "normal":
+            default:
+                attendanceInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; " +
+                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                break;
+        }
+    }
+
     public void setBackHandler(Runnable backHandler) {
         this.backHandler = backHandler;
     }
@@ -94,6 +158,44 @@ public class AttendanceController implements AttendanceObserver {
         this.currentSession = session;
         lblSessionTitle.setText("Attendance for Session ID: " + session.getSessionId());
         loadAttendanceRecords();
+    }
+
+    private void initSelectionMap() {
+        selectionMap.clear();
+        for (AttendanceRecord record : attendanceList) {
+            selectionMap.put(record.getStudent().getStudentId(), new SimpleBooleanProperty(false));
+        }
+    }
+
+    private void setupCheckBoxColumn() {
+        colSelect.setCellFactory(col -> new TableCell<>() {
+            private final CheckBox checkBox = new CheckBox();
+
+            {
+                checkBox.setOnAction(e -> {
+                    AttendanceRecord record = getTableView().getItems().get(getIndex());
+                    selectionMap.get(record.getStudent().getStudentId())
+                            .set(checkBox.isSelected());
+                    updateButtonStates();
+                });
+            }
+
+            @Override
+            protected void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                } else {
+                    AttendanceRecord record = getTableRow().getItem();
+                    checkBox.setSelected(selectionMap.get(record.getStudent().getStudentId()).get());
+                    setGraphic(checkBox);
+                }
+            }
+        });
+        colSelect.setCellValueFactory(cellData -> {
+            int id = cellData.getValue().getStudent().getStudentId();
+            return selectionMap.get(id);
+        });
     }
 
     // public static void requestUserConfirmation(AttendanceRecord record) {
@@ -164,6 +266,13 @@ public class AttendanceController implements AttendanceObserver {
 
     @FXML
     public void initialize() {
+        // Let each row have a selectable checkbox
+        setupCheckBoxColumn();
+
+        // Buttons to create or delete records
+        createButton.setOnAction(e -> onCreateRecord());
+        deleteButton.setOnAction(e -> onDeleteRecord());
+
         // Configure Student ID column to get from Student object
         colStudentId.setCellValueFactory(cellData -> {
             Student student = cellData.getValue().getStudent();
@@ -443,6 +552,8 @@ public class AttendanceController implements AttendanceObserver {
             List<AttendanceRecord> records = service.findBySessionId(currentSession.getSessionId());
             attendanceList.setAll(records);
             attendanceTable.setItems(attendanceList);
+            initSelectionMap();
+            updateButtonStates();
 
             // Store the original statuses for change detection
             originalStatuses.clear();
@@ -453,6 +564,76 @@ public class AttendanceController implements AttendanceObserver {
                 originalNotes.put(record.getStudent().getStudentId(), record.getNote());
             }
         }
+    }
+
+    @FXML
+    private void onCreateRecord() {
+        if (getSelectedRecords().size() > 0) {
+            return; // disable if selection exists
+        }
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceForm.fxml"));
+            Parent root = loader.load();
+
+            AttendanceFormController formController = loader.getController();
+            formController.setSession(currentSession);
+
+            Stage dialog = new Stage();
+            dialog.setTitle("Create Attendance Record");
+            dialog.setScene(new Scene(root));
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.showAndWait();
+
+            AttendanceRecord newRecord = formController.getNewRecord();
+            if (newRecord != null) {
+                loadAttendanceRecords();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void onDeleteRecord() {
+        List<AttendanceRecord> selectedRecords = attendanceList.stream()
+                .filter(r -> selectionMap.get(r.getStudent().getStudentId()).get())
+                .toList();
+
+        if (selectedRecords.isEmpty()) {
+            showWarning("Please select record(s) to delete.");
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Delete");
+        alert.setHeaderText("Delete " + selectedRecords.size() + " record(s)");
+        String studentNames = selectedRecords.stream()
+                .map(r -> r.getStudent().getName())
+                .collect(Collectors.joining(", "));
+        alert.setContentText("Are you sure you want to delete the selected record(s)?\n" + studentNames);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            for (AttendanceRecord r : selectedRecords) {
+                service.deleteRecord(r);  // implement deleteRecord() in AttendanceService
+            }
+            loadAttendanceRecords();
+            showSuccess("Deleted " + selectedRecords.size() + " record(s) successfully.");
+        }
+    }
+
+    private void updateButtonStates() {
+        boolean hasSelection = getSelectedRecords().size() > 0;
+
+        deleteButton.setDisable(!hasSelection);
+        createButton.setDisable(hasSelection); // disable create when records selected
+    }
+
+    private List<AttendanceRecord> getSelectedRecords() {
+        return attendanceList.stream()
+                .filter(r -> selectionMap.get(r.getStudent().getStudentId()).get())
+                .toList();
     }
 
     @FXML

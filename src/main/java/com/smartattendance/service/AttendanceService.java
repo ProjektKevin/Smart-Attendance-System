@@ -197,6 +197,14 @@ public class AttendanceService {
         repo.updateNote(record);
     }
 
+    public void deleteRecord(AttendanceRecord record){
+        repo.deleteRecord(record);
+    }
+
+    public void saveRecord(AttendanceRecord record){
+        repo.save(record);
+    }
+
     public String capitalize(String str) {
         return repo.capitalize(str);
     }
