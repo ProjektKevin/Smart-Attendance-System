@@ -1,19 +1,23 @@
-package com.smartattendance.model.dto.user;
+package com.smartattendance.model.dto.student;
 
 import com.smartattendance.model.entity.Profile;
 import com.smartattendance.model.entity.User;
+import com.smartattendance.model.enums.Role;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DTO for Student Profile display
  */
-public class UserProfileDTO {
+public class StudentProfileDTO {
     private Integer id;
     private String firstName;
     private String lastName;
     private String email;
-    private String role;
+    private Role role;
     private String phoneNo;
     private boolean emailVerified;
+    private List<String> enrolledCourses;
 
     /**
      * Constructor from User and Profile entities
@@ -21,17 +25,30 @@ public class UserProfileDTO {
      * @param user    The User entity
      * @param profile The Profile entity
      */
-    public UserProfileDTO(User user, Profile profile) {
+    public StudentProfileDTO(User user, Profile profile) {
         this.id = user.getId();
         this.email = user.getEmail();
         this.role = user.getRole();
         this.emailVerified = user.getIsEmailVerified();
+        this.enrolledCourses = new ArrayList<>();
 
         if (profile != null) {
             this.firstName = profile.getFirstName();
             this.lastName = profile.getLastName();
             this.phoneNo = profile.getPhoneNo();
         }
+    }
+
+    /**
+     * Constructor from User and Profile entities with courses
+     *
+     * @param user             The User entity
+     * @param profile          The Profile entity
+     * @param enrolledCourses  List of enrolled course names/codes
+     */
+    public StudentProfileDTO(User user, Profile profile, List<String> enrolledCourses) {
+        this(user, profile);
+        this.enrolledCourses = enrolledCourses != null ? enrolledCourses : new ArrayList<>();
     }
 
     // Getters (read-only)
@@ -51,7 +68,7 @@ public class UserProfileDTO {
         return email;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
@@ -65,5 +82,9 @@ public class UserProfileDTO {
 
     public String getFullName() {
         return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+    }
+
+    public List<String> getEnrolledCourses() {
+        return enrolledCourses;
     }
 }

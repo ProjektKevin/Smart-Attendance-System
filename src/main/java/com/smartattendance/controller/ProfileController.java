@@ -5,16 +5,23 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.FlowPane;
+import javafx.geometry.Insets;
 import javafx.application.Platform;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.model.entity.Profile;
 import com.smartattendance.model.entity.User;
+import com.smartattendance.model.entity.Course;
+import com.smartattendance.model.enums.Role;
 import com.smartattendance.service.ProfileService;
+import com.smartattendance.service.CourseService;
 import com.smartattendance.util.validation.ProfileValidator;
 import com.smartattendance.util.validation.ValidationResult;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +29,7 @@ import java.util.Map;
  * Handles displaying and editing user profile information.
  * Shows conditional UI: "Create Profile" button if no profile exists,
  * or "Edit Profile" button if profile exists.
+ * 
  * @author Thiha Swan Htet
  */
 public class ProfileController {
@@ -77,10 +85,23 @@ public class ProfileController {
     @FXML
     private Label errorLabel;
 
+    // Courses Section Components
+    @FXML
+    private VBox coursesContainer;
+
+    @FXML
+    private Label courseCountLabel;
+
+    @FXML
+    private FlowPane coursesFlowPane;
+
+    @FXML
+    private Label noCourseLabel;
+
     // ====== Dependencies ======
 
     private final ProfileService profileService = ApplicationContext.getProfileService();
-
+    private final CourseService courseService = ApplicationContext.getCourseService();
     private final AuthSession session = ApplicationContext.getAuthSession();
 
     // ====== State ======
@@ -170,6 +191,73 @@ public class ProfileController {
         phoneField.setText(currentProfile.getPhoneNo() != null
                 ? currentProfile.getPhoneNo()
                 : "");
+
+        // Load enrolled courses if user is a student
+        loadEnrolledCourses();
+    }
+
+    /**
+     * Load and display enrolled courses if the user is a STUDENT.
+     * Shows courses in a responsive FlowPane with styled labels.
+     */
+    private void loadEnrolledCourses() {
+        try {
+            // Check if current user is a STUDENT
+            if (currentUser.getRole() != Role.STUDENT) {
+                // Hide courses section for non-students (ADMIN, INSTRUCTOR, etc.)
+                coursesContainer.setVisible(false);
+                coursesContainer.setManaged(false);
+                return;
+            }
+
+            // Show courses section for students
+            coursesContainer.setVisible(true);
+            coursesContainer.setManaged(true);
+
+            // Load all courses and filter by enrollment
+            List<Course> enrolledCourses = new ArrayList<>();
+            List<Course> allCourses = courseService.getCourses();
+
+            for (Course course : allCourses) {
+                if (courseService.isStudentEnrolledInCourse(currentUser.getId(), course.getId())) {
+                    enrolledCourses.add(course);
+                }
+            }
+
+            // Update course count
+            courseCountLabel.setText("Total: " + enrolledCourses.size() + " course(s)");
+
+            // Clear previous courses from FlowPane
+            coursesFlowPane.getChildren().clear();
+
+            // Display courses or "no courses" message
+            if (!enrolledCourses.isEmpty()) {
+                noCourseLabel.setVisible(false);
+                noCourseLabel.setManaged(false);
+
+                for (Course course : enrolledCourses) {
+                    // Create a styled label for each course
+                    Label courseLabel = new Label(course.getCode() + " - " + course.getName());
+                    courseLabel.setStyle(
+                            "-fx-background-color: #e3f2fd; " +
+                            "-fx-border-color: #2196f3; " +
+                            "-fx-border-width: 1; " +
+                            "-fx-padding: 6 12; " +
+                            "-fx-border-radius: 4; " +
+                            "-fx-text-fill: #1976d2; " +
+                            "-fx-font-size: 11; " +
+                            "-fx-font-weight: 500;"
+                    );
+                    coursesFlowPane.getChildren().add(courseLabel);
+                }
+            } else {
+                noCourseLabel.setVisible(true);
+                noCourseLabel.setManaged(true);
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading enrolled courses: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -255,6 +343,7 @@ public class ProfileController {
             // Save to database
             if (currentProfile == null) {
                 // New profile - insert
+                // chore(), Harry: Add logger and info dialog if unsuccessful
                 profileService.createUserProfile(
                         firstName.trim(),
                         lastName.trim(),

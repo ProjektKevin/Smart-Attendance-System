@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.smartattendance.controller.ProfileController"
@@ -27,7 +28,7 @@
             <GridPane hgap="10" vgap="8">
                 <columnConstraints>
                     <ColumnConstraints prefWidth="120"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints prefWidth="250"/>
                 </columnConstraints>
 
                 <!-- First Name -->
@@ -61,6 +62,17 @@
                 </VBox>
 
             </GridPane>
+        </VBox>
+
+        <!-- Enrolled Courses Section (Only for Students) -->
+        <VBox fx:id="coursesContainer" spacing="12" style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-padding: 12;" visible="false" managed="false">
+            <Label text="Enrolled Courses"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+            <Label fx:id="courseCountLabel" text="Total: 0 course(s)"
+                   style="-fx-font-size: 12px; -fx-text-fill: #666666;"/>
+            <FlowPane fx:id="coursesFlowPane" hgap="8" vgap="8"/>
+            <Label fx:id="noCourseLabel" text="Not enrolled in any courses"
+                   style="-fx-font-size: 11px; -fx-text-fill: #999999; -fx-font-style: italic;"/>
         </VBox>
 
         <!-- Action Buttons -->

@@ -3,12 +3,14 @@ package com.smartattendance.model.dto.user;
 import com.smartattendance.model.entity.Profile;
 import com.smartattendance.model.entity.User;
 
+import com.smartattendance.model.enums.Role;
+
 public class UserDTO {
     private Integer id;
     private String email;
     private String firstName;
     private String lastName;
-    private String role;
+    private Role role;
     private boolean emailVerified;
     private String fullName;
 
@@ -42,7 +44,7 @@ public class UserDTO {
         return fullName;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 

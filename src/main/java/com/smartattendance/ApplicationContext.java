@@ -1,10 +1,6 @@
 package com.smartattendance;
 
 import com.smartattendance.model.entity.AuthSession;
-import com.smartattendance.repository.AuthRepository;
-import com.smartattendance.repository.CourseRepository;
-import com.smartattendance.repository.PostgresUserRepository;
-import com.smartattendance.repository.ProfileRepository;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.service.CourseService;
@@ -36,12 +32,6 @@ public final class ApplicationContext {
     private static AutoAttendanceUpdater autoAttendanceUpdater;
     // private static AttendanceController attendanceController;
 
-    // DB Repositories
-    private static AuthRepository authRepository;
-    private static PostgresUserRepository userRepository;
-    private static ProfileRepository profileRepository;
-    private static CourseRepository courseRepository;
-
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
     private static FaceProcessingService faceProcessingService;
@@ -71,18 +61,12 @@ public final class ApplicationContext {
 
         // chore(), William: Add database initialization here after implementation
 
-        // chore(), All: Add repositories here after implementation
-        authRepository = new AuthRepository();
-        userRepository = new PostgresUserRepository();
-        profileRepository = new ProfileRepository();
-        // courseRepository = new CourseRepository();
-
         // Initialize services
-        authService = new AuthService(authRepository);
-        userService = new UserService(userRepository);
+        authService = new AuthService();
+        userService = new UserService();
         studentService = new StudentService();
         attendanceService = new AttendanceService();
-        profileService = new ProfileService(profileRepository);
+        profileService = new ProfileService();
         courseService = new CourseService();
         // F_MA: added by felicia handling marking attendance
         attendanceService = new AttendanceService();
