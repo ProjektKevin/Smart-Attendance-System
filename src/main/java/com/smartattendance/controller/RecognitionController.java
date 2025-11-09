@@ -81,6 +81,8 @@ public class RecognitionController {
     // Time formatter for logs
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
+    // Loading state
+    private boolean studentsLoaded = false;
 
     // =======================================================================
     @FXML
@@ -88,6 +90,8 @@ public class RecognitionController {
         statusLabel.setText("Status: Ready");
         cameraStatusLabel.setText("Camera: Disconnected");
         modelStatusLabel.setText("Model: Not Loaded");
+
+        loadSessionStudentsAsync();
     }
 
     @FXML
@@ -364,5 +368,49 @@ public class RecognitionController {
         }
         
         lastFrameTime = currentTime;
+    }
+
+    // load enrolled students from session (if any)
+    private void loadSessionStudentsAsync() {
+        System.out.println("Start loading session students asynchronously");
+
+        new Thread(() -> {
+          try {
+                // Load students from database
+                int studentCount = faceRecognitionService.loadSessionStudents();
+
+                // Update UI on JavaFX thread
+                Platform.runLater(() -> {
+                    if (studentCount > 0) {
+                        studentsLoaded = true;
+                        modelStatusLabel.setText("Model: Loaded (" + studentCount + " students)");
+                        statusLabel.setText("Status: Ready");
+                        
+                        if (startButton != null) {
+                            startButton.setDisable(false);
+                        }
+
+                        System.out.println("Successfully loaded " + studentCount + " students");
+                    } else {
+                        modelStatusLabel.setText("Model: No Students Found");
+                        statusLabel.setText("Status: No enrolled students");
+                        
+                        System.out.println("No enrolled students found in database");
+                    }
+                });
+
+            } catch (Exception e) {
+                System.err.println("✗ Error loading students: " + e.getMessage());
+                e.printStackTrace();
+
+                // Update UI on JavaFX thread
+                Platform.runLater(() -> {
+                    modelStatusLabel.setText("Model: Error");
+                    statusLabel.setText("Status: Database Error");
+
+                    System.out.println("Failed to load session students from database");
+                });
+            }
+        }).start();
     }
 }

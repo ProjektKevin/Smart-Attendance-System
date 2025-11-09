@@ -1,5 +1,6 @@
 package com.smartattendance.service;
 
+import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
 
@@ -40,5 +41,10 @@ public class StudentService {
         if (s == null)
             return;
         repo.save(s);
+    }
+
+    // Get Student information from a session
+    public List<Student> getStudentsBySessionId(Session session) {
+        return repo.findByCourse(session.getCourse());
     }
 }
