@@ -1,10 +1,14 @@
 package com.smartattendance.service;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.MarkMethod;
@@ -32,6 +36,11 @@ public class SessionService {
     // Find a student by ID
     public Session findById(int id) {
         return repo.findById(id);
+    }
+
+    // Check if there is already a session opened
+    public boolean isSessionOpen() {
+        return repo.isSessionOpen();
     }
 
     // Creation of session using form

@@ -331,41 +331,34 @@ public class SessionController {
         if (deleteButton != null) {
             if (!hasSelection) {
                 deleteButton.setDisable(true);
-                deleteButton.setTooltip(new Tooltip("Please select session(s) to delete"));
             } else if (selectedSessions.stream().anyMatch(s -> "Open".equals(s.getStatus()))) {
                 deleteButton.setDisable(true);
-                deleteButton.setTooltip(new Tooltip("Cannot delete open sessions. Stop the session first."));
             } else {
                 deleteButton.setDisable(false);
-                deleteButton.setTooltip(null);
             }
         }
         
-        // Update start button state
+        // Update start button state - only enabled when exactly one session is selected and session status is 'Pending'
         if (startButton != null) {
             if (!hasSelection) {
                 startButton.setDisable(true);
-                startButton.setTooltip(new Tooltip("Please select session(s) to start"));
+            } else if (selectedSessions.size() > 1) {
+                startButton.setDisable(true);
             } else if (selectedSessions.stream().anyMatch(s -> !"Pending".equals(s.getStatus()))) {
                 startButton.setDisable(true);
-                startButton.setTooltip(new Tooltip("Can only start sessions with Pending status"));
             } else {
                 startButton.setDisable(false);
-                startButton.setTooltip(null);
             }
         }
         
-        // Update stop button state
+        // Update stop button state - only enabled if sessions selected are not 'Open'
         if (stopButton != null) {
             if (!hasSelection) {
                 stopButton.setDisable(true);
-                stopButton.setTooltip(new Tooltip("Please select session(s) to stop"));
             } else if (selectedSessions.stream().anyMatch(s -> !"Open".equals(s.getStatus()))) {
                 stopButton.setDisable(true);
-                stopButton.setTooltip(new Tooltip("Can only stop sessions with Open status"));
             } else {
                 stopButton.setDisable(false);
-                stopButton.setTooltip(null);
             }
         }
         
@@ -441,18 +434,34 @@ public class SessionController {
             return;
         }
 
-        int successCount = 0;
-        for (Session session : selectedSessions) {
-            if (!"Open".equals(session.getStatus())) {
-                session.open();
-                ss.updateSessionStatus(session);
-                successCount++;
-            }
+        // Check if more than one session is selected
+        if (selectedSessions.size() > 1) {
+            showError("Cannot open multiple sessions at once. Please select only one session to open.");
+            return;
+        }
+
+        // Check if there's already an open session
+        if (ss.isSessionOpen()) {
+            showError("There is already an open session. Please close the current open session before starting a new one.");
+            return;
+        }
+
+        // Get the single selected session
+        Session session = selectedSessions.get(0);
+        
+        // Validate session status
+        if (!"Pending".equals(session.getStatus())) {
+            showError("Can only start sessions with 'Pending' status");
+            return;
+        } else {
+            // Start the session
+            session.open();
+            ss.updateSessionStatus(session);
         }
 
         sessionTable.refresh();
         clearAllSelection();
-        showSuccess("Started " + successCount + " session(s) successfully.");
+        showSuccess("Session " + session.getSessionId() + " started successfully.");
     }
 
     @FXML
@@ -556,3 +565,7 @@ public class SessionController {
 // implement edit session function?
 // ensure view for each type of user (e.g. admin, ta, student, prof) is different
 // cannot create a session from 23:00 to 00:00?
+// - use decorator for auto-session policies (automating starting and stopping processes)
+// - extra feature: add a auto-create and auto-start and auto-end one of the session?
+// - cannot start more than one sessions automatically (only starts the session created earlier if there are more than 1 session with around the same start time and end time)
+// - Both columns have buttons to toggle on and off (can only toggle one session to be auto-started but auto-close multiple sessions)
