@@ -6,12 +6,12 @@
             fx:controller="com.smartattendance.controller.SessionController"
             style="-fx-padding: 10;">
 
-    <VBox fx:id="sessionListContainer" spacing="10">
+    <VBox fx:id="sessionListContainer" spacing="10" VBox.vgrow="ALWAYS">
         <Label fx:id="sessionsInfo" text="Sessions info (stub)" 
                maxWidth="1.7976931348623157E308" 
                style="-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;"/>
 
-        <TableView fx:id="sessionTable" prefHeight="300" prefWidth="700">
+        <TableView fx:id="sessionTable" prefHeight="600" prefWidth="700" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="colSelect" prefWidth="50">
                     <graphic>

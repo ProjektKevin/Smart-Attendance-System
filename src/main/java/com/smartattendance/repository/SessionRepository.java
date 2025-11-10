@@ -20,7 +20,7 @@ public class SessionRepository {
     // Select all sessions 
     public List<Session> findAll() {
         List<Session> sessions = new ArrayList<>();
-        String sql = "SELECT s.session_id, c.course_code, s.late_threshold, s.location, s.start_time, s.end_time, s.session_date, s.status FROM sessions s JOIN courses c ON s.course_id = c.course_id;";
+        String sql = "SELECT s.session_id, c.course_code, s.late_threshold, s.location, s.start_time, s.end_time, s.session_date, s.status, s.auto_start, s.auto_stop FROM sessions s JOIN courses c ON s.course_id = c.course_id;";
 
         try (Connection conn = DatabaseUtil.getConnection();
             Statement stmt = conn.createStatement();
@@ -53,7 +53,7 @@ public class SessionRepository {
 
     // Select session by id
     public Session findById(int id) {
-        String sql = "SELECT s.session_id, c.course_code, s.late_threshold, s.location, s.start_time, s.end_time, s.session_date, s.status FROM sessions s JOIN courses c ON s.course_id = c.course_id WHERE session_id = ?";
+        String sql = "SELECT s.session_id, c.course_code, s.late_threshold, s.location, s.start_time, s.end_time, s.session_date, s.status, s.auto_start, s.auto_stop FROM sessions s JOIN courses c ON s.course_id = c.course_id WHERE session_id = ?";
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -81,6 +81,28 @@ public class SessionRepository {
             e.printStackTrace();
         }
         return null;
+    }
+
+    // Check if there is already a session opened
+    public boolean isSessionOpen() {
+        String sql = "SELECT COUNT(*) FROM sessions WHERE status = 'Open';";
+        int openSessionsCount = 0;
+
+        try (Connection conn = DatabaseUtil.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                openSessionsCount = rs.getInt(1);
+            }
+            
+            // Return true if there are open sessions (count != 0), false if there are no open sessions
+            return openSessionsCount != 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
     
     // Insert session  
