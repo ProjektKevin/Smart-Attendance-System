@@ -13,7 +13,7 @@ public class FaceDetectionService {
 
     // Default detection parameters
     private static final double DEFAULT_SCALE_FACTOR = 1.1;
-    private static final int DEFAULT_MIN_NEIGHBORS = 3;
+    private static final int DEFAULT_MIN_NEIGHBORS = 5;
     private static final int DEFAULT_MIN_SIZE = 30;
 
     // Color parameters for face detection

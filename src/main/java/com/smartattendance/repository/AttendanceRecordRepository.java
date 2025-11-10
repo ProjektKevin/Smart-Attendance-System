@@ -22,10 +22,10 @@ import java.util.List;
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.controller.student.StudentAttendanceController.AttendanceRow;
 import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.AttendanceStatus;
-import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 
 public class AttendanceRecordRepository {
 

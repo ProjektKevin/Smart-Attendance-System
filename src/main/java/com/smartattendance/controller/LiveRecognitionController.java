@@ -3,6 +3,7 @@ package com.smartattendance.controller;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.RecognitionService;
+import com.smartattendance.model.enums.ToastType;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -45,9 +46,9 @@ public class LiveRecognitionController implements AttendanceObserver {
     }
 
     // F_MA: added by felicia handling marking attendance
-    public enum ToastType {
-        SUCCESS, ERROR, WARNING
-    }
+    // public enum ToastType {
+    //     SUCCESS, ERROR, WARNING
+    // }
 
     public void showToast(String message, ToastType type) {
         Platform.runLater(() -> {
