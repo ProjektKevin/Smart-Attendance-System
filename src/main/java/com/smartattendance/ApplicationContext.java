@@ -8,6 +8,7 @@ import com.smartattendance.service.CourseService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
+import com.smartattendance.service.ImageService;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
@@ -28,10 +29,11 @@ public final class ApplicationContext {
     private static AttendanceService attendanceService;
     private static ProfileService profileService;
     private static CourseService courseService;
+    private static ImageService imageService;
 
     // Busines Utils & Controller
     // F_MA: added by felicia handling marking attendance
-    private static AutoAttendanceUpdater autoAttendanceUpdater;
+    // private static AutoAttendanceUpdater autoAttendanceUpdater;
     // private static AttendanceController attendanceController;
 
     // OpenCV Services
@@ -75,13 +77,13 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         attendanceService = new AttendanceService();
 
+        initialized = true;
+
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
-        autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
-        autoAttendanceUpdater.startAutoUpdate(60);
-
-        initialized = true;
+        // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
+        // // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
+        // autoAttendanceUpdater.startAutoUpdate(60);
 
         
         // Apply recognition algorithm from the config
@@ -118,6 +120,10 @@ public final class ApplicationContext {
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
             LoggerUtil.LOGGER.info("Face recognition service initialized");
+
+            // Initialize Image Service
+            imageService = new ImageService(faceProcessingService);
+            LoggerUtil.LOGGER.info("Image service initialized");
 
             openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
 
@@ -239,6 +245,17 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the ImageService instance.
+     *
+     * @return ImageService
+     * @throws IllegalStateException if not initialized
+     */
+    public static ImageService getImageService() {
+        checkInitialized();
+        return imageService;
+    }
+
+    /**
      * Get the OpenFaceRecognizer instance (DNN-based).
      *
      * @return OpenFaceRecognizer
@@ -285,9 +302,9 @@ public final class ApplicationContext {
 
         // F_MA: added by felicia handling marking attendance
         // Stop auto attendance updater
-        if (autoAttendanceUpdater != null) {
-            autoAttendanceUpdater.stopAutoUpdate();
-        }
+        // if (autoAttendanceUpdater != null) {
+        //     autoAttendanceUpdater.stopAutoUpdate();
+        // }
 
         // chore(), Harry: Add cleanup logic here (close database connections, release
         // resources, etc.)

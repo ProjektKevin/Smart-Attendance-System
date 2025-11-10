@@ -9,6 +9,7 @@ import org.opencv.core.Rect;
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
+import com.smartattendance.model.enums.RecognitionAlgorithm;
 import com.smartattendance.service.recognition.HistogramRecognizer;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.service.recognition.Recognizer;
@@ -21,10 +22,10 @@ public class FaceRecognitionService {
   private List<Student> enrolledStudents;
   // private RecognitionAlgorithm currentAlgorithm;
 
-  public enum RecognitionAlgorithm {
-    HISTOGRAM,
-    DNN
-  }
+  // public enum RecognitionAlgorithm {
+  //   HISTOGRAM,
+  //   DNN 
+  // }
 
   // ----- Constructor -----
   public FaceRecognitionService(FaceDetectionService faceDetectionService) {

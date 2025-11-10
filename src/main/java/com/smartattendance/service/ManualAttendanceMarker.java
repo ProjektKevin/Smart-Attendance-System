@@ -1,14 +1,26 @@
-// package com.smartattendance.service;
-// import java.time.LocalDateTime;
+package com.smartattendance.service;
 
-// import com.smartattendance.model.AttendanceRecord;
-// import com.smartattendance.model.MarkMethod;
-// import com.smartattendance.model.Session;
+import java.util.List;
 
-// public class ManualAttendanceMarker implements AttendanceMarker {
-//     @Override
-//     public void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime){
-//         record.mark(record.getStatus(), currentTime, MarkMethod.MANUAL, "");
-//         System.out.println("Marked (MANUAL) " + record.getStudent().getName() + " manually.");
-//     }
-// }
+import com.smartattendance.model.entity.AttendanceRecord;
+
+public class ManualAttendanceMarker implements AttendanceMarker {
+
+    private final AttendanceService service; 
+
+    public ManualAttendanceMarker(AttendanceService service) {
+        this.service = service;
+    }
+
+    @Override
+    public void markAttendance(List<AttendanceObserver> observers, AttendanceRecord record) throws Exception {
+        // Actual update logic
+        if (record.isStatusChanged()) {
+            record.setTimestamp(java.time.LocalDateTime.now());
+            service.updateStatus(record);
+        }
+        if (record.isNoteChanged()) {
+            service.updateNote(record);
+        }
+    }
+}

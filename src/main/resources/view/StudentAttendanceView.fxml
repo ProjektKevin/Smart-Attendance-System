@@ -24,20 +24,21 @@
         <Label text="To:"/>
         <DatePicker fx:id="toDate"/>
 
-        <Button text="Apply" onAction="#onApplyFilters"/>
+        <!-- // F_MA: modified by felicia handling marking attendance -->
+        <!-- <Button text="Apply" onAction="#onApplyFilters"/> -->
         <Button text="Reset" onAction="#onResetFilters"/>
         <Pane HBox.hgrow="ALWAYS"/>
         <Label fx:id="recordsLabel" text="0 records"/>
     </ToolBar>
 
     <!-- Per-module summary -->
-    <TitledPane expanded="true" text="Module Attendance Summary">
+    <TitledPane expanded="true" text="Course Attendance Summary">
         <content>
             <TableView fx:id="summaryTable" prefHeight="160">
                 <columns>
-                    <TableColumn text="Module" prefWidth="280">
+                    <TableColumn text="Course" prefWidth="280">
                         <cellValueFactory>
-                            <PropertyValueFactory property="module"/>
+                            <PropertyValueFactory property="course"/>
                         </cellValueFactory>
                     </TableColumn>
 
@@ -68,13 +69,19 @@
         <columns>
             <TableColumn text="Date" prefWidth="130">
                 <cellValueFactory>
-                    <PropertyValueFactory property="date"/>
+                    <PropertyValueFactory property="sessionDate"/>
                 </cellValueFactory>
             </TableColumn>
 
-            <TableColumn text="Module" prefWidth="260">
+            <TableColumn text="Course Code" prefWidth="260">
                 <cellValueFactory>
-                    <PropertyValueFactory property="module"/>
+                    <PropertyValueFactory property="courseCode"/>
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn text="Course" prefWidth="260">
+                <cellValueFactory>
+                    <PropertyValueFactory property="courseName"/>
                 </cellValueFactory>
             </TableColumn>
 

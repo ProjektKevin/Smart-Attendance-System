@@ -4,7 +4,7 @@
  # Date: 13 Oct 2025
 */
 
-package com.smartattendance.model.entity;
+package com.smartattendance.model.enums;
 
 /**
  * Enum to define the attendance status.
