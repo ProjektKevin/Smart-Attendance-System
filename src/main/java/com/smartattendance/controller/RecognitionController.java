@@ -32,6 +32,7 @@ import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.recognition.RecognitionResult;
+import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
 
 public class RecognitionController {
@@ -64,12 +65,11 @@ public class RecognitionController {
     // =======================================================================
     private FaceDetectionService faceDetectionService;
     private FaceRecognitionService faceRecognitionService;
+    private final CameraUtils cameraUtils = ApplicationContext.getCameraUtils();
 
     // OpenCV objects
-    private VideoCapture capture = new VideoCapture();
     private boolean cameraActive = false;
     private ScheduledExecutorService timer;
-    private static int cameraId = 0;
 
     // Recognition tracking
     private Set<Integer> recognizedStudentIds = new HashSet<>();
@@ -110,14 +110,12 @@ public class RecognitionController {
         // Safety Camera release
         if (this.cameraActive) {
             this.stopAcquisition();
-            capture.release();
+            this.cameraUtils.releaseCamera();;
         }
 
         if (!this.cameraActive) {
-            this.capture.open(cameraId);
-
-            // Check if camera opened successfully
-            if (this.capture.isOpened()) {
+            // Open camera using CameraUtils
+            if (this.cameraUtils.openCamera()) {
                 this.cameraActive = true;
 
                 // Create a task to grab and process frames continuously
@@ -188,10 +186,9 @@ public class RecognitionController {
             }
         }
 
-        // Release camera
-        if (capture != null && capture.isOpened()) {
-            capture.release();
-        }
+        // Release camera using CameraUtils
+        this.cameraUtils.releaseCamera();
+        this.cameraActive = false;
 
         cameraStatusLabel.setText("Camera: Disconnected");
 
@@ -210,11 +207,11 @@ public class RecognitionController {
     private Mat grabFrame() {
         Mat frame = new Mat();
 
-        // check if the capture is open
-        if (this.capture.isOpened()) {
+        // check if the capture is open using cameraUtils
+        if (this.cameraUtils.isCameraOpen()) {
             try {
                 // read the current frame
-                this.capture.read(frame);
+                this.cameraUtils.getCapture().read(frame);
 
                 // if the frame is not empty, process it
                 if (!frame.empty()) {
@@ -267,10 +264,8 @@ public class RecognitionController {
             }
         }
 
-        if (this.capture.isOpened()) {
-            // release the camera
-            this.capture.release();
-        }
+        // Release camera using cameraUtils
+        this.cameraUtils.releaseCamera();
     }
 
     private void updateImageView(ImageView view, Image image) {

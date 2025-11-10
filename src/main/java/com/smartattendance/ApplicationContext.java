@@ -14,10 +14,11 @@ import com.smartattendance.service.SessionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
 import com.smartattendance.service.recognition.HistogramRecognizer;
+import com.smartattendance.util.CameraUtils;
 import com.smartattendance.service.recognition.OpenFaceRecognizer;
 // import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
-import com.smartattendance.util.security.LoggerUtil;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public final class ApplicationContext {
 
@@ -47,6 +48,9 @@ public final class ApplicationContext {
     private static HistogramRecognizer histogramRecognizer;
     private static OpenFaceRecognizer openFaceRecognizer;
 
+    // Logger
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
     /**
      * Initialize the application context.
      * This method initializes all services.
@@ -70,13 +74,10 @@ public final class ApplicationContext {
 
         // chore(), William: Add config loading here after implementation
 
-        // chore(), William: Add database initialization here after implementation
-
         // Initialize services
         authService = new AuthService();
         userService = new UserService();
         studentService = new StudentService();
-        attendanceService = new AttendanceService();
         profileService = new ProfileService();
         courseService = new CourseService();
         // F_MA: added by felicia handling marking attendance
@@ -87,7 +88,6 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
         // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        // //
         // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         // autoAttendanceUpdater.startAutoUpdate(60);
 
@@ -99,11 +99,9 @@ public final class ApplicationContext {
         try {
             // Load opencv locally
             nu.pattern.OpenCV.loadLocally();
-            LoggerUtil.LOGGER.info("OpenCV Loaded Successfully.");
+            appLogger.info("OpenCV Loaded Successfully.");
         } catch (Exception e) {
-            // chore(), Harry: Change back to logger with a different log level
-            System.out.println("Error loading opencv: " + e.getMessage());
-            // chore(), Harry: Add custom throw error or built in error
+            appLogger.error("Error loading opencv", e);
         }
     }
 
@@ -122,27 +120,28 @@ public final class ApplicationContext {
 
             // Initialize face image processing
             faceProcessingService = new FaceProcessingService(faceDetectionService);
-            LoggerUtil.LOGGER.info("Image processing service initialized");
+            appLogger.info("Image processing service initialized");
 
             // Initialize both recognizer models
             histogramRecognizer = new HistogramRecognizer(faceProcessingService, threshold);
-            LoggerUtil.LOGGER.info("Histogram recognizer initialized");
+            appLogger.info("Histogram recognizer initialized");
 
             openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService, threshold);
-            LoggerUtil.LOGGER.info("OpenFace recognizer initialized");
+            appLogger.info("OpenFace recognizer initialized");
 
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
+            appLogger.info("Face recognition service initialized");
             if (!openFaceRecognizer.isModelLoaded()) {
-                LoggerUtil.LOGGER.severe("OpenFace model failed to load! Recognition will not work.");
+                appLogger.warn("OpenFace model failed to load! Recognition will not work.");
                 System.err.println("WARNING: OpenFace model not loaded. Check model file path.");
                 throw new IllegalStateException("OpenFace model required but failed to load");
             }
-            LoggerUtil.LOGGER.info("Face recognition service initialized");
+            appLogger.info("Face recognition service initialized");
 
             // Initialize Image Service
             imageService = new ImageService(faceProcessingService);
-            LoggerUtil.LOGGER.info("Image service initialized");
+            appLogger.info("Image service initialized");
 
             openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
 
@@ -310,6 +309,15 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the CameraUtils instance
+     *
+     * @return CameraUtils instance
+     */
+    public static CameraUtils getCameraUtils() {
+        return CameraUtils.getInstance();
+    }
+
+    /**
      * Check if ApplicationContext has been initialized.
      *
      * @throws IllegalStateException if not initialized
@@ -335,20 +343,6 @@ public final class ApplicationContext {
         faceRecognitionService.switchAlgorithm(algorithm);
     }
 
-    private static double getDoubleConfig(String key, double defaultValue) {
-        String value = Config.get(key);
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            LoggerUtil.LOGGER.warning("Invalid config value for " + key + ": " + value +
-                    ". Using default: " + defaultValue);
-            return defaultValue;
-        }
-    }
-
     /**
      * Shutdown and cleanup resources.
      */
@@ -362,6 +356,9 @@ public final class ApplicationContext {
         // if (autoAttendanceUpdater != null) {
         // autoAttendanceUpdater.stopAutoUpdate();
         // }
+
+        // Release camera resources
+        CameraUtils.getInstance().releaseCamera();
 
         // chore(), Harry: Add cleanup logic here (close database connections, release
         // resources, etc.)

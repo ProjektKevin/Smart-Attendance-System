@@ -34,5 +34,13 @@ Thumbs.db
 # file to printout folder structure
 src/folder_structure.py
 out
+## Application logs
+application.log.*
 ## Attendance logs
 attendance.log.*
+
+# Backup files for image service implementations
+*.bak
+src/main/java/com/smartattendance/service/ImageService.java.bak
+src/main/java/com/smartattendance/repository/ImageRepository.java.bak
+src/main/java/com/smartattendance/service/SupabaseStorageService.java.bak

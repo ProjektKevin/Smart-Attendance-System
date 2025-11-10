@@ -4,8 +4,10 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.ImageService;
+import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
-import com.smartattendance.util.security.LoggerUtil;
+import com.smartattendance.util.security.log.ApplicationLogger;
+import com.smartattendance.util.security.log.AttendanceLogger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,10 +22,14 @@ import org.opencv.videoio.VideoCapture;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 
 /**
  * Controller to connect the camera view from student enrollment and call
@@ -42,6 +48,8 @@ public class EnrollmentController {
 	@FXML
 	private Button captureButton;
 	@FXML
+	private Button cancelButton;
+	@FXML
 	private Label statusLabel;
 	@FXML
 	private ImageView currentFrame;
@@ -49,10 +57,8 @@ public class EnrollmentController {
 	private ScheduledExecutorService timer;
 	private ScheduledExecutorService captureTimer;
 	private ExecutorService enrollmentExecutor;
-	private VideoCapture capture = new VideoCapture();
 	private boolean cameraActive = false;
 	private boolean capturing = false;
-	private static int cameraId = 0;
 
 	// Capture settings
 	private static final int CAPTURE_INTERVAL_MS = 1000; // 1 second
@@ -63,6 +69,9 @@ public class EnrollmentController {
 	private final AuthSession session = ApplicationContext.getAuthSession();
 	private final FaceDetectionService faceDetectionService = ApplicationContext.getFaceDetectionService();
 	private final ImageService imageService = ApplicationContext.getImageService();
+	private final CameraUtils cameraUtils = ApplicationContext.getCameraUtils();
+	private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+	private final AttendanceLogger attendanceLogger = AttendanceLogger.getInstance();
 
 	/**
 	 * Shared frame between the display thread and capture thread.
@@ -98,11 +107,8 @@ public class EnrollmentController {
 	@FXML
 	protected void startCamera(ActionEvent event) {
 		if (!this.cameraActive) {
-			// start the video capture
-			this.capture.open(cameraId);
-
-			// is the video stream available?
-			if (this.capture.isOpened()) {
+			// start the video capture using cameraUtils
+			if (this.cameraUtils.openCamera()) {
 				this.cameraActive = true;
 
 				// grab a frame
@@ -153,7 +159,7 @@ public class EnrollmentController {
 
 	/**
 	 * Start capturing face images at 1-second intervals
-	 * PHASE 1: Capture and save images
+	 * Capture and save images
 	 * Captures when at least 1 face is detected (handles multiple face detections)
 	 *
 	 * @param event the capture button event
@@ -180,11 +186,11 @@ public class EnrollmentController {
 			Runnable captureTask = new Runnable() {
 				@Override
 				public void run() {
-					LoggerUtil.LOGGER
+					appLogger
 							.info("Starting Enrollment Capture for Student: " + session.getCurrentUser().getUserName());
 
 					if (!capturing || captureCount.get() >= MAX_CAPTURES) {
-						LoggerUtil.LOGGER
+						appLogger
 								.info("Stopping Enrollment Capture for Student: "
 										+ session.getCurrentUser().getUserName());
 						stopCapture();
@@ -200,10 +206,11 @@ public class EnrollmentController {
 						if (faceCount == 1) {
 							// Save image and store metadata
 							int studentId = session.getCurrentUser().getId();
-							LoggerUtil.LOGGER.info("Attempting to save image for student: " + studentId);
+							appLogger.info("Attempting to save image for student: " + studentId);
 							if (imageService.captureAndSaveImage(studentId, sharedFrame)) {
 								int count = captureCount.incrementAndGet();
-								LoggerUtil.LOGGER.info("Successfully captured image " + count);
+								attendanceLogger
+										.info("Successfully captured " + count + " images for " + studentId);
 								Platform.runLater(() -> {
 									statusLabel.setText("Status: Capturing faces (" + count + "/" + MAX_CAPTURES + ")");
 								});
@@ -211,7 +218,7 @@ public class EnrollmentController {
 								System.err.println("Failed to save image for student: " + studentId);
 							}
 						} else {
-							LoggerUtil.LOGGER.info("No face detected in current frame");
+							appLogger.warn("No face detected in current frame");
 						}
 					}
 				}
@@ -221,6 +228,35 @@ public class EnrollmentController {
 			this.captureTimer.scheduleAtFixedRate(captureTask, 0, CAPTURE_INTERVAL_MS, TimeUnit.MILLISECONDS);
 		} else {
 			stopCapture();
+		}
+	}
+
+	/**
+	 * Handle cancel button click
+	 * Stops camera, cleans up resources, and navigates back to login screen
+	 *
+	 * @param event the cancel button event
+	 */
+	@FXML
+	protected void handleCancel(ActionEvent event) {
+		attendanceLogger
+				.info("Enrollment cancelled by student: " + session.getCurrentUser().getUserName());
+
+		// Stop camera and clean up resources
+		stopAcquisition();
+
+		// Navigate back to login screen
+		try {
+			Parent loginRoot = FXMLLoader.load(getClass().getResource("/view/LoginView.fxml"));
+			Stage stage = (Stage) cancelButton.getScene().getWindow();
+			stage.setScene(new Scene(loginRoot));
+			stage.setTitle("Login");
+
+			appLogger.info("Navigated back to login screen.");
+		} catch (Exception e) {
+			statusLabel.setText("Status: Error navigating to login: " + e.getMessage());
+			appLogger.error("Error navigating back to login", e);
+			e.printStackTrace();
 		}
 	}
 
@@ -249,7 +285,7 @@ public class EnrollmentController {
 				this.statusLabel
 						.setText("Status: Captured " + count + " face image(s). Training and persisting enrollment...");
 
-				// PHASE 2-4: Trigger training, persistence, and cleanup on background thread
+				// Trigger training, persistence, and cleanup on background thread
 				if (enrollmentExecutor == null || enrollmentExecutor.isShutdown()) {
 					enrollmentExecutor = Executors.newSingleThreadExecutor();
 				}
@@ -262,6 +298,31 @@ public class EnrollmentController {
 						if (success) {
 							String studentName = session.getCurrentUser().getUserName();
 							this.statusLabel.setText("Status: Enrollment complete for " + studentName);
+
+							// Release camera before navigating away
+							stopAcquisition();
+
+							// Show info dialog
+							showInfoAlert("Enrollment Successful",
+									"Your facial data has been enrolled successfully. Click OK to proceed to the student portal.");
+
+							// Navigate to student dashboard
+							try {
+								Parent studentRoot = FXMLLoader
+										.load(getClass().getResource("/view/StudentRootView.fxml"));
+								Stage stage = (Stage) statusLabel.getScene().getWindow();
+								stage.setScene(new Scene(studentRoot));
+								stage.setTitle("Student Portal");
+
+								attendanceLogger
+										.info("Enrollment Successful For " + studentName);
+								appLogger
+										.info("Navigating User to the Student Portal");
+							} catch (Exception e) {
+								this.statusLabel.setText("Error Loading Student Portal: " + e.getMessage());
+								appLogger.error("Error Navigating to Student Portal", e);
+								e.printStackTrace();
+							}
 						} else {
 							this.statusLabel.setText("Status: Enrollment failed. Please try again.");
 						}
@@ -282,11 +343,11 @@ public class EnrollmentController {
 	private void readAndProcessFrame() {
 		Mat frame = new Mat();
 
-		// check if the capture is open
-		if (this.capture.isOpened()) {
+		// check if the capture is open using cameraUtils
+		if (this.cameraUtils.isCameraOpen()) {
 			try {
 				// read the current frame
-				this.capture.read(frame);
+				this.cameraUtils.getCapture().read(frame);
 
 				// if the frame is not empty, process it
 				if (!frame.empty()) {
@@ -360,10 +421,8 @@ public class EnrollmentController {
 			}
 		}
 
-		if (this.capture.isOpened()) {
-			// release the camera
-			this.capture.release();
-		}
+		// Release camera using cameraUtils
+		this.cameraUtils.releaseCamera();
 	}
 
 	/**
@@ -383,6 +442,21 @@ public class EnrollmentController {
 	 */
 	protected void setClosed() {
 		this.stopAcquisition();
+	}
+
+	/**
+	 * Show an info alert dialog to the user
+	 *
+	 * @param title   the title of the alert
+	 * @param message the message content
+	 */
+	private void showInfoAlert(String title, String message) {
+		javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+				javafx.scene.control.Alert.AlertType.INFORMATION);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 
 }

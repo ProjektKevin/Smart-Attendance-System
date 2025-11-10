@@ -77,6 +77,22 @@
                             <javafx.scene.Cursor fx:constant="HAND" />
                         </cursor>
                     </Button>
+
+                    <Button fx:id="cancelButton"
+                        text="Cancel"
+                        onAction="#handleCancel"
+                        style="-fx-background-color: #f44336;
+                                   -fx-text-fill: white;
+                                   -fx-font-size: 14;
+                                   -fx-padding: 10 20;
+                                   -fx-min-width: 150;">
+                        <font>
+                            <Font name="System Bold" size="14" />
+                        </font>
+                        <cursor>
+                            <javafx.scene.Cursor fx:constant="HAND" />
+                        </cursor>
+                    </Button>
                 </HBox>
             </VBox>
         </center>
