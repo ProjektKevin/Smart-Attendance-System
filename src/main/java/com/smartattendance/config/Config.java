@@ -17,4 +17,8 @@ public class Config {
   public static String get(String k) {
     return props.getProperty(k);
   }
+
+  public static void set(String k, String v) {
+    props.setProperty(k, v);
+  }
 }

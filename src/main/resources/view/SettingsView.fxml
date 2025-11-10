@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<GridPane xmlns:fx="http://javafx.com/fxml" hgap="10" vgap="10" style="-fx-padding: 10;"
+
+<ScrollPane xmlns:fx="http://javafx.com/fxml" fitToWidth="true" 
     fx:controller="com.smartattendance.controller.SettingsController">
-    <children>
-        <Label text="Camera Index" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-        <TextField fx:id="cameraIndexField" GridPane.rowIndex="0" GridPane.columnIndex="1" />
-        <Label text="Recognition Threshold" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-        <TextField fx:id="thresholdField" GridPane.rowIndex="1" GridPane.columnIndex="1" />
-        <Label text="Late Threshold (min)" GridPane.rowIndex="2" GridPane.columnIndex="0" />
-        <TextField fx:id="lateField" GridPane.rowIndex="2" GridPane.columnIndex="1" />
-        <!-- F_MA: modified by felicia handling marking attendance -->
-        <Label text="Cooldown Time (sec)" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-        <TextField fx:id="cooldownField" GridPane.rowIndex="3" GridPane.columnIndex="1" />
-        <Label text="Database Path" GridPane.rowIndex="4" GridPane.columnIndex="0" />
-        <TextField fx:id="dbPathField" GridPane.rowIndex="4" GridPane.columnIndex="1" />
-        <Button text="Save" onAction="#onSaveSettings" GridPane.rowIndex="5" GridPane.columnIndex="1" />
-    </children>
-</GridPane>
+    <content>
+        <GridPane hgap="10" vgap="10" style="-fx-padding: 20;">
+            
+            <Label text="Camera Index:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+            <TextField fx:id="cameraIndexField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+            <Label text="Recognition Algorithm:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+            <ChoiceBox fx:id="algorithmChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200.0" />
+
+            <Label text="Recognition Threshold:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+            <TextField fx:id="thresholdField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+
+            <Label text="Late Threshold (min):" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+            <TextField fx:id="lateField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+
+            <Label text="Cooldown Time (sec):" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+            <TextField fx:id="cooldownField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+            <Label text="Database Path:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+            <TextField fx:id="dbPathField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+
+            <Button text="Save" GridPane.columnIndex="1" GridPane.rowIndex="6" onAction="#onSaveSettings" />
+
+        </GridPane>
+    </content>
+</ScrollPane>

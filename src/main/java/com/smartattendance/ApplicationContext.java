@@ -1,5 +1,6 @@
 package com.smartattendance;
 
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AuthService;
@@ -9,8 +10,11 @@ import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.ImageService;
 import com.smartattendance.service.ProfileService;
+import com.smartattendance.service.SessionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
+import com.smartattendance.service.recognition.OpenFaceRecognizer;
+// import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.LoggerUtil;
 
@@ -18,6 +22,7 @@ public final class ApplicationContext {
 
     private static boolean initialized = false;
     private static AuthSession session;
+    private static SessionService sessionService;
 
     // Business Services
     private static AuthService authService;
@@ -38,6 +43,8 @@ public final class ApplicationContext {
     private static FaceProcessingService faceProcessingService;
     private static FaceRecognitionService faceRecognitionService;
 
+    private static OpenFaceRecognizer openFaceRecognizer;
+
     /**
      * Initialize the application context.
      * This method initializes all services.
@@ -51,6 +58,7 @@ public final class ApplicationContext {
 
         // Set session
         session = new AuthSession();
+        sessionService = new SessionService();
 
         // Load Opencv
         loadOpenCV();
@@ -79,6 +87,10 @@ public final class ApplicationContext {
         // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
         // // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         // autoAttendanceUpdater.startAutoUpdate(60);
+
+        
+        // Apply recognition algorithm from the config
+        applyRecognitionAlgorithm();
     }
 
     public static void loadOpenCV() {
@@ -116,6 +128,8 @@ public final class ApplicationContext {
             imageService = new ImageService(faceProcessingService);
             LoggerUtil.LOGGER.info("Image service initialized");
 
+            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
+
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
             System.out.println("Error loading opencv: " + e.getMessage());
@@ -143,6 +157,17 @@ public final class ApplicationContext {
     public static AuthService getAuthService() {
         checkInitialized();
         return authService;
+    }
+
+    /**
+     * Get the SessionService instance.
+     *
+     * @return SessionService
+     * @throws IllegalStateException if not initialized
+     */
+    public static SessionService getSessionService() {
+        checkInitialized();
+        return sessionService;
     }
 
     /**
@@ -245,6 +270,17 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the OpenFaceRecognizer instance (DNN-based).
+     *
+     * @return OpenFaceRecognizer
+     * @throws IllegalStateException if not initialized
+     */
+    public static OpenFaceRecognizer getOpenFaceRecognizer() {
+        checkInitialized();
+        return openFaceRecognizer;
+    }
+
+    /**
      * Check if ApplicationContext has been initialized.
      *
      * @throws IllegalStateException if not initialized
@@ -254,6 +290,20 @@ public final class ApplicationContext {
             throw new IllegalStateException(
                     "ApplicationContext not initialized.");
         }
+    }
+
+    /**
+     * Apply the configured recognition algorithm to FaceRecognitionService
+     */
+    public static void applyRecognitionAlgorithm() {
+        checkInitialized();
+
+        String algorithm = Config.get("recognition.algorithm");
+        if (algorithm == null) {
+            algorithm = "HISTOGRAM"; // default
+        }
+
+        faceRecognitionService.switchAlgorithm(algorithm);
     }
 
     /**
