@@ -48,7 +48,7 @@
             </TableColumn>
         </columns>
     </TableView>
-    <!-- <HBox spacing="10">
+    <HBox spacing="10">
         <Button text="Add" onAction="#onAddStudent" />
-    </HBox> -->
+    </HBox>
 </VBox>

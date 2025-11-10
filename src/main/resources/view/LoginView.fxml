@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 
 <GridPane xmlns:fx="http://javafx.com/fxml"
-          fx:controller="com.smartattendance.controller.LoginController"
+          fx:controller="com.smartattendance.controller.auth.LoginController"
           stylesheets="@styles/login.css"
           styleClass="login-root"
           hgap="14" vgap="14" alignment="CENTER">
@@ -24,21 +24,31 @@
         <Label text="_Username:" mnemonicParsing="true"
                styleClass="form-label"
                GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextField fx:id="usernameField"
-                   promptText="admin or student ID"
-                   styleClass="input"
-                   GridPane.rowIndex="1" GridPane.columnIndex="1"
-                   GridPane.hgrow="ALWAYS"/>
+        <VBox GridPane.rowIndex="1" GridPane.columnIndex="1" spacing="2" GridPane.hgrow="ALWAYS">
+            <TextField fx:id="usernameField"
+                       promptText="admin or student ID"
+                       styleClass="input"
+                       GridPane.hgrow="ALWAYS"/>
+            <Label fx:id="usernameError" text=""
+                   visible="${usernameError.text != ''}"
+                   managed="${usernameError.text != ''}"
+                   style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+        </VBox>
 
         <!-- Password (admin password OR 'student123' for student flow) -->
         <Label text="_Password:" mnemonicParsing="true"
                styleClass="form-label"
                GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <PasswordField fx:id="passwordField"
-                       promptText="admin123 or student123"
-                       styleClass="input"
-                       GridPane.rowIndex="2" GridPane.columnIndex="1"
-                       GridPane.hgrow="ALWAYS"/>
+        <VBox GridPane.rowIndex="2" GridPane.columnIndex="1" spacing="2" GridPane.hgrow="ALWAYS">
+            <PasswordField fx:id="passwordField"
+                           promptText="admin123 or student123"
+                           styleClass="input"
+                           GridPane.hgrow="ALWAYS"/>
+            <Label fx:id="passwordError" text=""
+                   visible="${passwordError.text != ''}"
+                   managed="${passwordError.text != ''}"
+                   style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+        </VBox>
 
         <!-- Error banner (auto-hide/show) -->
         <Label fx:id="errorLabel"
@@ -53,9 +63,18 @@
 
         <!-- Actions -->
         <HBox spacing="12" alignment="CENTER_RIGHT"
-              GridPane.rowIndex="4" GridPane.columnIndex="1">
+              GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="2">
 
-            <!-- login -->
+            <!-- Forget Password Link Button -->
+            <Button fx:id="forgetPasswordButton"
+                    text="Forget Password?"
+                    onAction="#handleForgetPassword"
+                    style="-fx-background-color: transparent; -fx-text-fill: #3b82f6; -fx-font-size: 13px; -fx-cursor: hand; -fx-underline: true;"/>
+
+            <!-- Spacer -->
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Login -->
             <Button fx:id="loginButton"
                     text="Login"
                     onAction="#handleLogin"

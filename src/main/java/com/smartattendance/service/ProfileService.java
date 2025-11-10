@@ -6,8 +6,8 @@ import com.smartattendance.repository.ProfileRepository;
 public class ProfileService {
     private final ProfileRepository profileRepository;
 
-    public ProfileService(ProfileRepository profileRepository) {
-        this.profileRepository = profileRepository;
+    public ProfileService() {
+        this.profileRepository = new ProfileRepository();
     }
 
     // ==================== Entity Methods ====================
