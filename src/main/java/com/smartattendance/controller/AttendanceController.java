@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
 import com.smartattendance.service.AttendanceMarker;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
@@ -202,52 +202,6 @@ public class AttendanceController implements AttendanceObserver {
         });
     }
 
-    // public static void requestUserConfirmation(AttendanceRecord record) {
-    //     Platform.runLater(() -> {
-    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-    //         alert.setTitle("Confirm Student Identity");
-    //         alert.setHeaderText("Low Confidence Detection");
-    //         alert.setContentText(String.format(
-    //                 // "Detected student:\n\nName: %s\nID: %d\nConfidence: %.2f\n\nIs this correct?",
-    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
-    //                 record.getStudent().getName(),
-    //                 record.getStudent().getStudentId()
-    //                 // record.getConfidence()
-    //         ));
-    //         Optional<ButtonType> result = alert.showAndWait();
-    //         if (result.isPresent() && result.get() == ButtonType.OK) {
-    //             // user confirmed → mark attendance
-    //             try {
-    //                 record.mark(observers);
-    //             } catch (Exception e) {
-    //                 System.err.println("Failed to save attendance record");
-    //                 e.printStackTrace();
-    //             }
-    //         } else {
-    //             // user declined → skip
-    //             System.out.println("Skipped marking for " + record.getStudent().getName());
-    //         }
-    //     });
-    // }
-    // public static boolean requestUserConfirmation(AttendanceRecord record, Consumer<Boolean> callback) {
-    //     Platform.runLater(() -> {
-    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-    //         alert.setTitle("Confirm Student Identity");
-    //         alert.setHeaderText("Low Confidence Detection");
-    //         alert.setContentText(String.format(
-    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
-    //                 record.getStudent().getName(),
-    //                 record.getStudent().getStudentId()
-    //         ));
-    //         // Use Yes/No buttons
-    //         ButtonType yesButton = new ButtonType("Yes");
-    //         ButtonType noButton = new ButtonType("No");
-    //         alert.getButtonTypes().setAll(yesButton, noButton);
-    //         Optional<ButtonType> result = alert.showAndWait();
-    //         boolean confirmed = result.isPresent() && result.get() == yesButton;
-    //         callback.accept(confirmed); // notify caller asynchronously
-    //     });
-    // }
     public static void requestUserConfirmationAsync(AttendanceRecord record, Consumer<Boolean> callback) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -292,7 +246,6 @@ public class AttendanceController implements AttendanceObserver {
         });
 
         // Configure other columns
-        // colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
         // F_MA: modified by felicia handling marking attendance
         colMethod.setCellValueFactory(cellData
                 -> new SimpleStringProperty(service.capitalize(cellData.getValue().getMethod().name()))
@@ -375,95 +328,6 @@ public class AttendanceController implements AttendanceObserver {
             }
         });
 
-        // colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
-        // colNote.setCellFactory(column -> {
-        //     // TableCell<AttendanceRecord, String> cell = new TableCell<>() {
-        //     return new TextFieldTableCell<AttendanceRecord, String>() {
-        //         private final Label label = new Label();
-        //         @Override
-        //         public void startEdit() {
-        //             super.startEdit();
-        //             setGraphic(getTextField());
-        //             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         }
-        //         @Override
-        //         public void cancelEdit() {
-        //             super.cancelEdit();
-        //             label.setText(getItem());
-        //             setGraphic(label);
-        //             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         }
-        //         @Override
-        //         public void updateItem(String item, boolean empty) {
-        //             super.updateItem(item, empty);
-        //             if (empty || item == null) {
-        //                 setGraphic(null);
-        //             } else {
-        //                 label.setText(item);
-        //                 label.setWrapText(true);
-        //                 label.setMaxWidth(column.getWidth() - 10);
-        //                 label.setTooltip(new Tooltip("Double-click to edit"));
-        //                 HBox box = new HBox(5, label, new Label("✏️"));
-        //                 box.setAlignment(Pos.TOP_LEFT);
-        //                 setGraphic(box);
-        //                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //             }
-        //         }
-        //     };
-        //     // return cell;
-        // });
-        // Configure note column
-        // colNote.setCellValueFactory(cellData
-        //         -> new SimpleStringProperty(cellData.getValue().getNote())
-        // );
-        // colNote.setCellFactory(column -> new TextFieldTableCell<AttendanceRecord, String>() {
-        //     private final Label label = new Label();
-        //     private final Label editIcon = new Label("✏️");
-        //     {
-        //         label.setWrapText(true);
-        //         label.setTooltip(new Tooltip("Double-click to edit"));
-        //         editIcon.setStyle("-fx-opacity: 0.6; -fx-font-size: 12;"); // subtle hint
-        //     }
-        //     @Override
-        //     public void startEdit() {
-        //         super.startEdit();
-        //         // create editable TextField manually since getTextField() is protected
-        //         javafx.scene.control.TextField textField = new javafx.scene.control.TextField(getItem());
-        //         textField.setOnAction(e -> {
-        //             commitEdit(textField.getText());
-        //         });
-        //         textField.focusedProperty().addListener((obs, oldV, newV) -> {
-        //             if (!newV) {
-        //                 commitEdit(textField.getText());
-        //             }
-        //         });
-        //         setGraphic(textField);
-        //         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         textField.requestFocus();
-        //     }
-        //     @Override
-        //     public void cancelEdit() {
-        //         super.cancelEdit();
-        //         updateDisplay(getItem());
-        //     }
-        //     @Override
-        //     public void updateItem(String item, boolean empty) {
-        //         super.updateItem(item, empty);
-        //         if (empty || item == null) {
-        //             setGraphic(null);
-        //         } else {
-        //             updateDisplay(item);
-        //         }
-        //     }
-        //     private void updateDisplay(String text) {
-        //         label.setText(text);
-        //         label.setMaxWidth(colNote.getWidth() - 30);
-        //         HBox box = new HBox(5, label, editIcon);
-        //         box.setAlignment(Pos.TOP_LEFT);
-        //         setGraphic(box);
-        //         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //     }
-        // });
         // F_MA: added by felicia handling marking attendance
         // colNote.setCellFactory(TextFieldTableCell.forTableColumn());
         colNote.setOnEditCommit(event -> {
@@ -490,7 +354,6 @@ public class AttendanceController implements AttendanceObserver {
         });
 
         // Custom cell factory for status with dropdown
-        // colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         // F_MA: modified by felicia handling marking attendance
         colStatus.setCellValueFactory(cellData
                 -> new SimpleStringProperty(service.capitalize(cellData.getValue().getStatus().name()))
@@ -505,10 +368,7 @@ public class AttendanceController implements AttendanceObserver {
                     AttendanceRecord record = getTableView().getItems().get(getIndex());
                     if (record != null) {
                         // F_MA: modified by felicia handling marking attendance
-                        // String selected = combo.getValue();
-                        // if (selected != null) {
                         record.setStatus(AttendanceStatus.valueOf(combo.getValue().toUpperCase()));
-                        // }
                     }
                 });
             }
@@ -550,7 +410,6 @@ public class AttendanceController implements AttendanceObserver {
     }
 
     // F_MA: modified by felicia handling marking attendance
-    // private void loadAttendanceRecords() {
     public void loadAttendanceRecords() {
         if (currentSession != null) {
             List<AttendanceRecord> records = service.findBySessionId(currentSession.getSessionId());
@@ -697,34 +556,6 @@ public class AttendanceController implements AttendanceObserver {
                     originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
                     originalNotes.put(record.getStudent().getStudentId(), record.getNote());
                 }
-
-                // boolean statusChanged = !Objects.equals(originalStatus, currentStatus);
-                // boolean noteChanged = !Objects.equals(originalNote, currentNote);
-                // Only update if status actually changed
-                // if (!java.util.Objects.equals(originalStatus, currentStatus)) {
-                // if (statusChanged) {
-                //     // F_MA: modified by felicia handling marking attendance
-                //     record.setTimestamp(LocalDateTime.now());
-                //     // record.setLastSeen(LocalDateTime.now());
-                //     service.updateStatus(record);
-                //     // updatedCount++;
-                //     // Update the original status map so subsequent saves work fine
-                //     originalStatuses.put(record.getStudent().getStudentId(), currentStatus);
-                // }
-                // Only update if note actually changed
-                // if (noteChanged) {
-                //     // F_MA: modified by felicia handling marking attendance
-                //     // if update note don't have to update marked_at or last_seen time
-                //     // record.setTimestamp(LocalDateTime.now());
-                //     // record.setLastSeen(LocalDateTime.now());
-                //     service.updateNote(record); // need to change to updateNote
-                //     // updatedCount++;
-                //     // Update the original notes map so subsequent saves work fine
-                //     originalNotes.put(record.getStudent().getStudentId(), currentNote);
-                // }
-                // if (statusChanged || noteChanged) {
-                //     updatedCount++;
-                // }
             }
 
             // Reload data from database after saving

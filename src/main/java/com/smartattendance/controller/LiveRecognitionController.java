@@ -96,38 +96,11 @@ public class LiveRecognitionController implements AttendanceObserver {
                 }
                 Platform.runLater(() -> toastPane.getChildren().remove(toast));
             }).start();
-
-            // toast.setOpacity(0);
-            // // Add toast to the root (cameraView's parent)
-            // StackPane root = (StackPane) cameraView.getParent();
-            // root.getChildren().add(toast);
-            // // Position at the top center
-            // toast.setTranslateY(-cameraView.getFitHeight() / 2 + 30);
-            // // Fade in
-            // FadeTransition fadeIn = new FadeTransition(Duration.millis(300), toast);
-            // fadeIn.setFromValue(0);
-            // fadeIn.setToValue(1);
-            // // Fade out after delay
-            // FadeTransition fadeOut = new FadeTransition(Duration.millis(300), toast);
-            // fadeOut.setFromValue(1);
-            // fadeOut.setToValue(0);
-            // fadeOut.setDelay(Duration.seconds(2));
-            // fadeIn.play();
-            // fadeIn.setOnFinished(e -> fadeOut.play());
-            // fadeOut.setOnFinished(e -> root.getChildren().remove(toast));
         });
     }
 
     @Override
     public void onAttendanceMarked(AttendanceRecord r, String message) {
-        // Platform.runLater(() -> statusLabel.setText("Marked: " + r.getStudent().getName() + " (" + r.getStatus() + ")"));
-        // Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        // alert.setTitle("Confirm Delete All");
-        // alert.setHeaderText("Delete ALL Sessions");
-        // alert.setContentText("WARNING: This will permanently delete ALL " + sessionList.size() + " sessions!\n\n" +
-        //         "This action cannot be undone. Are you absolutely sure?");
-
-        // showToast("Marked: " + r.getStudent().getName() + " (" + r.getStatus() + ")", ToastType.SUCCESS);
         showToast(message, ToastType.SUCCESS);
     }
 

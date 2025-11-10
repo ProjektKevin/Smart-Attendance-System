@@ -31,7 +31,7 @@
         <Label fx:id="recordsLabel" text="0 records"/>
     </ToolBar>
 
-    <!-- Per-module summary -->
+    <!-- Per-course summary -->
     <TitledPane expanded="true" text="Course Attendance Summary">
         <content>
             <TableView fx:id="summaryTable" prefHeight="160">

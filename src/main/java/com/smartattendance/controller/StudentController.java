@@ -12,29 +12,30 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 public class StudentController {
-  @FXML
-  private TableView<Student> studentTable;
-  @FXML
-  private TableColumn<Student, String> colId;
-  @FXML
-  private TableColumn<Student, String> colName;
-  @FXML
-  private TableColumn<Student, String> colCourse;
-  private final StudentService svc = ApplicationContext.getStudentService();
 
-  @FXML
-  public void initialize() {
-    colId.setCellValueFactory(new PropertyValueFactory<>("studentId"));
-    colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-    colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
-    ObservableList<Student> data = FXCollections.observableArrayList(svc.getAllStudents());
-    studentTable.setItems(data);
-  }
+    @FXML
+    private TableView<Student> studentTable;
+    @FXML
+    private TableColumn<Student, String> colId;
+    @FXML
+    private TableColumn<Student, String> colName;
+    @FXML
+    private TableColumn<Student, String> colCourse;
+    private final StudentService svc = ApplicationContext.getStudentService();
 
-  @FXML
-  private void onAddStudent() {
-    Student s = new Student(1 + (int) (Math.random() * 10), "New Student", "CS102");
-    svc.addStudent(s);
-    studentTable.getItems().add(s);
-  }
+    @FXML
+    public void initialize() {
+        colId.setCellValueFactory(new PropertyValueFactory<>("studentId"));
+        colName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
+        ObservableList<Student> data = FXCollections.observableArrayList(svc.getAllStudents());
+        studentTable.setItems(data);
+    }
+
+    @FXML
+    private void onAddStudent() {
+        Student s = new Student(1 + (int) (Math.random() * 10), "New Student", "CS102");
+        svc.addStudent(s);
+        studentTable.getItems().add(s);
+    }
 }

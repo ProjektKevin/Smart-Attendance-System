@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.AttendanceStatus;
-import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.StudentService;
 
@@ -68,21 +68,16 @@ public class AttendanceFormController {
                     .forEach(student
                             -> cmbStudentId.getItems().add(student.getStudentId() + " - " + student.getName())
                     );
-            // studentService.getStudentsBySessionId(currentSession).forEach(student
-            //         -> cmbStudentId.getItems().add(String.valueOf(student.getStudentId() + " - " + student.getName()))
-            // );
+
         }
     }
 
     @FXML
     private void onCreate() {
         try {
-            // System.out.println("|" + cmbStatus.getValue().toUpperCase() + "|"); // for testing
             int studentId = 0;
             Student student = null;
             String status = cmbStatus.getValue();
-            // int studentId = Integer.parseInt(cmbStudentId.getValue());
-            // int trimStudentId;
 
             if (cmbStudentId.getValue() == null) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -96,17 +91,6 @@ public class AttendanceFormController {
                 student = studentService.findById(studentId);
             }
 
-            
-
-            // if (student == null) {
-            //     Alert alert = new Alert(Alert.AlertType.WARNING);
-            //     alert.setTitle("Warning");
-            //     alert.setHeaderText("No student found with studentId: " + studentId);
-            //     alert.setContentText("Please enter a valid studentId.");
-            //     alert.showAndWait();
-            //     throw new Exception("No student found with studentId: " + studentId);
-            // }
-
             if (status == null) {
                 Alert alert = new Alert(Alert.AlertType.WARNING);
                 alert.setTitle("Warning");
@@ -117,9 +101,6 @@ public class AttendanceFormController {
             }
 
             AttendanceRecord record = new AttendanceRecord(student, currentSession, AttendanceStatus.valueOf(status.toUpperCase()), 0.0, MarkMethod.MANUAL, LocalDateTime.now());
-            // record.setStudent(student);
-            // record.setSession(currentSession);
-            // record.setStatus(cmbStatus.getValue());
             if (txtNote.getText() != "") {
                 record.setNote(txtNote.getText());
             } else {

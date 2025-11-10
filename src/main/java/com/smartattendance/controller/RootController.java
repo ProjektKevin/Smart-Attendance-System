@@ -15,9 +15,9 @@ public class RootController {
     // Admin tabs (may be null on student view)
     @FXML
     private Tab tabDashboard, tabStudents, tabEnrollments, tabSessions, tabLive, tabReports, tabSettings;
-    // <!-- F_MA: modified by felicia handling marking attendance ##for testing-->
-    @FXML
-    private Tab tabTestAutoMark;
+    // <!-- F_MA: modified by felicia handling marking attendance-->
+    // @FXML
+    // private Tab tabTestAutoMark;
     // Student tabs (may be null on admin view)
     @FXML
     private Tab tabCapture, tabAttendance, tabProfile;
@@ -46,8 +46,8 @@ public class RootController {
         safeSetTabIcon(tabStudents, "\uD83D\uDC65"); // 👥
         safeSetTabIcon(tabSessions, "\uD83D\uDD53"); // 🕓 (your original)
         safeSetTabIcon(tabLive, "\uD83C\uDFA5"); // 🎥
-        // <!-- F_MA: modified by felicia handling marking attendance ##for testing-->
-        safeSetTabIcon(tabTestAutoMark, "\uD83C\uDFA5"); // 🎥
+        // <!-- F_MA: modified by felicia handling marking attendance-->
+        // safeSetTabIcon(tabTestAutoMark, "\uD83C\uDFA5"); // 🎥
         safeSetTabIcon(tabReports, "\uD83D\uDCCA"); // 📊
         safeSetTabIcon(tabSettings, "\u2699"); // ⚙
         safeSetTabIcon(tabProfile, "\uD83D\uDC64");

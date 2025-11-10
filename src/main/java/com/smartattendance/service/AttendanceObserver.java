@@ -13,10 +13,7 @@ import com.smartattendance.model.entity.AttendanceRecord;
  */
 public interface AttendanceObserver {
     // F_MA: added by felicia handling marking attendance
-
     void onAttendanceMarked(AttendanceRecord record, String message);
 
     void onAttendanceAutoUpdated();
-
-    // void attendanceUpdated(AttendanceRecord record);
 }

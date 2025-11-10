@@ -75,69 +75,6 @@ public class AttendanceService {
         }
     }
 
-    // public synchronized void markAttendance(AttendanceRecord r) {
-    //     boolean result = true;
-    //     try {
-    //         // if confidence < threshold, request user confirmation
-    //         if (r.getConfidence() < threshold) {
-    //             result = AttendanceController.requestUserConfirmation(r);
-    //             // return;
-    //             System.out.println("result " + result); // for testing
-    //         }
-    //         System.out.println("result " + result); // for testing
-    //         if (result) {
-    //             attendanceRecords.add(r);
-    //             System.out.println("run until here 1"); // for testing
-    //             r.mark(observers);
-    //             System.out.println("run until here 2"); // for testing
-    //             // for (AttendanceObserver o : observers) {
-    //             //     // notify the recognitionService that the attendance of a particular student is marked
-    //             //     o.onAttendanceMarked(r);
-    //             //     if (o instanceof AttendanceController) {
-    //             //         // refresh the attendancceRecords page
-    //             //         ((AttendanceController) o).loadAttendanceRecords();
-    //             //     }
-    //             // }
-    //         } else {
-    //             for (AttendanceObserver o : observers) {
-    //                 // notify the recognitionService that the attendance of a particular student is NOT marked
-    //                 if (o instanceof LiveRecognitionController) {
-    //                     ((LiveRecognitionController) o).onAttendanceNotMarked(r);
-    //                 }
-    //             }
-    //         }
-    //     } catch (Exception e) {
-    //         for (AttendanceObserver o : observers) {
-    //             // notify the recognitionService that the attendance of a particular student is NOT marked
-    //             if (o instanceof LiveRecognitionController) {
-    //                 ((LiveRecognitionController) o).onAttendanceNotMarked(r);
-    //             }
-    //         }
-    //     }
-    // }
-    // public synchronized void markAttendance(AttendanceRecord r) {
-    //     try {
-    //         attendanceRecords.add(r);
-    //         r.mark();
-    //         for (AttendanceObserver o : observers) {
-    //             // notify the recognitionService that the attendance of a particular student is marked
-    //             o.onAttendanceMarked(r);
-    //         }
-    //     } catch (Exception e) {
-    //         for (AttendanceObserver o : observers) {
-    //             // notify the recognitionService that the attendance of a particular student is NOT marked
-    //             if (o instanceof LiveRecognitionController) {
-    //                 ((LiveRecognitionController) o).onAttendanceNotMarked(r);
-    //             }
-    //         }
-    //     }
-    // }
-    // public AttendanceRecord getOrCreateRecord(Student student, Session session) {
-    //     return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
-    // }
-    // public AttendanceRecord getRecord(Student student, Session session) {
-    //     return records.computeIfAbsent(student.getStudentId(), id -> new AttendanceRecord(student, session));
-    // }
     public void updateLastSeen(String studentId, LocalDateTime time) {
         if (records.containsKey(studentId)) {
             records.get(studentId).setLastSeen(time);
@@ -162,17 +99,6 @@ public class AttendanceService {
         }
     }
 
-    // public void addObserver(AttendanceObserver o) {
-    //   observers.add(o);
-    // }
-    // public synchronized void markAttendance(AttendanceRecord r) {
-    //   records.add(r);
-    //   for (AttendanceObserver o : observers)
-    //     o.onAttendanceMarked(r);
-    // }
-    // public synchronized List<AttendanceRecord> getAll() {
-    //   return new ArrayList<>(records);
-    // }
     public synchronized List<AttendanceRecord> getBetween(LocalDate from, LocalDate to) {
         List<AttendanceRecord> out = new ArrayList<>();
         for (AttendanceRecord r : attendanceRecords) {

@@ -5,13 +5,10 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.repository.SessionRepository;
+import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AutoAttendanceMarker;
-import com.smartattendance.service.AttendanceObserver;
-
-import javafx.application.Platform;
 
 public class AutoAttendanceUpdater {
 
@@ -31,12 +28,6 @@ public class AutoAttendanceUpdater {
         observers.add(observer);
     }
 
-    // private void notifyAutoUpdate() {
-    // for (AttendanceObserver obs : observers) {
-    //     obs.onAttendanceAutoUpdated();
-    // }
-    // }
-
     /**
      * Start automatic update every X seconds
      */
@@ -45,13 +36,7 @@ public class AutoAttendanceUpdater {
             @Override
             public void run() {
                 try {
-                    AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);
-                    // // Refresh UI on JavaFX thread
-                    // Platform.runLater(() -> {
-                    //     attendanceController.loadAttendanceRecords();
-                    // });
-                    // notifyAutoUpdate();
-                    
+                    AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);                  
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

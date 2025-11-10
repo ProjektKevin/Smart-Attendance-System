@@ -164,22 +164,7 @@ public class StudentAttendanceController {
     }
 
     // --------------------------------------------------------------------
-    // Demo data (replace with real repository / service later)
-    // private void loadDemoData() {
-    //     // A few recent dates across two modules
-    //     LocalDate today = LocalDate.now();
-    //     add(today.minusDays(3),  "CS101 - Programming",   "Present");
-    //     add(today.minusDays(10), "CS101 - Programming",   "Absent");
-    //     add(today.minusDays(17), "CS101 - Programming",   "Present");
-    //     add(today.minusDays(1),  "MTH120 - Calculus",     "Present");
-    //     add(today.minusDays(8),  "MTH120 - Calculus",     "Present");
-    //     add(today.minusDays(15), "MTH120 - Calculus",     "Absent");
-    //     add(today.minusDays(22), "MTH120 - Calculus",     "Present");
-    //     add(today.minusDays(5),  "PHY130 - Mechanics",    "Absent");
-    //     add(today.minusDays(12), "PHY130 - Mechanics",    "Present");
-    //     add(today.minusDays(19), "PHY130 - Mechanics",    "Present");
-    //     add(today.minusDays(26), "PHY130 - Mechanics",    "Present");
-    // }
+    // Real data 
     private void loadDataFromDatabase() {
         List<AttendanceRow> rows = attendanceRepository.findByStudentId(userId);
         masterData.setAll(rows);

@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AutoAttendanceMarker;
@@ -31,17 +33,6 @@ public class AttendanceRecord {
     private AttendanceStatus originalStatus;
     private String originalNote;
 
-    // public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, LocalDateTime timestamp, MarkMethod method) {
-    //     this.student = student;
-    //     this.session = session;
-    //     // this.status = AttendanceStatus.ABSENT;
-    //     this.status = status;
-    //     this.confidence = confidence;
-    //     this.timestamp = timestamp;
-    //     this.lastSeen = timestamp;
-    //     this.method = method;
-    //     this.note = "";
-    // }
     // F_MA: modified by felicia handling marking attendance
     // this constructor will be called by SessionService.createAttendanceRecordsForSession when session created
     public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp) {
@@ -68,48 +59,19 @@ public class AttendanceRecord {
         this.note = "";
     }
 
-    // // F_MA: modified by felicia handling marking attendance
-    // public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp, String note) {
-    //     this.student = student;
-    //     this.session = session;
-    //     // this.status = AttendanceStatus.ABSENT;
-    //     this.status = status;
-    //     this.confidence = 0.0;
-    //     this.timestamp = timestamp;
-    //     this.lastSeen = timestamp;
-    //     this.method = null;
-    //     this.note = note;
-    // }
     /**
      * Marks attendance with all relevant info.
      */
     // F_MA: modified by felicia handling marking attendance
     public void mark(List<AttendanceObserver> observers) throws Exception {
-        // this.status = status;
-        // this.timestamp = timestamp;
-        // this.lastSeen = timestamp;
-        // this.method = method;
-        // if (note != null) {
-        //     this.note = note;
-        // }
 
         try {
-            System.out.println("run until here 3"); // for testing
             autoAttendanceMarker.markAttendance(observers, this);
         } catch (Exception e) {
             throw new Exception("Failed to save attendance record", e);
         }
 
     }
-    // public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {
-    //     this.status = status;
-    //     this.timestamp = timestamp;
-    //     this.lastSeen = timestamp;
-    //     this.method = method;
-    //     if (note != null) {
-    //         this.note = note;
-    //     }
-    // }
 
     public Student getStudent() {
         return student;

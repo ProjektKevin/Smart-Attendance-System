@@ -1,13 +1,5 @@
 package com.smartattendance.repository;
 
-// import java.sql.Connection;
-// import java.sql.PreparedStatement;
-// import java.sql.ResultSet;
-// import java.sql.SQLException;
-// import java.sql.Statement;
-// import java.sql.Timestamp;
-// import java.util.ArrayList;
-// import java.util.List;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,10 +14,10 @@ import java.util.List;
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.controller.student.StudentAttendanceController.AttendanceRow;
 import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.AttendanceStatus;
-import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 
 public class AttendanceRecordRepository {
 
@@ -71,7 +63,6 @@ public class AttendanceRecordRepository {
                         rs.getDouble("confidence"),
                         method,
                         rs.getTimestamp("marked_at").toLocalDateTime(),
-                        // rs.getTimestamp("marked_at").toLocalDateTime(),
                         rs.getTimestamp("last_seen").toLocalDateTime()
                 );
 
@@ -98,8 +89,6 @@ public class AttendanceRecordRepository {
 
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            System.out.println("Running query for session_id = " + sessionId); // ##for testing
-
             ps.setInt(1, sessionId);
 
             try (ResultSet rs = ps.executeQuery()) {
@@ -119,7 +108,6 @@ public class AttendanceRecordRepository {
                             rs.getDouble("confidence"),
                             method,
                             rs.getTimestamp("marked_at").toLocalDateTime(),
-                            // rs.getTimestamp("marked_at").toLocalDateTime(),
                             rs.getTimestamp("last_seen").toLocalDateTime()
                     );
 
@@ -130,13 +118,6 @@ public class AttendanceRecordRepository {
                     }
 
                     records.add(record);
-
-                    // ##for testing
-                    System.out.println(
-                            "Found record: user_id=" + rs.getInt("user_id")
-                            + ", status=" + rs.getString("status")
-                    );
-
                 }
             }
         } catch (SQLException e) {
@@ -153,8 +134,6 @@ public class AttendanceRecordRepository {
 
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            System.out.println("Running query for session_id = " + sessionId); // ##for testing
-
             ps.setInt(1, sessionId);
             ps.setString(2, capitalize(status.toString()));
 
@@ -165,7 +144,6 @@ public class AttendanceRecordRepository {
 
                     // F_MA: modified by felicia handling marking attendance
                     // Convert strings to enums
-                    // AttendanceStatus status = AttendanceStatus.valueOf(rs.getString("status").toUpperCase());
                     MarkMethod method = MarkMethod.valueOf(rs.getString("method").toUpperCase());
 
                     AttendanceRecord record = new AttendanceRecord(
@@ -175,7 +153,6 @@ public class AttendanceRecordRepository {
                             rs.getDouble("confidence"),
                             method,
                             rs.getTimestamp("marked_at").toLocalDateTime(),
-                            // rs.getTimestamp("marked_at").toLocalDateTime(),
                             rs.getTimestamp("last_seen").toLocalDateTime()
                     );
 
@@ -186,13 +163,6 @@ public class AttendanceRecordRepository {
                     }
 
                     records.add(record);
-
-                    // ##for testing
-                    System.out.println(
-                            "Found record: user_id=" + rs.getInt("user_id")
-                            + ", status=" + rs.getString("status")
-                    );
-
                 }
             }
         } catch (SQLException e) {
@@ -227,7 +197,6 @@ public class AttendanceRecordRepository {
                             status,
                             rs.getDouble("confidence"),
                             method,
-                            // rs.getTimestamp("marked_at").toLocalDateTime()
                             rs.getTimestamp("marked_at").toLocalDateTime(),
                             rs.getTimestamp("last_seen").toLocalDateTime()
                     );
@@ -331,11 +300,6 @@ public class AttendanceRecordRepository {
 
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // ps.setString(1, record.getStatus().toString());
-            // ps.setString(2, record.getMethod().toString());
-            // ps.setDouble(3, record.getConfidence());
-            // ps.setTimestamp(4, Timestamp.valueOf(record.getTimestamp()));
-            // ps.setString(5, record.getNote());
             ps.setTimestamp(1, Timestamp.valueOf((record.getTimestamp())));
             ps.setInt(2, record.getStudent().getStudentId());
             ps.setInt(3, record.getSession().getSessionId());
@@ -386,18 +350,9 @@ public class AttendanceRecordRepository {
 
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // ps.setTimestamp(1, Timestamp.valueOf(record.getTimestamp()));
-            // ps.setTimestamp(2, Timestamp.valueOf(record.getLastSeen()));
             ps.setString(1, record.getNote());
             ps.setInt(2, record.getStudent().getStudentId());
             ps.setInt(3, record.getSession().getSessionId());
-            // Set both marked_at and last_seen to current timestamp
-            // Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-            // ps.setTimestamp(1, currentTimestamp);
-            // ps.setTimestamp(2, currentTimestamp);
-            // ps.setString(3, record.getStatus());
-            // ps.setInt(4, record.getStudent().getStudentId());
-            // ps.setInt(5, record.getSession().getSessionId());
 
             ps.executeUpdate();
 

@@ -3,14 +3,11 @@
 <?import javafx.scene.layout.*?>
 <VBox xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartattendance.controller.AttendanceController" spacing="10" style="-fx-padding: 10;">
     <Label fx:id="lblSessionTitle" text="Attendance for Session"/>
-    <!-- <Label fx:id="attendanceInfo" text="Attendance info (stub)"  -->
     <Label fx:id="attendanceInfo" maxWidth="1.7976931348623157E308" 
            style="-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;"/>
     
     <TableView fx:id="attendanceTable" prefWidth="700" prefHeight="400">
-    <!-- <TableView fx:id="attendanceTable" VBox.vgrow="ALWAYS"> -->
         <columns>
-            <!-- <TableColumn fx:id="colSessionId" text="Session ID" prefWidth="100"/> -->
             <TableColumn fx:id="colSelect" text="Select" prefWidth="70"/>
             <TableColumn fx:id="colStudentId" text="Student ID" prefWidth="100"/>
             <TableColumn fx:id="colStudentName" text="Name" prefWidth="200"/>
