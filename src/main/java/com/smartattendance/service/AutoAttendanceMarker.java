@@ -197,17 +197,18 @@ public class AutoAttendanceMarker implements AttendanceMarker {
      * Core logic to mark pending attendance as ABSENT
      */
     public static void markPendingAttendanceAsAbsent(SessionRepository sessionRepository, AttendanceService attendanceService) {
-        AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
-        List<Session> allSessions = sessionRepository.findAll();
-        LocalDateTime now = LocalDateTime.now();
+        try {
+            AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
+            List<Session> closedSessions = sessionRepository.findClosedSessions();
+            LocalDateTime now = LocalDateTime.now();
 
-        for (Session sess : allSessions) {
-            // LocalDateTime sessionEndDateTime = LocalDateTime.of(sess.getSessionDate(), sess.getEndTime());
-            // boolean isClosed = "Closed".equalsIgnoreCase(sess.getStatus()) ||
-            //                    sessionEndDateTime.isBefore(now);
-            boolean isClosed = "Closed".equalsIgnoreCase(sess.getStatus());
+            for (Session sess : closedSessions) {
+                // LocalDateTime sessionEndDateTime = LocalDateTime.of(sess.getSessionDate(), sess.getEndTime());
+                // boolean isClosed = "Closed".equalsIgnoreCase(sess.getStatus()) ||
+                //                    sessionEndDateTime.isBefore(now);
+                // boolean isClosed = "Closed".equalsIgnoreCase(sess.getStatus());
 
-            if (isClosed) {
+                // if (isClosed) {
                 List<AttendanceRecord> pendingRecords = attendanceRecordRepo.findPendingAttendanceBySessionId(sess.getSessionId(), AttendanceStatus.PENDING);
 
                 if (pendingRecords != null) {
@@ -221,13 +222,16 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                         System.out.println("Updated attendance to ABSENT for student: " + rec.getStudent().getName());
                     }
                 }
+                // }
             }
-        }
 
-        // Refresh the UI after updates
-        AttendanceController attendanceController = ControllerRegistry.getAttendanceController();
-        if (attendanceController != null) {
-            Platform.runLater(attendanceController::loadAttendanceRecords);
+            // Refresh the UI after updates
+            AttendanceController attendanceController = ControllerRegistry.getAttendanceController();
+            if (attendanceController != null) {
+                Platform.runLater(attendanceController::loadAttendanceRecords);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to load sessions or perform attendance updates");
         }
     }
 

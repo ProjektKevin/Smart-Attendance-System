@@ -9,11 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Session;
-import com.smartattendance.repository.SessionRepository;
-import com.smartattendance.service.AttendanceService;
-import com.smartattendance.service.AutoAttendanceMarker;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
 import com.smartattendance.util.ControllerRegistry;
@@ -86,8 +82,8 @@ public class SessionController {
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
     // F_MA: added by felicia handling marking attendance
     private AttendanceController attendanceController; // store reference
-    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
-    private final SessionRepository sessionRepository = new SessionRepository();
+    // private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
+    // private final SessionRepository sessionRepository = new SessionRepository();
 
     @FXML
     public void initialize() {
@@ -140,9 +136,9 @@ public class SessionController {
         uiRefresher.play();
     }
 
-    public AttendanceController getAttendanceController() {
-        return attendanceController;
-    }
+    // public AttendanceController getAttendanceController() {
+    //     return attendanceController;
+    // }
 
     // Styles the info label based on message type
     // @param type "success", "error", "warning", or "normal"
@@ -284,15 +280,15 @@ public class SessionController {
                     ss.updateSessionStatus(s);
                     statusChanged = true;
 
-                    if ("Closed".equalsIgnoreCase(updatedStatus)) {
-                        try {
-                            AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);
-                            System.out.println("Pending records for session " + s.getSessionId() + " updated to Absent.");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            showError("Failed to mark pending attendance for session " + s.getSessionId());
-                        }
-                    }
+                    // if ("Closed".equalsIgnoreCase(updatedStatus)) {
+                    //     try {
+                    //         AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);
+                    //         System.out.println("Pending records for session " + s.getSessionId() + " updated to Absent.");
+                    //     } catch (Exception e) {
+                    //         e.printStackTrace();
+                    //         showError("Failed to mark pending attendance for session " + s.getSessionId());
+                    //     }
+                    // }
                 }
             }
 
