@@ -13,6 +13,7 @@ import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
+import com.smartattendance.service.recognition.HistogramRecognizer;
 import com.smartattendance.service.recognition.OpenFaceRecognizer;
 // import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
@@ -43,6 +44,7 @@ public final class ApplicationContext {
     private static FaceProcessingService faceProcessingService;
     private static FaceRecognitionService faceRecognitionService;
 
+    private static HistogramRecognizer histogramRecognizer;
     private static OpenFaceRecognizer openFaceRecognizer;
 
     /**
@@ -85,10 +87,10 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
         // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        // // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
+        // //
+        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         // autoAttendanceUpdater.startAutoUpdate(60);
 
-        
         // Apply recognition algorithm from the config
         applyRecognitionAlgorithm();
     }
@@ -110,6 +112,8 @@ public final class ApplicationContext {
      */
     private static void loadOpenCVServices() {
         try {
+            double threshold = Double.parseDouble(Config.get("recognition.threshold"));
+
             // Cascade file variables
             String cascadePath = FileLoader.loadToTempFile("/haarcascades/haarcascade_frontalface_default.xml");
 
@@ -120,8 +124,20 @@ public final class ApplicationContext {
             faceProcessingService = new FaceProcessingService(faceDetectionService);
             LoggerUtil.LOGGER.info("Image processing service initialized");
 
+            // Initialize both recognizer models
+            histogramRecognizer = new HistogramRecognizer(faceProcessingService, threshold);
+            LoggerUtil.LOGGER.info("Histogram recognizer initialized");
+
+            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService, threshold);
+            LoggerUtil.LOGGER.info("OpenFace recognizer initialized");
+
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
+            if (!openFaceRecognizer.isModelLoaded()) {
+                LoggerUtil.LOGGER.severe("OpenFace model failed to load! Recognition will not work.");
+                System.err.println("WARNING: OpenFace model not loaded. Check model file path.");
+                throw new IllegalStateException("OpenFace model required but failed to load");
+            }
             LoggerUtil.LOGGER.info("Face recognition service initialized");
 
             // Initialize Image Service
@@ -130,6 +146,8 @@ public final class ApplicationContext {
 
             openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
 
+        } catch (IllegalStateException e) {
+            System.err.println("OpenFace unavailable: " + e.getMessage());
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
             System.out.println("Error loading opencv: " + e.getMessage());
@@ -270,6 +288,17 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the HistogramRecognizer instance (DNN-based).
+     *
+     * @return HistogramRecognizer
+     * @throws IllegalStateException if not initialized
+     */
+    public static HistogramRecognizer getHistogramRecognizer() {
+        checkInitialized();
+        return histogramRecognizer;
+    }
+
+    /**
      * Get the OpenFaceRecognizer instance (DNN-based).
      *
      * @return OpenFaceRecognizer
@@ -306,6 +335,20 @@ public final class ApplicationContext {
         faceRecognitionService.switchAlgorithm(algorithm);
     }
 
+    private static double getDoubleConfig(String key, double defaultValue) {
+        String value = Config.get(key);
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            LoggerUtil.LOGGER.warning("Invalid config value for " + key + ": " + value +
+                    ". Using default: " + defaultValue);
+            return defaultValue;
+        }
+    }
+
     /**
      * Shutdown and cleanup resources.
      */
@@ -317,7 +360,7 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Stop auto attendance updater
         // if (autoAttendanceUpdater != null) {
-        //     autoAttendanceUpdater.stopAutoUpdate();
+        // autoAttendanceUpdater.stopAutoUpdate();
         // }
 
         // chore(), Harry: Add cleanup logic here (close database connections, release

@@ -7,9 +7,11 @@ import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
 import com.smartattendance.service.recognition.HistogramRecognizer;
+import com.smartattendance.service.recognition.OpenFaceRecognizer;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.service.recognition.Recognizer;
 
@@ -25,7 +27,6 @@ public class FaceRecognitionService {
     this.faceDetectionService = faceDetectionService;
     this.faceProcessingService = new FaceProcessingService(faceDetectionService);
     this.studentRepository = new StudentRepository();
-    this.recognizer = new HistogramRecognizer(faceProcessingService, 50.0);
     this.enrolledStudents = new ArrayList<>();
 
     System.out.println("FaceRecognitionService initialized with HistogramRecognizer");
@@ -46,6 +47,11 @@ public class FaceRecognitionService {
   public RecognitionResult recognizeFace(Mat faceROI) {
     if (faceROI == null || faceROI.empty()) {
       System.out.println("Cannot recognize empty face ROI");
+      return new RecognitionResult();
+    }
+
+    if (recognizer == null) {
+      System.err.println("ERROR: Recognizer not initialized! Call switchAlgorithm() first.");
       return new RecognitionResult();
     }
 
@@ -108,12 +114,39 @@ public class FaceRecognitionService {
     System.out.println("Switching recognition algorithm to: " + algorithmName);
 
     if (algorithmName.equalsIgnoreCase("OPENFACE")) {
+      if (ApplicationContext.getOpenFaceRecognizer() == null) {
+        System.err.println("⚠️ OpenFace not available. Falling back to HISTOGRAM");
+        this.recognizer = ApplicationContext.getHistogramRecognizer();
+        algorithmName = "HISTOGRAM";
+        Config.set("recognition.algorithm", algorithmName);
+        return;
+      }
+
       this.recognizer = ApplicationContext.getOpenFaceRecognizer();
       System.out.println("Using OpenFaceRecognizer (DNN-based)");
     } else {
-      // Default to HISTOGRAM
-      this.recognizer = new HistogramRecognizer(faceProcessingService, 50.0);
+      this.recognizer = ApplicationContext.getHistogramRecognizer();
       System.out.println("Using HistogramRecognizer");
+      algorithmName = "HISTOGRAM"; // Name Normalization
+    }
+
+    Config.set("recognition.algorithm", algorithmName);
+  }
+
+  // ----- Debugging Methods -----
+  // usage: System.out.println("Current algorithm: " +
+  // faceRecognitionService.getCurrentAlgorithm());
+  public String getCurrentAlgorithm() {
+    if (recognizer == null) {
+      return "NONE (not initialized)";
+    }
+
+    if (recognizer instanceof OpenFaceRecognizer) {
+      return "OPENFACE";
+    } else if (recognizer instanceof HistogramRecognizer) {
+      return "HISTOGRAM";
+    } else {
+      return "UNKNOWN";
     }
   }
 }

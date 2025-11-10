@@ -110,7 +110,7 @@ public class SessionController {
         // Setup checkbox column
         setupCheckBoxColumn();
 
-        // Setup view more button 
+        // Setup view more button
         setUpViewMoreButton();
 
         // Load sessions from database
@@ -133,8 +133,8 @@ public class SessionController {
 
         // Refresh table and reload data from database periodically
         Timeline uiRefresher = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
-            loadSessionsFromDatabase();  // Reloads from DB
-            sessionTable.refresh();      // Updates the UI
+            loadSessionsFromDatabase(); // Reloads from DB
+            sessionTable.refresh(); // Updates the UI
         }));
         uiRefresher.setCycleCount(Timeline.INDEFINITE);
         uiRefresher.play();
@@ -155,21 +155,25 @@ public class SessionController {
 
         switch (type.toLowerCase()) {
             case "success":
-                sessionsInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
-                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                sessionsInfo
+                        .setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
+                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "error":
-                sessionsInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
-                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                sessionsInfo
+                        .setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
+                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "warning":
-                sessionsInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
-                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                sessionsInfo
+                        .setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
+                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "normal":
             default:
-                sessionsInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; "
-                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                sessionsInfo
+                        .setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; "
+                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
         }
     }
@@ -181,8 +185,7 @@ public class SessionController {
                         Session session = sessionList.get(index);
                         return selectionMap.computeIfAbsent(
                                 session.getSessionId(),
-                                k -> new SimpleBooleanProperty(false)
-                        ).get();
+                                k -> new SimpleBooleanProperty(false)).get();
                     }
                     return false;
                 },
@@ -191,14 +194,12 @@ public class SessionController {
                         Session session = sessionList.get(index);
                         SimpleBooleanProperty selected = selectionMap.computeIfAbsent(
                                 session.getSessionId(),
-                                k -> new SimpleBooleanProperty(false)
-                        );
+                                k -> new SimpleBooleanProperty(false));
                         selected.set(!selected.get());
                         updateButtonStates();
                     }
                     return null;
-                }
-        ));
+                }));
 
         // Ensures the checkbox column does not try to bind to a property
         colSelect.setCellValueFactory(cellData -> null);
@@ -273,7 +274,8 @@ public class SessionController {
             List<Session> sessions = ss.getAllSessions();
             boolean statusChanged = false;
 
-            // Update status of sessions based on current time (Automate opening and closing of sessions)  
+            // Update status of sessions based on current time (Automate opening and closing
+            // of sessions)
             for (Session s : sessions) {
                 String currentStatus = s.getStatus();
                 String updatedStatus = s.determineStatus(s.getSessionDate(), s.getStartTime(), s.getEndTime());
@@ -284,20 +286,21 @@ public class SessionController {
                     ss.updateSessionStatus(s);
                     statusChanged = true;
 
-                    // Save the session id if it is getting updated to open (will overwrite till the last one)
-                    if(updatedStatus.equals("Open")) {
-                        ApplicationContext.getAuthSession().setActiveSessionId(s.getSessionId());
-                    }
-
                     if ("Closed".equalsIgnoreCase(updatedStatus)) {
                         try {
                             AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);
-                            System.out.println("Pending records for session " + s.getSessionId() + " updated to Absent.");
+                            System.out
+                                    .println("Pending records for session " + s.getSessionId() + " updated to Absent.");
                         } catch (Exception e) {
                             e.printStackTrace();
                             showError("Failed to mark pending attendance for session " + s.getSessionId());
                         }
                     }
+                } 
+                
+                if ("Open".equalsIgnoreCase(updatedStatus)) {
+                    // store session as long as it is "Open"
+                    ApplicationContext.getAuthSession().setActiveSessionId(s.getSessionId());
                 }
             }
 
@@ -358,8 +361,9 @@ public class SessionController {
                 deleteButton.setDisable(false);
             }
         }
-        
-        // Update start button state - only enabled when exactly one session is selected and session status is 'Pending'
+
+        // Update start button state - only enabled when exactly one session is selected
+        // and session status is 'Pending'
         if (startButton != null) {
             if (!hasSelection) {
                 startButton.setDisable(true);
@@ -371,7 +375,7 @@ public class SessionController {
                 startButton.setDisable(false);
             }
         }
-        
+
         // Update stop button state - only enabled if sessions selected are not 'Open'
         if (stopButton != null) {
             if (!hasSelection) {
@@ -464,13 +468,14 @@ public class SessionController {
 
         // Check if there's already an open session
         if (ss.isSessionOpen()) {
-            showError("There is already an open session. Please close the current open session before starting a new one.");
+            showError(
+                    "There is already an open session. Please close the current open session before starting a new one.");
             return;
         }
 
         // Get the single selected session
         Session session = selectedSessions.get(0);
-        
+
         // Validate session status
         if (!"Pending".equals(session.getStatus())) {
             showError("Can only start sessions with 'Pending' status");
@@ -592,11 +597,18 @@ public class SessionController {
     }
 }
 
-// Cannot remove the selection effect? Should I also remove the automation of opening/closing of sessions?
+// Cannot remove the selection effect? Should I also remove the automation of
+// opening/closing of sessions?
 // implement edit session function?
-// ensure view for each type of user (e.g. admin, ta, student, prof) is different
+// ensure view for each type of user (e.g. admin, ta, student, prof) is
+// different
 // cannot create a session from 23:00 to 00:00?
-// - use decorator for auto-session policies (automating starting and stopping processes)
-// - extra feature: add a auto-create and auto-start and auto-end one of the session?
-// - cannot start more than one sessions automatically (only starts the session created earlier if there are more than 1 session with around the same start time and end time)
-// - Both columns have buttons to toggle on and off (can only toggle one session to be auto-started but auto-close multiple sessions)
+// - use decorator for auto-session policies (automating starting and stopping
+// processes)
+// - extra feature: add a auto-create and auto-start and auto-end one of the
+// session?
+// - cannot start more than one sessions automatically (only starts the session
+// created earlier if there are more than 1 session with around the same start
+// time and end time)
+// - Both columns have buttons to toggle on and off (can only toggle one session
+// to be auto-started but auto-close multiple sessions)
