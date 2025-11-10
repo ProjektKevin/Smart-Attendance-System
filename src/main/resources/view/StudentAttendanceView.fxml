@@ -31,13 +31,13 @@
     </ToolBar>
 
     <!-- Per-module summary -->
-    <TitledPane expanded="true" text="Module Attendance Summary">
+    <TitledPane expanded="true" text="Course Attendance Summary">
         <content>
             <TableView fx:id="summaryTable" prefHeight="160">
                 <columns>
-                    <TableColumn text="Module" prefWidth="280">
+                    <TableColumn text="Course" prefWidth="280">
                         <cellValueFactory>
-                            <PropertyValueFactory property="module"/>
+                            <PropertyValueFactory property="course"/>
                         </cellValueFactory>
                     </TableColumn>
 
@@ -72,9 +72,9 @@
                 </cellValueFactory>
             </TableColumn>
 
-            <TableColumn text="Module" prefWidth="260">
+            <TableColumn text="Course" prefWidth="260">
                 <cellValueFactory>
-                    <PropertyValueFactory property="module"/>
+                    <PropertyValueFactory property="course"/>
                 </cellValueFactory>
             </TableColumn>
 

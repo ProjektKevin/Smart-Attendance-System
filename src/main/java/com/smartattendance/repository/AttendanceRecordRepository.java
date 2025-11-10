@@ -14,10 +14,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.smartattendance.config.DatabaseUtil;
+import com.smartattendance.controller.student.StudentAttendanceController.AttendanceRow;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.MarkMethod;
@@ -237,6 +240,37 @@ public class AttendanceRecordRepository {
 
                     return record;
                 }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public List<AttendanceRow> findByStudentId(int studentId) {
+        List<AttendanceRow> result = new ArrayList<>();
+        String sql = "SELECT a.user_id, a.session_id, s.session_date, s.start_time, s.end_time, s.course_id, c.course_name, a.note, a.confidence, a.marked_at, a.last_seen, a.method, a.status FROM attendance a " + 
+                     "JOIN sessions s ON a.session_id = s.session_id " + 
+                     "JOIN courses c ON s.course_id = c.course_id " + 
+                     "WHERE a.user_id = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, studentId);
+            // ps.setInt(2, sessionId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    LocalDate sessionDate = rs.getDate("session_date").toLocalDate();
+                    String startTime = rs.getTimestamp("start_time").toLocalDateTime().format(DateTimeFormatter.ofPattern("hh:mm a"));
+                    String endTime = rs.getTimestamp("end_time").toLocalDateTime().format(DateTimeFormatter.ofPattern("hh:mm a"));;
+                    String courseName = rs.getString("course_name");
+                    String status = rs.getString("status");
+
+                    result.add(new AttendanceRow(sessionDate, startTime, endTime, courseName, status));
+                }
+                return result;
             }
         } catch (SQLException e) {
             e.printStackTrace();
