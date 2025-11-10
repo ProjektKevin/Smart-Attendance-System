@@ -11,7 +11,6 @@ import com.smartattendance.service.ImageService;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
-import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.LoggerUtil;
 
@@ -31,7 +30,7 @@ public final class ApplicationContext {
 
     // Busines Utils & Controller
     // F_MA: added by felicia handling marking attendance
-    private static AutoAttendanceUpdater autoAttendanceUpdater;
+    // private static AutoAttendanceUpdater autoAttendanceUpdater;
     // private static AttendanceController attendanceController;
 
     // OpenCV Services
@@ -73,13 +72,13 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         attendanceService = new AttendanceService();
 
+        initialized = true;
+
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
-        autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
-        autoAttendanceUpdater.startAutoUpdate(60);
-
-        initialized = true;
+        // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
+        // // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
+        // autoAttendanceUpdater.startAutoUpdate(60);
     }
 
     public static void loadOpenCV() {
@@ -267,9 +266,9 @@ public final class ApplicationContext {
 
         // F_MA: added by felicia handling marking attendance
         // Stop auto attendance updater
-        if (autoAttendanceUpdater != null) {
-            autoAttendanceUpdater.stopAutoUpdate();
-        }
+        // if (autoAttendanceUpdater != null) {
+        //     autoAttendanceUpdater.stopAutoUpdate();
+        // }
 
         // chore(), Harry: Add cleanup logic here (close database connections, release
         // resources, etc.)

@@ -6,16 +6,22 @@
 
 <VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.smartattendance.controller.AttendanceFormController"
-      spacing="10" alignment="CENTER" padding="20">
+      spacing="10" alignment="CENTER">
+    
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
 
     <Label text="Create New Attendance Record" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
 
     <GridPane hgap="10" vgap="10">
         <Label text="Student ID:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="txtStudentId" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <!-- <TextField fx:id="txtStudentId" GridPane.rowIndex="0" GridPane.columnIndex="1"/> -->
+        <ComboBox fx:id="cmbStudentId" GridPane.rowIndex="0" GridPane.columnIndex="1" promptText="Select Student"/>
 
         <Label text="Status:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="cmbStatus" GridPane.rowIndex="1" GridPane.columnIndex="1">
+        <ComboBox fx:id="cmbStatus" GridPane.rowIndex="1" GridPane.columnIndex="1" promptText="Select Status"/>
+        <!-- <ComboBox fx:id="cmbStatus" GridPane.rowIndex="1" GridPane.columnIndex="1">
             <items>
                 <FXCollections fx:factory="observableArrayList">
                     <String fx:value="Present"/>
@@ -24,15 +30,15 @@
                     <String fx:value="Pending"/>
                 </FXCollections>
             </items>
-        </ComboBox>
+        </ComboBox> -->
 
         <Label text="Note:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <TextField fx:id="txtNote" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
     </GridPane>
 
     <HBox spacing="10" alignment="CENTER_RIGHT">
-        <Button text="Cancel" onAction="#onCancel"/>
         <Button text="Create" onAction="#onCreate"/>
+        <Button text="Cancel" onAction="#onCancel"/>
     </HBox>
 
 </VBox>

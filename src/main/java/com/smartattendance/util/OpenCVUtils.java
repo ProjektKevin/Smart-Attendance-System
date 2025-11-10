@@ -191,4 +191,5 @@ public final class OpenCVUtils {
 			return new Mat();
 		}
 	}
+
 }

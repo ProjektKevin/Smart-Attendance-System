@@ -3,14 +3,15 @@
 <?import javafx.scene.layout.*?>
 <VBox xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartattendance.controller.AttendanceController" spacing="10" style="-fx-padding: 10;">
     <Label fx:id="lblSessionTitle" text="Attendance for Session"/>
-    <Label fx:id="attendanceInfo" text="Attendance info (stub)" 
-               maxWidth="1.7976931348623157E308" 
-               style="-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;"/>
+    <!-- <Label fx:id="attendanceInfo" text="Attendance info (stub)"  -->
+    <Label fx:id="attendanceInfo" maxWidth="1.7976931348623157E308" 
+           style="-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;"/>
     
     <TableView fx:id="attendanceTable" prefWidth="700" prefHeight="400">
     <!-- <TableView fx:id="attendanceTable" VBox.vgrow="ALWAYS"> -->
         <columns>
             <!-- <TableColumn fx:id="colSessionId" text="Session ID" prefWidth="100"/> -->
+            <TableColumn fx:id="colSelect" text="Select" prefWidth="70"/>
             <TableColumn fx:id="colStudentId" text="Student ID" prefWidth="100"/>
             <TableColumn fx:id="colStudentName" text="Name" prefWidth="200"/>
             <TableColumn fx:id="colStatus" text="Status" prefWidth="130"/>
@@ -22,6 +23,8 @@
     </TableView>
 
     <HBox spacing="10">
+        <Button fx:id="createButton" text="Create" onAction="#onCreateRecord"/>
+        <Button fx:id="deleteButton" text="Delete" onAction="#onDeleteRecord"/>
         <Button text="Save Changes" onAction="#onSaveChanges"/>
         <Button text="Back" onAction="#onBack"/>
     </HBox>

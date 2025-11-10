@@ -128,7 +128,8 @@ public class RecognitionController {
 
                 // Update UI
                 Platform.runLater(() -> {
-                    startButton.setText("Stop Recognition");
+                    this.startButton.setText("Stop Recognition");
+                    this.startButton.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
                     cameraStatusLabel.setText("Camera: Connected");
                     statusLabel.setText("Status: Recognition Active");
                     if (stopButton != null) {
@@ -145,6 +146,7 @@ public class RecognitionController {
         } else {
             this.cameraActive = false;
             this.startButton.setText("Start Recognition");
+            this.startButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
             this.statusLabel.setText("Status: Stopped");
 
             // Stop frame grabbing and release camera
@@ -268,10 +270,11 @@ public class RecognitionController {
 
         for (int i = 0; i < results.size(); i++) {
             RecognitionResult result = results.get(i);
+            double confidence = 0.0;
 
             if (result.isMatch()) {
                 Student student = result.getMatchedStudent();
-                double confidence = result.getConfidenceScore();
+                confidence = result.getConfidenceScore();
 
                 names[i] = student.getName();
 
@@ -297,6 +300,12 @@ public class RecognitionController {
                     currentStudentLabel.setText("Current: Unknown");
                     confidenceLabel.setText("Confidence: N/A");
                 });
+
+                // Log unkown if cooldown period has passed
+                if (currentTime - lastRecognitionTime > RECOGNITION_COOLDOWN_MS) {
+                    logUnkownFace(confidence);
+                    lastRecognitionTime = currentTime;
+                }
             }
         }
 
@@ -314,18 +323,9 @@ public class RecognitionController {
 
         // Create log entry
         String timestamp = LocalDateTime.now().format(timeFormatter);
-        String statusIcon;
 
-        if (confidence >= 80.0) {
-            statusIcon = "✓"; // High confidence
-        } else if (confidence >= 70.0) {
-            statusIcon = "~"; // Medium confidence
-        } else {
-            statusIcon = "?"; // Low confidence
-        }
-
-        String logEntry = String.format("%s [%s] %s (ID: %s) - %.1f%%",
-                statusIcon, timestamp, studentName, studentId, confidence);
+        String logEntry = String.format("[%s] %s (ID: %s) - %.1f%%",
+                timestamp, studentName, studentId, confidence);
 
         final int uniqueCount = recognizedStudentIds.size();
 
@@ -349,6 +349,26 @@ public class RecognitionController {
         } else {
             System.out.println("STUDENT RE-DETECTED: " + logEntry);
         }
+    }
+
+    private void logUnkownFace(double confidence) {
+        // System.out.println("Low confidence face detected. Looks like: " + student.getName());
+        System.out.println("Only have this much confidence: " + confidence);
+
+        totalDetections++;
+
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        String logEntry = String.format("[%s] Unknown Face Detected!", timestamp);
+
+        Platform.runLater(() -> {
+            recognitionListView.getItems().add(0, logEntry);
+
+            if (recognitionListView.getItems().size() > 50) {
+                recognitionListView.getItems().remove(50);
+            }
+        });
+
+        System.out.println("UNKNOWN FACE: " + logEntry);
     }
 
     // Update FPS display
@@ -378,7 +398,7 @@ public class RecognitionController {
         new Thread(() -> {
           try {
                 // Load students from database
-                int studentCount = faceRecognitionService.loadSessionStudents();
+                int studentCount = faceRecognitionService.loadEnrolledStudentsByCourse("CS102"); // TODO: dynamic course code
 
                 // Update UI on JavaFX thread
                 Platform.runLater(() -> {

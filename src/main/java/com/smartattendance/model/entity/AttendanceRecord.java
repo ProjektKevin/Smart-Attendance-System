@@ -7,6 +7,7 @@ package com.smartattendance.model.entity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import com.smartattendance.model.enums.AttendanceStatus;
 import com.smartattendance.model.enums.MarkMethod;
@@ -29,6 +30,8 @@ public class AttendanceRecord {
     private double confidence;
     // private final LocalDateTime timestamp; 
     private String note;
+    private AttendanceStatus originalStatus;
+    private String originalNote;
 
     // public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, LocalDateTime timestamp, MarkMethod method) {
     //     this.student = student;
@@ -79,7 +82,6 @@ public class AttendanceRecord {
     //     this.method = null;
     //     this.note = note;
     // }
-
     /**
      * Marks attendance with all relevant info.
      */
@@ -131,6 +133,22 @@ public class AttendanceRecord {
         return timestamp;
     }
 
+    public AttendanceStatus getOriginalStatus() {
+        return originalStatus;
+    }
+
+    public void setOriginalStatus(AttendanceStatus originalStatus) {
+        this.originalStatus = originalStatus;
+    }
+
+    public String getOriginalNote() {
+        return originalNote;
+    }
+
+    public void setOriginalNote(String originalNote) {
+        this.originalNote = originalNote;
+    }
+
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
@@ -169,6 +187,14 @@ public class AttendanceRecord {
 
     public AttendanceRecordRepository getAttendanceRecordRepo() {
         return attendanceRecordRepo;
+    }
+
+    public boolean isStatusChanged() {
+        return !Objects.equals(originalStatus, status);
+    }
+
+    public boolean isNoteChanged() {
+        return !Objects.equals(originalNote, note);
     }
 
 }
