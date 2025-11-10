@@ -250,7 +250,7 @@ public class AttendanceRecordRepository {
 
     public List<AttendanceRow> findByStudentId(int studentId) {
         List<AttendanceRow> result = new ArrayList<>();
-        String sql = "SELECT a.user_id, a.session_id, s.session_date, s.start_time, s.end_time, s.course_id, c.course_name, a.note, a.confidence, a.marked_at, a.last_seen, a.method, a.status FROM attendance a " + 
+        String sql = "SELECT a.user_id, a.session_id, s.session_date, s.start_time, s.end_time, s.course_id, c.course_name, c.course_code, a.note, a.confidence, a.marked_at, a.last_seen, a.method, a.status FROM attendance a " + 
                      "JOIN sessions s ON a.session_id = s.session_id " + 
                      "JOIN courses c ON s.course_id = c.course_id " + 
                      "WHERE a.user_id = ?";
@@ -264,11 +264,12 @@ public class AttendanceRecordRepository {
                 while (rs.next()) {
                     LocalDate sessionDate = rs.getDate("session_date").toLocalDate();
                     String startTime = rs.getTimestamp("start_time").toLocalDateTime().format(DateTimeFormatter.ofPattern("hh:mm a"));
-                    String endTime = rs.getTimestamp("end_time").toLocalDateTime().format(DateTimeFormatter.ofPattern("hh:mm a"));;
+                    String endTime = rs.getTimestamp("end_time").toLocalDateTime().format(DateTimeFormatter.ofPattern("hh:mm a"));
+                    String courseCode = rs.getString("course_code");
                     String courseName = rs.getString("course_name");
                     String status = rs.getString("status");
 
-                    result.add(new AttendanceRow(sessionDate, startTime, endTime, courseName, status));
+                    result.add(new AttendanceRow(sessionDate, startTime, endTime, courseCode, courseName, status));
                 }
                 return result;
             }

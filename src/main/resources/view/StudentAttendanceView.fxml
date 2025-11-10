@@ -24,7 +24,8 @@
         <Label text="To:"/>
         <DatePicker fx:id="toDate"/>
 
-        <Button text="Apply" onAction="#onApplyFilters"/>
+        <!-- // F_MA: modified by felicia handling marking attendance -->
+        <!-- <Button text="Apply" onAction="#onApplyFilters"/> -->
         <Button text="Reset" onAction="#onResetFilters"/>
         <Pane HBox.hgrow="ALWAYS"/>
         <Label fx:id="recordsLabel" text="0 records"/>
@@ -68,13 +69,19 @@
         <columns>
             <TableColumn text="Date" prefWidth="130">
                 <cellValueFactory>
-                    <PropertyValueFactory property="date"/>
+                    <PropertyValueFactory property="sessionDate"/>
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn text="Course Code" prefWidth="260">
+                <cellValueFactory>
+                    <PropertyValueFactory property="courseCode"/>
                 </cellValueFactory>
             </TableColumn>
 
             <TableColumn text="Course" prefWidth="260">
                 <cellValueFactory>
-                    <PropertyValueFactory property="course"/>
+                    <PropertyValueFactory property="courseName"/>
                 </cellValueFactory>
             </TableColumn>
 

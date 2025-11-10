@@ -1,3 +1,4 @@
+// F_MA: modified by felicia handling marking attendance
 package com.smartattendance.controller.student;
 
 import java.time.LocalDate;
@@ -120,10 +121,10 @@ public class StudentAttendanceController {
         toDate.valueProperty().addListener((obs, o, n) -> applyFilters());
     }
 
-    @FXML
-    private void onApplyFilters() {
-        applyFilters();
-    }
+    // @FXML
+    // private void onApplyFilters() {
+    //     applyFilters();
+    // }
 
     @FXML
     private void onResetFilters() {
@@ -198,13 +199,15 @@ public class StudentAttendanceController {
         private final LocalDate sessionDate;
         private final String startTime;
         private final String endTime;
+        private final String courseCode;
         private final String courseName;
         private final String status;
 
-        public AttendanceRow(LocalDate sessionDate, String startTime, String endTime, String courseName, String status) {
+        public AttendanceRow(LocalDate sessionDate, String startTime, String endTime, String courseCode, String courseName, String status) {
             this.sessionDate = sessionDate;
             this.startTime = startTime;
             this.endTime = endTime;
+            this.courseCode = courseCode;
             this.courseName = courseName;
             this.status = status;
         }
@@ -219,6 +222,10 @@ public class StudentAttendanceController {
 
         public String getEndTime() {
             return endTime;
+        }
+
+        public String getCourseCode() {
+            return courseCode;
         }
 
         public String getCourseName() {
