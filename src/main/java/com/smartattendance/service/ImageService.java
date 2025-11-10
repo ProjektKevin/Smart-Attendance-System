@@ -13,7 +13,6 @@ import org.opencv.imgcodecs.Imgcodecs;
 
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.model.entity.FaceData;
-import com.smartattendance.model.entity.Image;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.ImageRepository;
 import com.smartattendance.service.recognition.HistogramRecognizer;
@@ -24,12 +23,11 @@ import com.smartattendance.util.security.log.AttendanceLogger;
 /**
  * Service layer for handling student image enrollment and face data persistence
  *
- * Save images to disk + metadata to DB
- * Load all images, train using HistogramRecognizer (compute
- * average histogram)
+ * Save images to disk
+ * Load all images, train using HistogramRecognizer (compute average histogram)
  * Save average histogram to face_data table in DB
  * Delete captured images folder to free disk space
- * 
+ *
  * @author Thiha Swan Htet
  */
 public class ImageService {
@@ -49,7 +47,7 @@ public class ImageService {
     }
 
     /**
-     * Save image to disk and insert metadata to database
+     * Save image to disk
      *
      * @param studentId the student ID
      * @param frame     the OpenCV Mat frame from camera
@@ -68,19 +66,8 @@ public class ImageService {
             ApplicationLogger.getInstance().info("Saving Image to Local Disk");
             String imagePath = saveImageToDisk(studentId, frame);
             ApplicationLogger.getInstance().info("Image saved to: " + imagePath);
-
-            // Insert metadata to student_image table
-            ApplicationLogger.getInstance().info("Inserting Metadata to the Database");
-            int imageId = imageRepository.insertStudentImage(studentId, imagePath);
-
-            if (imageId > 0) {
-                ApplicationLogger.getInstance().info("Image Recorded with ID " + imageId);
-                ApplicationLogger.getInstance().info("Image Saved and Recorded: " + imagePath);
-                return true;
-            } else {
-                ApplicationLogger.getInstance().error("Failed to Insert Image Metadata to Database");
-                return false;
-            }
+            ApplicationLogger.getInstance().info("Image Saved: " + imagePath);
+            return true;
 
         } catch (Exception e) {
             ApplicationLogger.getInstance()
@@ -321,33 +308,4 @@ public class ImageService {
         return loadHistogramFromBytes(histogramBytes);
     }
 
-    /**
-     * Retrieve all images for a specific student from the database
-     *
-     * @param studentId the student ID
-     * @return list of Image objects for the student, or empty list if none found
-     */
-    public List<Image> getImagesByStudentId(int studentId) {
-        return imageRepository.findImagesByStudentId(studentId);
-    }
-
-    /**
-     * Retrieve a single image by its ID
-     *
-     * @param imageId the image ID
-     * @return Image object if found, null otherwise
-     */
-    public Image getImageById(int imageId) {
-        return imageRepository.findImageById(imageId);
-    }
-
-    /**
-     * Get the count of images for a student
-     *
-     * @param studentId the student ID
-     * @return number of images enrolled for the student
-     */
-    public int getImageCountByStudentId(int studentId) {
-        return imageRepository.countImagesByStudentId(studentId);
-    }
 }

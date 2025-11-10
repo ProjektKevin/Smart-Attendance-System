@@ -11,6 +11,7 @@ import com.smartattendance.service.ImageService;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
+import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.log.ApplicationLogger;
 
@@ -66,7 +67,6 @@ public final class ApplicationContext {
         authService = new AuthService();
         userService = new UserService();
         studentService = new StudentService();
-        attendanceService = new AttendanceService();
         profileService = new ProfileService();
         courseService = new CourseService();
         // F_MA: added by felicia handling marking attendance
@@ -245,6 +245,15 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the CameraUtils instance
+     *
+     * @return CameraUtils instance
+     */
+    public static CameraUtils getCameraUtils() {
+        return CameraUtils.getInstance();
+    }
+
+    /**
      * Check if ApplicationContext has been initialized.
      *
      * @throws IllegalStateException if not initialized
@@ -269,6 +278,9 @@ public final class ApplicationContext {
         // if (autoAttendanceUpdater != null) {
         //     autoAttendanceUpdater.stopAutoUpdate();
         // }
+
+        // Release camera resources
+        CameraUtils.getInstance().releaseCamera();
 
         // chore(), Harry: Add cleanup logic here (close database connections, release
         // resources, etc.)

@@ -4,6 +4,7 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.ImageService;
+import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
 import com.smartattendance.util.security.log.ApplicationLogger;
 import com.smartattendance.util.security.log.AttendanceLogger;
@@ -56,10 +57,8 @@ public class EnrollmentController {
 	private ScheduledExecutorService timer;
 	private ScheduledExecutorService captureTimer;
 	private ExecutorService enrollmentExecutor;
-	private VideoCapture capture = new VideoCapture();
 	private boolean cameraActive = false;
 	private boolean capturing = false;
-	private static int cameraId = 0;
 
 	// Capture settings
 	private static final int CAPTURE_INTERVAL_MS = 1000; // 1 second
@@ -70,6 +69,7 @@ public class EnrollmentController {
 	private final AuthSession session = ApplicationContext.getAuthSession();
 	private final FaceDetectionService faceDetectionService = ApplicationContext.getFaceDetectionService();
 	private final ImageService imageService = ApplicationContext.getImageService();
+	private final CameraUtils cameraUtils = ApplicationContext.getCameraUtils();
 
 	/**
 	 * Shared frame between the display thread and capture thread.
@@ -105,11 +105,8 @@ public class EnrollmentController {
 	@FXML
 	protected void startCamera(ActionEvent event) {
 		if (!this.cameraActive) {
-			// start the video capture
-			this.capture.open(cameraId);
-
-			// is the video stream available?
-			if (this.capture.isOpened()) {
+			// start the video capture using cameraUtils
+			if (this.cameraUtils.openCamera()) {
 				this.cameraActive = true;
 
 				// grab a frame
@@ -160,7 +157,7 @@ public class EnrollmentController {
 
 	/**
 	 * Start capturing face images at 1-second intervals
-	 * PHASE 1: Capture and save images
+	 * Capture and save images
 	 * Captures when at least 1 face is detected (handles multiple face detections)
 	 *
 	 * @param event the capture button event
@@ -286,7 +283,7 @@ public class EnrollmentController {
 				this.statusLabel
 						.setText("Status: Captured " + count + " face image(s). Training and persisting enrollment...");
 
-				// PHASE 2-4: Trigger training, persistence, and cleanup on background thread
+				// Trigger training, persistence, and cleanup on background thread
 				if (enrollmentExecutor == null || enrollmentExecutor.isShutdown()) {
 					enrollmentExecutor = Executors.newSingleThreadExecutor();
 				}
@@ -299,6 +296,13 @@ public class EnrollmentController {
 						if (success) {
 							String studentName = session.getCurrentUser().getUserName();
 							this.statusLabel.setText("Status: Enrollment complete for " + studentName);
+
+							// Release camera before navigating away
+							stopAcquisition();
+
+							// Show info dialog
+							showInfoAlert("Enrollment Successful",
+									"Your facial data has been enrolled successfully. Click OK to proceed to the student portal.");
 
 							// Navigate to student dashboard
 							try {
@@ -337,11 +341,11 @@ public class EnrollmentController {
 	private void readAndProcessFrame() {
 		Mat frame = new Mat();
 
-		// check if the capture is open
-		if (this.capture.isOpened()) {
+		// check if the capture is open using cameraUtils
+		if (this.cameraUtils.isCameraOpen()) {
 			try {
 				// read the current frame
-				this.capture.read(frame);
+				this.cameraUtils.getCapture().read(frame);
 
 				// if the frame is not empty, process it
 				if (!frame.empty()) {
@@ -415,10 +419,8 @@ public class EnrollmentController {
 			}
 		}
 
-		if (this.capture.isOpened()) {
-			// release the camera
-			this.capture.release();
-		}
+		// Release camera using cameraUtils
+		this.cameraUtils.releaseCamera();
 	}
 
 	/**
@@ -438,6 +440,21 @@ public class EnrollmentController {
 	 */
 	protected void setClosed() {
 		this.stopAcquisition();
+	}
+
+	/**
+	 * Show an info alert dialog to the user
+	 *
+	 * @param title the title of the alert
+	 * @param message the message content
+	 */
+	private void showInfoAlert(String title, String message) {
+		javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+				javafx.scene.control.Alert.AlertType.INFORMATION);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 
 }

@@ -3,6 +3,9 @@ package com.smartattendance.controller.auth;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+// OpenCV imports
+import org.opencv.core.Mat;
+
 // App Context and Entity Import
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AuthSession;
@@ -132,9 +135,9 @@ public class LoginController {
              */
 
             if (role == Role.STUDENT) {
-                // Check if student has face data enrolled
-                int faceDataCount = imageService.getImageCountByStudentId(user.getId());
-                boolean hasFaceData = faceDataCount > 0;
+                // Check if student has face data enrolled by attempting to retrieve histogram
+                Mat studentHistogram = imageService.getStudentHistogram(user.getId());
+                boolean hasFaceData = !studentHistogram.empty();
 
                 ApplicationLogger.getInstance().info("Student face data status: " + (hasFaceData ? "enrolled" : "not enrolled"));
 

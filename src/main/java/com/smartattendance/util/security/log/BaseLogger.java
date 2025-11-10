@@ -27,6 +27,8 @@ public abstract class BaseLogger implements LoggerFacade {
      */
     protected BaseLogger(String loggerName) {
         this.logger = Logger.getLogger(loggerName);
+        // Prevent propagation to parent loggers to avoid duplicate logging
+        this.logger.setUseParentHandlers(false);
     }
 
     /**
@@ -70,6 +72,13 @@ public abstract class BaseLogger implements LoggerFacade {
      */
     private void addFileHandler(String logFileName, Level logLevel) {
         try {
+            // Check if FileHandler already exists to prevent duplicates
+            for (Handler handler : logger.getHandlers()) {
+                if (handler instanceof FileHandler) {
+                    return; // FileHandler already exists
+                }
+            }
+
             FileHandler fileHandler = new FileHandler(logFileName, true);
             fileHandler.setFormatter(new SimpleFormatter());
             logger.addHandler(fileHandler);
@@ -88,6 +97,13 @@ public abstract class BaseLogger implements LoggerFacade {
      */
     private void addConsoleHandler(Level logLevel) {
         try {
+            // Check if ConsoleHandler already exists to prevent duplicates
+            for (Handler handler : logger.getHandlers()) {
+                if (handler instanceof ConsoleHandler) {
+                    return; // ConsoleHandler already exists
+                }
+            }
+
             ConsoleHandler consoleHandler = new ConsoleHandler();
             consoleHandler.setFormatter(new SimpleFormatter());
             logger.addHandler(consoleHandler);
