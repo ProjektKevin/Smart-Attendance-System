@@ -24,7 +24,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.recognition.RecognitionResult;
@@ -36,8 +40,6 @@ public class RecognitionController {
     private ImageView videoFeed;
     @FXML
     private Button startButton;
-    @FXML
-    private Button stopButton;
     @FXML
     private Button captureButton;
     @FXML
@@ -61,8 +63,8 @@ public class RecognitionController {
     @FXML
     private ListView<String> recognitionListView;
     // =======================================================================
-    private final FaceDetectionService faceDetectionService = ApplicationContext.getFaceDetectionService();
-    private final FaceRecognitionService faceRecognitionService = ApplicationContext.getFaceRecognitionService();
+    private FaceDetectionService faceDetectionService;
+    private FaceRecognitionService faceRecognitionService;
     private final CameraUtils cameraUtils = ApplicationContext.getCameraUtils();
 
     // OpenCV objects
@@ -85,18 +87,32 @@ public class RecognitionController {
     // Loading state
     private boolean studentsLoaded = false;
 
+    private static final double UNKNOWN_THRESHOLD = 30.0;
+
     // =======================================================================
     @FXML
     public void initialize() {
-        statusLabel.setText("Status: Ready");
+        // Get services from ApplicationContext
+        faceDetectionService = ApplicationContext.getFaceDetectionService();
+        faceRecognitionService = ApplicationContext.getFaceRecognitionService();
+
+        statusLabel.setText("Status: Loading...");
         cameraStatusLabel.setText("Camera: Disconnected");
         modelStatusLabel.setText("Model: Not Loaded");
-
-        loadSessionStudentsAsync();
     }
 
     @FXML
     private void startRecognition() {
+        System.out.println("started loading student list");
+        loadSessionStudentsAsync();
+        System.out.println("Loading done!");
+
+        // Safety Camera release
+        if (this.cameraActive) {
+            this.stopAcquisition();
+            this.cameraUtils.releaseCamera();;
+        }
+
         if (!this.cameraActive) {
             // Open camera using CameraUtils
             if (this.cameraUtils.openCamera()) {
@@ -106,6 +122,11 @@ public class RecognitionController {
                 Runnable frameGrabber = new Runnable() {
                     @Override
                     public void run() {
+                        // Check if camera is still active before processing
+                        if (!cameraActive) {
+                            return;
+                        }
+
                         // STEP 1: Grab a frame from camera
                         Mat frame = grabFrame();
 
@@ -127,12 +148,10 @@ public class RecognitionController {
                 // Update UI
                 Platform.runLater(() -> {
                     this.startButton.setText("Stop Recognition");
-                    this.startButton.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
+                    this.startButton.setStyle(
+                            "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
                     cameraStatusLabel.setText("Camera: Connected");
                     statusLabel.setText("Status: Recognition Active");
-                    if (stopButton != null) {
-                        stopButton.setDisable(false);
-                    }
                 });
 
             } else {
@@ -144,7 +163,8 @@ public class RecognitionController {
         } else {
             this.cameraActive = false;
             this.startButton.setText("Start Recognition");
-            this.startButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
+            this.startButton.setStyle(
+                    "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
             this.statusLabel.setText("Status: Stopped");
 
             // Stop frame grabbing and release camera
@@ -174,14 +194,7 @@ public class RecognitionController {
 
         // Enable/disable buttons
         startButton.setDisable(false);
-        stopButton.setDisable(true);
     }
-
-    // @FXML
-    // private void captureFrame() {
-    // // Empty method stub for FXML
-    // System.out.println("Capture button clicked");
-    // }
 
     @FXML
     private void clearHistory() {
@@ -214,10 +227,10 @@ public class RecognitionController {
                         List<RecognitionResult> results = faceRecognitionService.recognizeFaces(faceROIs);
 
                         // Step 4: Process results
-                        String[] recognizedNames = processRecognitionResults(results);
+                        processRecognitionResults(results);
 
                         // Step 5: Draw rectangles and labels
-                        faceDetectionService.drawFaceRectanglesWithLabels(frame, faces, recognizedNames);
+                        faceDetectionService.drawFaceRectanglesWithLabels(frame, faces, results);
 
                         // Step 6: Update UI
                         final int faceCount = facesArray.length;
@@ -259,19 +272,15 @@ public class RecognitionController {
         OpenCVUtils.onFXThread(view.imageProperty(), image);
     }
 
-    private String[] processRecognitionResults(List<RecognitionResult> results) {
-        String[] names = new String[results.size()];
+    private void processRecognitionResults(List<RecognitionResult> results) {
         long currentTime = System.currentTimeMillis();
 
         for (int i = 0; i < results.size(); i++) {
             RecognitionResult result = results.get(i);
-            double confidence = 0.0;
 
             if (result.isMatch()) {
                 Student student = result.getMatchedStudent();
-                confidence = result.getConfidenceScore();
-
-                names[i] = student.getName();
+                double confidence = result.getConfidenceScore();
 
                 // Update current recognition display
                 final String studentName = student.getName();
@@ -284,31 +293,39 @@ public class RecognitionController {
 
                 // Log attendance if cooldown period has passed
                 if (currentTime - lastRecognitionTime > RECOGNITION_COOLDOWN_MS) {
-                    logAttendance(student, confidence);
+                    // Handle based on confidence
+                    if (confidence >= UNKNOWN_THRESHOLD) {
+                        // Recognized face (confidence >= 30%)
+                        logAttendance(student, confidence);
+                    } else {
+                        // Unknown face (confidence < 30%)
+                        logUnknownFace(confidence);
+                    }
+
                     lastRecognitionTime = currentTime;
                 }
 
-            } else {
-                names[i] = "Unknown";
-
-                Platform.runLater(() -> {
-                    currentStudentLabel.setText("Current: Unknown");
-                    confidenceLabel.setText("Confidence: N/A");
-                });
-
-                // Log unkown if cooldown period has passed
-                if (currentTime - lastRecognitionTime > RECOGNITION_COOLDOWN_MS) {
-                    logUnkownFace(confidence);
-                    lastRecognitionTime = currentTime;
-                }
             }
         }
 
-        return names;
     }
 
     // Show attendance log in the UI
     private void logAttendance(Student student, double confidence) {
+        // Check if there's an active session
+        Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
+        if (sessionId == null) {
+            System.out.println("No active session - cannot mark attendance");
+            return;
+        }
+
+        // Get full session object
+        Session session = ApplicationContext.getSessionService().findById(sessionId);
+        if (session == null) {
+            System.out.println("Session not found - cannot mark attendance");
+            return;
+        }
+
         int studentId = student.getStudentId();
         String studentName = student.getName();
 
@@ -323,6 +340,24 @@ public class RecognitionController {
                 timestamp, studentName, studentId, confidence);
 
         final int uniqueCount = recognizedStudentIds.size();
+
+        try {
+            AttendanceRecord record = new AttendanceRecord(
+                    student,
+                    session,
+                    AttendanceStatus.PRESENT, // For now, always mark as PRESENT
+                    confidence,
+                    MarkMethod.AUTO,
+                    LocalDateTime.now());
+
+            // Pass to attendance service
+            System.out.println("calling mark attendance now");
+            ApplicationContext.getAttendanceService().markAttendance(record);
+
+            System.out.println("Attendance record created for: " + studentName);
+        } catch (Exception e) {
+            System.err.println("Error creating attendance record: " + e.getMessage());
+        }
 
         // Update UI
         Platform.runLater(() -> {
@@ -346,16 +381,18 @@ public class RecognitionController {
         }
     }
 
-    private void logUnkownFace(double confidence) {
-        // System.out.println("Low confidence face detected. Looks like: " + student.getName());
-        System.out.println("Only have this much confidence: " + confidence);
+    private void logUnknownFace(double confidence) {
+        System.out.println("Unknown face detected with confidence: " + confidence);
 
         totalDetections++;
 
         String timestamp = LocalDateTime.now().format(timeFormatter);
-        String logEntry = String.format("[%s] Unknown Face Detected!", timestamp);
+        String logEntry = String.format("[%s] Unknown Face Detected! (%.1f%%)", timestamp, confidence);
 
         Platform.runLater(() -> {
+            currentStudentLabel.setText("Current: Unknown");
+            confidenceLabel.setText(String.format("Confidence: %.1f%%", confidence));
+
             recognitionListView.getItems().add(0, logEntry);
 
             if (recognitionListView.getItems().size() > 50) {
@@ -369,7 +406,7 @@ public class RecognitionController {
     // Update FPS display
     private void updateFPS() {
         long currentTime = System.currentTimeMillis();
-        
+
         if (lastFrameTime > 0) {
             long frameDuration = currentTime - lastFrameTime;
             if (frameDuration > 0) {
@@ -382,18 +419,42 @@ public class RecognitionController {
                 });
             }
         }
-        
+
         lastFrameTime = currentTime;
     }
 
     // load enrolled students from session (if any)
     private void loadSessionStudentsAsync() {
         System.out.println("Start loading session students asynchronously");
-
         new Thread(() -> {
-          try {
+            try {
+                // Check if there's an active session
+                if (!ApplicationContext.getAuthSession().hasActiveSession()) {
+                    System.out.println("No active session");
+                    Platform.runLater(() -> {
+                        modelStatusLabel.setText("Model: No Active Session");
+                        statusLabel.setText("Status: Please start a session first");
+                    });
+                    return;
+                }
+
+                // Get the active session ID
+                Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
+                System.out.println("Active session ID: " + sessionId);
+
+                // Get full session object from DB
+                Session activeSession = ApplicationContext.getSessionService().findById(sessionId);
+                if (activeSession == null) {
+                    System.out.println("Session not found in database");
+                    Platform.runLater(() -> {
+                        modelStatusLabel.setText("Model: Session Not Found");
+                        statusLabel.setText("Status: Invalid session");
+                    });
+                    return;
+                }
+
                 // Load students from database
-                int studentCount = faceRecognitionService.loadEnrolledStudentsByCourse("CS102"); // TODO: dynamic course code
+                int studentCount = faceRecognitionService.loadEnrolledStudentsBySessionId(sessionId);
 
                 // Update UI on JavaFX thread
                 Platform.runLater(() -> {
@@ -401,7 +462,7 @@ public class RecognitionController {
                         studentsLoaded = true;
                         modelStatusLabel.setText("Model: Loaded (" + studentCount + " students)");
                         statusLabel.setText("Status: Ready");
-                        
+
                         if (startButton != null) {
                             startButton.setDisable(false);
                         }
@@ -410,13 +471,13 @@ public class RecognitionController {
                     } else {
                         modelStatusLabel.setText("Model: No Students Found");
                         statusLabel.setText("Status: No enrolled students");
-                        
+
                         System.out.println("No enrolled students found in database");
                     }
                 });
 
             } catch (Exception e) {
-                System.err.println("✗ Error loading students: " + e.getMessage());
+                System.err.println("Error loading students: " + e.getMessage());
                 e.printStackTrace();
 
                 // Update UI on JavaFX thread

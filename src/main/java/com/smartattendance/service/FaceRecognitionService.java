@@ -5,11 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
-import org.opencv.imgproc.Imgproc;
 
+import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
-import com.smartattendance.model.enums.RecognitionAlgorithm;
 import com.smartattendance.service.recognition.HistogramRecognizer;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.service.recognition.Recognizer;
@@ -20,12 +19,6 @@ public class FaceRecognitionService {
   private final StudentRepository studentRepository;
   private Recognizer recognizer;
   private List<Student> enrolledStudents;
-  private RecognitionAlgorithm currentAlgorithm;
-
-  // public enum RecognitionAlgorithm {
-  //   HISTOGRAM,
-  //   DNN 
-  // }
 
   // ----- Constructor -----
   public FaceRecognitionService(FaceDetectionService faceDetectionService) {
@@ -89,11 +82,11 @@ public class FaceRecognitionService {
   }
 
   // ----- Student Session Management ------
-  public int loadEnrolledStudentsByCourse(String courseCode) throws SQLException {
-    System.out.println("Loading enrolled students for course: " + courseCode);
+  public int loadEnrolledStudentsBySessionId(Integer sessionId) throws SQLException {
+    System.out.println("Loading enrolled students in sessionId: " + sessionId);
 
     // Fetch students from repository
-    List<Student> students = studentRepository.fetchEnrolledStudentsByCourse(courseCode);
+    List<Student> students = studentRepository.fetchEnrolledStudentsByCourse(sessionId);
 
     // Update internal list
     if (students == null) {
@@ -102,9 +95,25 @@ public class FaceRecognitionService {
       this.enrolledStudents = students;
     }
 
-    System.out.println("Loaded " + students.size() + " students for course " + courseCode);
+    System.out.println("Loaded " + students.size() + " students from sessionId " + sessionId);
     return students.size();
   }
 
-  
+  public void switchAlgorithm(String algorithmName) {
+    if (algorithmName == null) {
+      System.out.println("Algorithm name is null, defaulting to HISTOGRAM");
+      algorithmName = "HISTOGRAM";
+    }
+
+    System.out.println("Switching recognition algorithm to: " + algorithmName);
+
+    if (algorithmName.equalsIgnoreCase("OPENFACE")) {
+      this.recognizer = ApplicationContext.getOpenFaceRecognizer();
+      System.out.println("Using OpenFaceRecognizer (DNN-based)");
+    } else {
+      // Default to HISTOGRAM
+      this.recognizer = new HistogramRecognizer(faceProcessingService, 50.0);
+      System.out.println("Using HistogramRecognizer");
+    }
+  }
 }

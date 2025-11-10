@@ -1,5 +1,6 @@
 package com.smartattendance;
 
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AuthService;
@@ -9,9 +10,12 @@ import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.ImageService;
 import com.smartattendance.service.ProfileService;
+import com.smartattendance.service.SessionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
 import com.smartattendance.util.CameraUtils;
+import com.smartattendance.service.recognition.OpenFaceRecognizer;
+// import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.log.ApplicationLogger;
 
@@ -19,6 +23,7 @@ public final class ApplicationContext {
 
     private static boolean initialized = false;
     private static AuthSession session;
+    private static SessionService sessionService;
 
     // Business Services
     private static AuthService authService;
@@ -39,6 +44,8 @@ public final class ApplicationContext {
     private static FaceProcessingService faceProcessingService;
     private static FaceRecognitionService faceRecognitionService;
 
+    private static OpenFaceRecognizer openFaceRecognizer;
+
     // Logger
     private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
@@ -55,6 +62,7 @@ public final class ApplicationContext {
 
         // Set session
         session = new AuthSession();
+        sessionService = new SessionService();
 
         // Load Opencv
         loadOpenCV();
@@ -63,8 +71,6 @@ public final class ApplicationContext {
         loadOpenCVServices();
 
         // chore(), William: Add config loading here after implementation
-
-        // chore(), William: Add database initialization here after implementation
 
         // Initialize services
         authService = new AuthService();
@@ -83,6 +89,9 @@ public final class ApplicationContext {
         // //
         // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         // autoAttendanceUpdater.startAutoUpdate(60);
+
+        // Apply recognition algorithm from the config
+        applyRecognitionAlgorithm();
     }
 
     public static void loadOpenCV() {
@@ -91,9 +100,7 @@ public final class ApplicationContext {
             nu.pattern.OpenCV.loadLocally();
             appLogger.info("OpenCV Loaded Successfully.");
         } catch (Exception e) {
-            // chore(), Harry: Change back to logger with a different log level
-            System.out.println("Error loading opencv: " + e.getMessage());
-            // chore(), Harry: Add custom throw error or built in error
+            appLogger.error("Error loading opencv", e);
         }
     }
 
@@ -119,6 +126,8 @@ public final class ApplicationContext {
             // Initialize Image Service
             imageService = new ImageService(faceProcessingService);
             appLogger.info("Image service initialized");
+
+            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
 
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
@@ -147,6 +156,17 @@ public final class ApplicationContext {
     public static AuthService getAuthService() {
         checkInitialized();
         return authService;
+    }
+
+    /**
+     * Get the SessionService instance.
+     *
+     * @return SessionService
+     * @throws IllegalStateException if not initialized
+     */
+    public static SessionService getSessionService() {
+        checkInitialized();
+        return sessionService;
     }
 
     /**
@@ -249,6 +269,17 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the OpenFaceRecognizer instance (DNN-based).
+     *
+     * @return OpenFaceRecognizer
+     * @throws IllegalStateException if not initialized
+     */
+    public static OpenFaceRecognizer getOpenFaceRecognizer() {
+        checkInitialized();
+        return openFaceRecognizer;
+    }
+
+    /**
      * Get the CameraUtils instance
      *
      * @return CameraUtils instance
@@ -267,6 +298,20 @@ public final class ApplicationContext {
             throw new IllegalStateException(
                     "ApplicationContext not initialized.");
         }
+    }
+
+    /**
+     * Apply the configured recognition algorithm to FaceRecognitionService
+     */
+    public static void applyRecognitionAlgorithm() {
+        checkInitialized();
+
+        String algorithm = Config.get("recognition.algorithm");
+        if (algorithm == null) {
+            algorithm = "HISTOGRAM"; // default
+        }
+
+        faceRecognitionService.switchAlgorithm(algorithm);
     }
 
     /**
