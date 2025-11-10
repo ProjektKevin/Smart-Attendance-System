@@ -6,19 +6,12 @@
 package com.smartattendance.model.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 
 import com.smartattendance.model.enums.AttendanceStatus;
 import com.smartattendance.model.enums.MarkMethod;
-import com.smartattendance.repository.AttendanceRecordRepository;
-import com.smartattendance.service.AttendanceObserver;
-import com.smartattendance.service.AutoAttendanceMarker;
 
 public class AttendanceRecord {
-
-    private AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
-    private AutoAttendanceMarker autoAttendanceMarker = new AutoAttendanceMarker();
     private final Student student;
     private final Session session;
     // private final String status;
@@ -63,15 +56,15 @@ public class AttendanceRecord {
      * Marks attendance with all relevant info.
      */
     // F_MA: modified by felicia handling marking attendance
-    public void mark(List<AttendanceObserver> observers) throws Exception {
+    // public void mark(List<AttendanceObserver> observers) throws Exception {
 
-        try {
-            autoAttendanceMarker.markAttendance(observers, this);
-        } catch (Exception e) {
-            throw new Exception("Failed to save attendance record", e);
-        }
+    //     try {
+    //         autoAttendanceMarker.markAttendance(observers, this);
+    //     } catch (Exception e) {
+    //         throw new Exception("Failed to save attendance record", e);
+    //     }
 
-    }
+    // }
 
     public Student getStudent() {
         return student;
@@ -143,10 +136,6 @@ public class AttendanceRecord {
 
     public void setConfidence(double confidence) {
         this.confidence = confidence;
-    }
-
-    public AttendanceRecordRepository getAttendanceRecordRepo() {
-        return attendanceRecordRepo;
     }
 
     public boolean isStatusChanged() {

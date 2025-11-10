@@ -20,6 +20,15 @@ import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.repository.AttendanceRecordRepository;
 // import com.smartattendance.util.AttendanceObserver;
 
+/**
+ * Service layer that coordinates attendance operations between
+ * repository, recognition system, and observers.
+ *
+ * Follows the Observer and Strategy patterns.
+ * - AutoAttendanceMarker handles automatic marking logic.
+ * - Observers (like UI controllers) respond to attendance updates.
+ */
+
 public class AttendanceService {
 
     private final List<AttendanceObserver> observers = new ArrayList<>();
@@ -27,50 +36,57 @@ public class AttendanceService {
     private final Map<String, AttendanceRecord> records = new HashMap<>();
     private final double threshold = Double.parseDouble(Config.get("recognition.threshold"));
     private final AttendanceRecordRepository repo;
+    private final AutoAttendanceMarker autoAttendanceMarker;
 
     public AttendanceService(){
         this.repo = new AttendanceRecordRepository();
+        this.autoAttendanceMarker = new AutoAttendanceMarker();
     }
 
     public void addObserver(AttendanceObserver o) {
         observers.add(o);
     }
 
+    /**
+     * Attempts to mark attendance.
+     * Delegates automatic marking to AutoAttendanceMarker.
+     */
     // F_MA: modified by felicia handling marking attendance
-    public synchronized void markAttendance(AttendanceRecord r) {
+    public synchronized void markAttendance(AttendanceRecord record) {
         try {
             // Already marked or high confidence → mark directly
-            if (r.getConfidence() >= threshold) {
-                saveAttendanceRecord(r);
+            if (record.getConfidence() >= threshold) {
+                saveAttendanceRecord(record);
                 return;
             }
 
             // Low confidence → ask for user confirmation asynchronously
-            AttendanceController.requestUserConfirmationAsync(r, confirmed -> {
+            AttendanceController.requestUserConfirmationAsync(record, confirmed -> {
                 if (confirmed) {
-                    saveAttendanceRecord(r);
+                    saveAttendanceRecord(record);
                 } else {
-                    notifyAttendanceNotMarked(r);
+                    notifyAttendanceNotMarked(record);
                 }
             });
         } catch (Exception e) {
-            notifyAttendanceNotMarked(r);
+            notifyAttendanceNotMarked(record);
         }
     }
 
-    private void saveAttendanceRecord(AttendanceRecord r) {
+    private void saveAttendanceRecord(AttendanceRecord record) {
         try {
-            attendanceRecords.add(r);
-            r.mark(observers);
+            attendanceRecords.add(record);
+            // r.mark(observers);
+            autoAttendanceMarker.markAttendance(observers, record);
         } catch (Exception e) {
-            notifyAttendanceNotMarked(r);
+            notifyAttendanceNotMarked(record);
         }
     }
 
-    private void notifyAttendanceNotMarked(AttendanceRecord r) {
+    private void notifyAttendanceNotMarked(AttendanceRecord record) {
         for (AttendanceObserver o : observers) {
             if (o instanceof LiveRecognitionController) {
-                ((LiveRecognitionController) o).onAttendanceNotMarked(r);
+                ((LiveRecognitionController) o).onAttendanceNotMarked(record);
             }
         }
     }

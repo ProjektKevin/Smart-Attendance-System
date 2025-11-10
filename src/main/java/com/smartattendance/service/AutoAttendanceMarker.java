@@ -29,7 +29,8 @@ import javafx.application.Platform;
 public class AutoAttendanceMarker implements AttendanceMarker {
 
     private int cooldownSeconds = Integer.parseInt(Config.get("cooldown.seconds"));
-
+    private final AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
+    
     @Override
     public void markAttendance(List<AttendanceObserver> observers, AttendanceRecord record) throws Exception {
 
@@ -38,7 +39,6 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             Student student = record.getStudent();
             Session session = record.getSession();
 
-            AttendanceRecordRepository attendanceRecordRepo = record.getAttendanceRecordRepo();
             AttendanceRecord existingRecord = attendanceRecordRepo.findById(student.getStudentId(), session.getSessionId());
 
             LocalDateTime now = record.getTimestamp();
@@ -142,4 +142,5 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             Platform.runLater(attendanceController::loadAttendanceRecords);
         }
     }
+
 }
