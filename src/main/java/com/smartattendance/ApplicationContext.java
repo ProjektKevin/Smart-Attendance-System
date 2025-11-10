@@ -13,6 +13,7 @@ import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
+import com.smartattendance.service.recognition.HistogramRecognizer;
 import com.smartattendance.util.CameraUtils;
 import com.smartattendance.service.recognition.OpenFaceRecognizer;
 // import com.smartattendance.util.AutoAttendanceUpdater;
@@ -44,6 +45,7 @@ public final class ApplicationContext {
     private static FaceProcessingService faceProcessingService;
     private static FaceRecognitionService faceRecognitionService;
 
+    private static HistogramRecognizer histogramRecognizer;
     private static OpenFaceRecognizer openFaceRecognizer;
 
     // Logger
@@ -86,7 +88,6 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
         // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        // //
         // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         // autoAttendanceUpdater.startAutoUpdate(60);
 
@@ -109,6 +110,8 @@ public final class ApplicationContext {
      */
     private static void loadOpenCVServices() {
         try {
+            double threshold = Double.parseDouble(Config.get("recognition.threshold"));
+
             // Cascade file variables
             String cascadePath = FileLoader.loadToTempFile("/haarcascades/haarcascade_frontalface_default.xml");
 
@@ -119,8 +122,21 @@ public final class ApplicationContext {
             faceProcessingService = new FaceProcessingService(faceDetectionService);
             appLogger.info("Image processing service initialized");
 
+            // Initialize both recognizer models
+            histogramRecognizer = new HistogramRecognizer(faceProcessingService, threshold);
+            appLogger.info("Histogram recognizer initialized");
+
+            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService, threshold);
+            appLogger.info("OpenFace recognizer initialized");
+
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
+            appLogger.info("Face recognition service initialized");
+            if (!openFaceRecognizer.isModelLoaded()) {
+                appLogger.warn("OpenFace model failed to load! Recognition will not work.");
+                System.err.println("WARNING: OpenFace model not loaded. Check model file path.");
+                throw new IllegalStateException("OpenFace model required but failed to load");
+            }
             appLogger.info("Face recognition service initialized");
 
             // Initialize Image Service
@@ -129,6 +145,8 @@ public final class ApplicationContext {
 
             openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
 
+        } catch (IllegalStateException e) {
+            System.err.println("OpenFace unavailable: " + e.getMessage());
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
             System.out.println("Error loading opencv: " + e.getMessage());
@@ -266,6 +284,17 @@ public final class ApplicationContext {
     public static ImageService getImageService() {
         checkInitialized();
         return imageService;
+    }
+
+    /**
+     * Get the HistogramRecognizer instance (DNN-based).
+     *
+     * @return HistogramRecognizer
+     * @throws IllegalStateException if not initialized
+     */
+    public static HistogramRecognizer getHistogramRecognizer() {
+        checkInitialized();
+        return histogramRecognizer;
     }
 
     /**

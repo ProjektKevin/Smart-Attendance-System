@@ -38,7 +38,6 @@ public class AttendanceService {
 
     // F_MA: modified by felicia handling marking attendance
     public synchronized void markAttendance(AttendanceRecord r) {
-        System.out.println("----------------- I am being called!!! -----------------");
         try {
             // Already marked or high confidence → mark directly
             if (r.getConfidence() >= threshold) {
