@@ -13,7 +13,7 @@ import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
 import com.smartattendance.service.recognition.OpenFaceRecognizer;
-import com.smartattendance.util.AutoAttendanceUpdater;
+// import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.LoggerUtil;
 
