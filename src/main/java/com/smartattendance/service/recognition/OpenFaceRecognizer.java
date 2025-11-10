@@ -15,10 +15,11 @@ import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.entity.FaceData;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.util.FileLoader;
-import com.smartattendance.util.security.LoggerUtil;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public class OpenFaceRecognizer extends Recognizer {
     private final FaceProcessingService faceProcessingService;
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
     private Net faceNet;
 
     // Model configuration
@@ -199,12 +200,12 @@ public class OpenFaceRecognizer extends Recognizer {
     @Override
     public void train(List<Student> students) {
         if (faceNet == null || faceNet.empty()) {
-            LoggerUtil.LOGGER.warning("Cannot train: OpenFace model not loaded");
+            appLogger.warn("Cannot train: OpenFace model not loaded");
             System.err.println("ERROR: Cannot train recognizer - model not loaded");
             return;
         }
 
-        LoggerUtil.LOGGER.info("Training OpenFace recognizer for " + students.size() + " students");
+        appLogger.info("Training OpenFace recognizer for " + students.size() + " students");
         System.out.println("Training OpenFace recognizer...");
 
         int successCount = 0;
@@ -288,7 +289,7 @@ public class OpenFaceRecognizer extends Recognizer {
             }
         }
 
-        LoggerUtil.LOGGER.info("Training complete: " + successCount + " succeeded, " + 
+        appLogger.info("Training complete: " + successCount + " succeeded, " + 
                              failureCount + " failed");
         System.out.println("Training complete: " + successCount + " students enrolled successfully");
     }
@@ -411,7 +412,7 @@ public class OpenFaceRecognizer extends Recognizer {
                 double confidence = (bestSimilarity + 1.0) * 50.0;
 
                 if (confidence >= getConfidenceThreshold()) {
-                    LoggerUtil.LOGGER.info("Recognized: " + bestMatch.getName() + 
+                    appLogger.info("Recognized: " + bestMatch.getName() + 
                                          " (confidence: " + String.format("%.2f%%", confidence) + ")");
                     System.out.println("✓ Recognized: " + bestMatch.getName() +
                             " (confidence: " + String.format("%.2f%%", confidence) +

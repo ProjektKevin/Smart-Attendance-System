@@ -20,7 +20,7 @@ public class RootController {
     private Tab tabTestAutoMark;
     // Student tabs (may be null on admin view)
     @FXML
-    private Tab tabCapture, tabAttendance, tabProfile;
+    private Tab tabAttendance, tabProfile;
 
     private Label moonGlyph;
     private Label sunGlyph;
@@ -54,7 +54,6 @@ public class RootController {
         safeSetTabIcon(tabEnrollments, "\uD83D\uDCCB");
 
         // Student icons (null-safe)
-        safeSetTabIcon(tabCapture, "\uD83D\uDCF7"); // 📷 Face Capture
         safeSetTabIcon(tabAttendance, "\uD83D\uDCCB"); // 🗋/📋 clipboard (or use calendar "\uD83D\uDCC5" 🗓)
         safeSetTabIcon(tabProfile, "\uD83D\uDC64");
         // If you prefer calendar for attendance, swap to: safeSetTabIcon(tabAttendance,
