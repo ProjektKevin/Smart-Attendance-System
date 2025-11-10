@@ -473,6 +473,8 @@ public class SessionController {
             // Start the session
             session.open();
             ss.updateSessionStatus(session);
+
+            ApplicationContext.getAuthSession().setActiveSessionId(session.getSessionId());
         }
 
         sessionTable.refresh();
@@ -494,6 +496,13 @@ public class SessionController {
             if (!"Closed".equals(session.getStatus())) {
                 session.close();
                 ss.updateSessionStatus(session);
+
+                // Clear Session ID from AuthSession
+                Integer activeSessionId = ApplicationContext.getAuthSession().getActiveSessionId();
+                if (activeSessionId != null && activeSessionId == session.getSessionId()) {
+                    ApplicationContext.getAuthSession().clearActiveSessionId();
+                }
+
                 successCount++;
             }
         }

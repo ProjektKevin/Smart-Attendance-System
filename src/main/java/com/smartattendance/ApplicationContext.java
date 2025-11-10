@@ -10,6 +10,7 @@ import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.ImageService;
 import com.smartattendance.service.ProfileService;
+import com.smartattendance.service.SessionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
 import com.smartattendance.service.recognition.OpenFaceRecognizer;
@@ -21,6 +22,7 @@ public final class ApplicationContext {
 
     private static boolean initialized = false;
     private static AuthSession session;
+    private static SessionService sessionService;
 
     // Business Services
     private static AuthService authService;
@@ -56,6 +58,7 @@ public final class ApplicationContext {
 
         // Set session
         session = new AuthSession();
+        sessionService = new SessionService();
 
         // Load Opencv
         loadOpenCV();
@@ -154,6 +157,17 @@ public final class ApplicationContext {
     public static AuthService getAuthService() {
         checkInitialized();
         return authService;
+    }
+
+    /**
+     * Get the SessionService instance.
+     *
+     * @return SessionService
+     * @throws IllegalStateException if not initialized
+     */
+    public static SessionService getSessionService() {
+        checkInitialized();
+        return sessionService;
     }
 
     /**
