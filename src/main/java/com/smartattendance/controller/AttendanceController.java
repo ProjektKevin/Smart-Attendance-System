@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -16,8 +15,10 @@ import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.service.AttendanceMarker;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
+import com.smartattendance.service.ManualAttendanceMarker;
 import com.smartattendance.service.StudentService;
 
 import javafx.application.Platform;
@@ -673,44 +674,57 @@ public class AttendanceController implements AttendanceObserver {
     private void onSaveChanges() {
         try {
             int updatedCount = 0;
+
+            // Create marker (polymorphism)
+            AttendanceMarker marker = new ManualAttendanceMarker(service);
+            List<AttendanceObserver> observers = List.of();
+
             for (AttendanceRecord record : attendanceList) {
                 String originalStatus = originalStatuses.get(record.getStudent().getStudentId());
                 String currentStatus = record.getStatus().toString();
                 String originalNote = originalNotes.get(record.getStudent().getStudentId());
                 String currentNote = record.getNote();
 
-                boolean statusChanged = !Objects.equals(originalStatus, currentStatus);
-                boolean noteChanged = !Objects.equals(originalNote, currentNote);
+                record.setOriginalStatus(AttendanceStatus.valueOf(originalStatus));
+                record.setOriginalNote(originalNote);
 
+                // Call manual marker
+                marker.markAttendance(observers, record);
+                if (record.isStatusChanged() || record.isNoteChanged()) {
+                    updatedCount++;
+
+                    // Update original maps for future edits
+                    originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
+                    originalNotes.put(record.getStudent().getStudentId(), record.getNote());
+                }
+
+                // boolean statusChanged = !Objects.equals(originalStatus, currentStatus);
+                // boolean noteChanged = !Objects.equals(originalNote, currentNote);
                 // Only update if status actually changed
                 // if (!java.util.Objects.equals(originalStatus, currentStatus)) {
-                if (statusChanged) {
-                    // F_MA: modified by felicia handling marking attendance
-                    record.setTimestamp(LocalDateTime.now());
-                    // record.setLastSeen(LocalDateTime.now());
-                    service.updateStatus(record);
-                    // updatedCount++;
-
-                    // Update the original status map so subsequent saves work fine
-                    originalStatuses.put(record.getStudent().getStudentId(), currentStatus);
-                }
-
+                // if (statusChanged) {
+                //     // F_MA: modified by felicia handling marking attendance
+                //     record.setTimestamp(LocalDateTime.now());
+                //     // record.setLastSeen(LocalDateTime.now());
+                //     service.updateStatus(record);
+                //     // updatedCount++;
+                //     // Update the original status map so subsequent saves work fine
+                //     originalStatuses.put(record.getStudent().getStudentId(), currentStatus);
+                // }
                 // Only update if note actually changed
-                if (noteChanged) {
-                    // F_MA: modified by felicia handling marking attendance
-                    // if update note don't have to update marked_at or last_seen time
-                    // record.setTimestamp(LocalDateTime.now());
-                    // record.setLastSeen(LocalDateTime.now());
-                    service.updateNote(record); // need to change to updateNote
-                    // updatedCount++;
-
-                    // Update the original notes map so subsequent saves work fine
-                    originalNotes.put(record.getStudent().getStudentId(), currentNote);
-                }
-
-                if (statusChanged || noteChanged) {
-                    updatedCount++;
-                }
+                // if (noteChanged) {
+                //     // F_MA: modified by felicia handling marking attendance
+                //     // if update note don't have to update marked_at or last_seen time
+                //     // record.setTimestamp(LocalDateTime.now());
+                //     // record.setLastSeen(LocalDateTime.now());
+                //     service.updateNote(record); // need to change to updateNote
+                //     // updatedCount++;
+                //     // Update the original notes map so subsequent saves work fine
+                //     originalNotes.put(record.getStudent().getStudentId(), currentNote);
+                // }
+                // if (statusChanged || noteChanged) {
+                //     updatedCount++;
+                // }
             }
 
             // Reload data from database after saving
