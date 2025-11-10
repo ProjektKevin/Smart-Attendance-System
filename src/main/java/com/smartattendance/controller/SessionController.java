@@ -223,7 +223,7 @@ public class SessionController {
 
     private void openAttendancePage(Session session) {
         try {
-            // Load the Attendance view fresh and get its controller
+            // Load the Attendance view fresh and get its controllers
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceView.fxml"));
             Parent attendanceRoot = loader.load();
             // F_MA: modified by felicia handling marking attendance

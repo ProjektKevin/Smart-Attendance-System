@@ -68,16 +68,14 @@ public final class ApplicationContext {
         attendanceService = new AttendanceService();
         profileService = new ProfileService();
         courseService = new CourseService();
-        // F_MA: added by felicia handling marking attendance
-        attendanceService = new AttendanceService();
 
         initialized = true;
 
         // F_MA: added by felicia handling marking attendance
-        // Start auto-attendance updater every 60 seconds
+        // Start auto-attendance updater every 120 seconds
         autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
         // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
-        autoAttendanceUpdater.startAutoUpdate(60);
+        autoAttendanceUpdater.startAutoUpdate(120);
     }
 
     public static void loadOpenCV() {
