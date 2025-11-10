@@ -672,5 +672,4 @@ public class AttendanceController implements AttendanceObserver {
             Thread.currentThread().interrupt();
         }
     }
-
 }
