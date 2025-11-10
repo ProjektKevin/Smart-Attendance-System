@@ -1,5 +1,6 @@
 package com.smartattendance;
 
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AuthService;
@@ -81,6 +82,10 @@ public final class ApplicationContext {
         autoAttendanceUpdater.startAutoUpdate(60);
 
         initialized = true;
+
+        
+        // Apply recognition algorithm from the config
+        applyRecognitionAlgorithm();
     }
 
     public static void loadOpenCV() {
@@ -233,7 +238,6 @@ public final class ApplicationContext {
         return faceRecognitionService;
     }
 
-
     /**
      * Get the OpenFaceRecognizer instance (DNN-based).
      *
@@ -255,6 +259,20 @@ public final class ApplicationContext {
             throw new IllegalStateException(
                     "ApplicationContext not initialized.");
         }
+    }
+
+    /**
+     * Apply the configured recognition algorithm to FaceRecognitionService
+     */
+    public static void applyRecognitionAlgorithm() {
+        checkInitialized();
+
+        String algorithm = Config.get("recognition.algorithm");
+        if (algorithm == null) {
+            algorithm = "HISTOGRAM"; // default
+        }
+
+        faceRecognitionService.switchAlgorithm(algorithm);
     }
 
     /**

@@ -329,6 +329,8 @@ public class RecognitionController {
 
         final int uniqueCount = recognizedStudentIds.size();
 
+        // TODO: Add the actual attendance marking 
+
         // Update UI
         Platform.runLater(() -> {
             // Add to list view

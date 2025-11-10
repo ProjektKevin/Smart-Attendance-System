@@ -6,6 +6,7 @@ import java.util.List;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 
+import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
 import com.smartattendance.service.recognition.HistogramRecognizer;
@@ -104,5 +105,21 @@ public class FaceRecognitionService {
     return students.size();
   }
 
-  
+  public void switchAlgorithm(String algorithmName) {
+    if (algorithmName == null) {
+      System.out.println("Algorithm name is null, defaulting to HISTOGRAM");
+      algorithmName = "HISTOGRAM";
+    }
+
+    System.out.println("Switching recognition algorithm to: " + algorithmName);
+
+    if (algorithmName.equalsIgnoreCase("OPENFACE")) {
+      this.recognizer = ApplicationContext.getOpenFaceRecognizer();
+      System.out.println("Using OpenFaceRecognizer (DNN-based)");
+    } else {
+      // Default to HISTOGRAM
+      this.recognizer = new HistogramRecognizer(faceProcessingService, 50.0);
+      System.out.println("Using HistogramRecognizer");
+    }
+  }
 }
