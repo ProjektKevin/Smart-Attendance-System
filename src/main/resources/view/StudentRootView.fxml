@@ -23,11 +23,6 @@
     <center>
         <TabPane tabClosingPolicy="UNAVAILABLE">
             <tabs>
-                <Tab fx:id="tabCapture" text="Face Capture">
-                    <content>
-                        <fx:include source="EnrollmentView.fxml" />
-                    </content>
-                </Tab>
                 <Tab fx:id="tabAttendance" text="My Attendance">
                     <content>
                         <fx:include source="StudentAttendanceView.fxml" />

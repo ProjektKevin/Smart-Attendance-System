@@ -5,7 +5,8 @@ import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.ImageService;
 import com.smartattendance.util.OpenCVUtils;
-import com.smartattendance.util.security.LoggerUtil;
+import com.smartattendance.util.security.log.ApplicationLogger;
+import com.smartattendance.util.security.log.AttendanceLogger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,10 +21,14 @@ import org.opencv.videoio.VideoCapture;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 
 /**
  * Controller to connect the camera view from student enrollment and call
@@ -41,6 +46,8 @@ public class EnrollmentController {
 	private Button button;
 	@FXML
 	private Button captureButton;
+	@FXML
+	private Button cancelButton;
 	@FXML
 	private Label statusLabel;
 	@FXML
@@ -180,11 +187,11 @@ public class EnrollmentController {
 			Runnable captureTask = new Runnable() {
 				@Override
 				public void run() {
-					LoggerUtil.LOGGER
+					ApplicationLogger.getInstance()
 							.info("Starting Enrollment Capture for Student: " + session.getCurrentUser().getUserName());
 
 					if (!capturing || captureCount.get() >= MAX_CAPTURES) {
-						LoggerUtil.LOGGER
+						ApplicationLogger.getInstance()
 								.info("Stopping Enrollment Capture for Student: "
 										+ session.getCurrentUser().getUserName());
 						stopCapture();
@@ -200,10 +207,11 @@ public class EnrollmentController {
 						if (faceCount == 1) {
 							// Save image and store metadata
 							int studentId = session.getCurrentUser().getId();
-							LoggerUtil.LOGGER.info("Attempting to save image for student: " + studentId);
+							ApplicationLogger.getInstance().info("Attempting to save image for student: " + studentId);
 							if (imageService.captureAndSaveImage(studentId, sharedFrame)) {
 								int count = captureCount.incrementAndGet();
-								LoggerUtil.LOGGER.info("Successfully captured image " + count);
+								AttendanceLogger.getInstance()
+										.info("Successfully captured " + count + " images for " + studentId);
 								Platform.runLater(() -> {
 									statusLabel.setText("Status: Capturing faces (" + count + "/" + MAX_CAPTURES + ")");
 								});
@@ -211,7 +219,7 @@ public class EnrollmentController {
 								System.err.println("Failed to save image for student: " + studentId);
 							}
 						} else {
-							LoggerUtil.LOGGER.info("No face detected in current frame");
+							ApplicationLogger.getInstance().warn("No face detected in current frame");
 						}
 					}
 				}
@@ -221,6 +229,35 @@ public class EnrollmentController {
 			this.captureTimer.scheduleAtFixedRate(captureTask, 0, CAPTURE_INTERVAL_MS, TimeUnit.MILLISECONDS);
 		} else {
 			stopCapture();
+		}
+	}
+
+	/**
+	 * Handle cancel button click
+	 * Stops camera, cleans up resources, and navigates back to login screen
+	 *
+	 * @param event the cancel button event
+	 */
+	@FXML
+	protected void handleCancel(ActionEvent event) {
+		AttendanceLogger.getInstance()
+				.info("Enrollment cancelled by student: " + session.getCurrentUser().getUserName());
+
+		// Stop camera and clean up resources
+		stopAcquisition();
+
+		// Navigate back to login screen
+		try {
+			Parent loginRoot = FXMLLoader.load(getClass().getResource("/view/LoginView.fxml"));
+			Stage stage = (Stage) cancelButton.getScene().getWindow();
+			stage.setScene(new Scene(loginRoot));
+			stage.setTitle("Login");
+
+			ApplicationLogger.getInstance().info("Navigated back to login screen.");
+		} catch (Exception e) {
+			statusLabel.setText("Status: Error navigating to login: " + e.getMessage());
+			ApplicationLogger.getInstance().error("Error navigating back to login", e);
+			e.printStackTrace();
 		}
 	}
 
@@ -262,6 +299,24 @@ public class EnrollmentController {
 						if (success) {
 							String studentName = session.getCurrentUser().getUserName();
 							this.statusLabel.setText("Status: Enrollment complete for " + studentName);
+
+							// Navigate to student dashboard
+							try {
+								Parent studentRoot = FXMLLoader
+										.load(getClass().getResource("/view/StudentRootView.fxml"));
+								Stage stage = (Stage) statusLabel.getScene().getWindow();
+								stage.setScene(new Scene(studentRoot));
+								stage.setTitle("Student Portal");
+
+								AttendanceLogger.getInstance()
+										.info("Enrollment Successful For " + studentName);
+								ApplicationLogger.getInstance()
+										.info("Navigating User to the Student Portal");
+							} catch (Exception e) {
+								this.statusLabel.setText("Error Loading Student Portal: " + e.getMessage());
+								ApplicationLogger.getInstance().error("Error Navigating to Student Portal", e);
+								e.printStackTrace();
+							}
 						} else {
 							this.statusLabel.setText("Status: Enrollment failed. Please try again.");
 						}

@@ -12,7 +12,7 @@ import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
 import com.smartattendance.util.FileLoader;
-import com.smartattendance.util.security.LoggerUtil;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public final class ApplicationContext {
 
@@ -85,7 +85,7 @@ public final class ApplicationContext {
         try {
             // Load opencv locally
             nu.pattern.OpenCV.loadLocally();
-            LoggerUtil.LOGGER.info("OpenCV Loaded Successfully.");
+            ApplicationLogger.getInstance().info("OpenCV Loaded Successfully.");
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
             System.out.println("Error loading opencv: " + e.getMessage());
@@ -106,15 +106,15 @@ public final class ApplicationContext {
 
             // Initialize face image processing
             faceProcessingService = new FaceProcessingService(faceDetectionService);
-            LoggerUtil.LOGGER.info("Image processing service initialized");
+            ApplicationLogger.getInstance().info("Image processing service initialized");
 
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
-            LoggerUtil.LOGGER.info("Face recognition service initialized");
+            ApplicationLogger.getInstance().info("Face recognition service initialized");
 
             // Initialize Image Service
             imageService = new ImageService(faceProcessingService);
-            LoggerUtil.LOGGER.info("Image service initialized");
+            ApplicationLogger.getInstance().info("Image service initialized");
 
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
