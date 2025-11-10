@@ -3,6 +3,9 @@
 <?import javafx.scene.layout.*?>
 <VBox xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartattendance.controller.AttendanceController" spacing="10" style="-fx-padding: 10;">
     <Label fx:id="lblSessionTitle" text="Attendance for Session"/>
+    <Label fx:id="lblAttendanceSummary" text="Present: 0 / Late: 0 / Total: 0"
+           style="-fx-font-weight: bold; -fx-padding: 5; -fx-border-color: black; -fx-border-width: 1; 
+              -fx-border-radius: 4; -fx-background-radius: 4; -fx-background-color: #f0f0f0;"/>
     <Label fx:id="attendanceInfo" maxWidth="1.7976931348623157E308" 
            style="-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;"/>
     
