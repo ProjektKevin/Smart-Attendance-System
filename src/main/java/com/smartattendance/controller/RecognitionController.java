@@ -40,8 +40,6 @@ public class RecognitionController {
     @FXML
     private Button startButton;
     @FXML
-    private Button stopButton;
-    @FXML
     private Button captureButton;
     @FXML
     private Button clearHistoryButton;
@@ -101,12 +99,20 @@ public class RecognitionController {
         statusLabel.setText("Status: Loading...");
         cameraStatusLabel.setText("Camera: Disconnected");
         modelStatusLabel.setText("Model: Not Loaded");
-
-        loadSessionStudentsAsync();
     }
 
     @FXML
     private void startRecognition() {
+        System.out.println("started loading student list");
+        loadSessionStudentsAsync();
+        System.out.println("Loading done!");
+
+        // Safety Camera release
+        if (this.cameraActive) {
+            this.stopAcquisition();
+            capture.release();
+        }
+
         if (!this.cameraActive) {
             this.capture.open(cameraId);
 
@@ -118,6 +124,11 @@ public class RecognitionController {
                 Runnable frameGrabber = new Runnable() {
                     @Override
                     public void run() {
+                        // Check if camera is still active before processing
+                        if (!cameraActive) {
+                            return;
+                        }
+
                         // STEP 1: Grab a frame from camera
                         Mat frame = grabFrame();
 
@@ -143,9 +154,6 @@ public class RecognitionController {
                             "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
                     cameraStatusLabel.setText("Camera: Connected");
                     statusLabel.setText("Status: Recognition Active");
-                    if (stopButton != null) {
-                        stopButton.setDisable(false);
-                    }
                 });
 
             } else {
@@ -189,14 +197,7 @@ public class RecognitionController {
 
         // Enable/disable buttons
         startButton.setDisable(false);
-        stopButton.setDisable(true);
     }
-
-    // @FXML
-    // private void captureFrame() {
-    // // Empty method stub for FXML
-    // System.out.println("Capture button clicked");
-    // }
 
     @FXML
     private void clearHistory() {
@@ -355,6 +356,7 @@ public class RecognitionController {
                     LocalDateTime.now());
 
             // Pass to attendance service
+            System.out.println("calling mark attendance now");
             ApplicationContext.getAttendanceService().markAttendance(record);
 
             System.out.println("Attendance record created for: " + studentName);
@@ -394,13 +396,13 @@ public class RecognitionController {
 
         Platform.runLater(() -> {
             currentStudentLabel.setText("Current: Unknown");
-        confidenceLabel.setText(String.format("Confidence: %.1f%%", confidence));
+            confidenceLabel.setText(String.format("Confidence: %.1f%%", confidence));
 
-        recognitionListView.getItems().add(0, logEntry);
+            recognitionListView.getItems().add(0, logEntry);
 
-        if (recognitionListView.getItems().size() > 50) {
-            recognitionListView.getItems().remove(50);
-        }
+            if (recognitionListView.getItems().size() > 50) {
+                recognitionListView.getItems().remove(50);
+            }
         });
 
         System.out.println("UNKNOWN FACE: " + logEntry);
@@ -480,7 +482,7 @@ public class RecognitionController {
                 });
 
             } catch (Exception e) {
-                System.err.println("✗ Error loading students: " + e.getMessage());
+                System.err.println("Error loading students: " + e.getMessage());
                 e.printStackTrace();
 
                 // Update UI on JavaFX thread

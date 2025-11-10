@@ -284,6 +284,11 @@ public class SessionController {
                     ss.updateSessionStatus(s);
                     statusChanged = true;
 
+                    // Save the session id if it is getting updated to open (will overwrite till the last one)
+                    if(updatedStatus.equals("Open")) {
+                        ApplicationContext.getAuthSession().setActiveSessionId(s.getSessionId());
+                    }
+
                     if ("Closed".equalsIgnoreCase(updatedStatus)) {
                         try {
                             AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);
@@ -433,6 +438,7 @@ public class SessionController {
             if (newSession != null) {
                 loadSessionsFromDatabase(); // Reload to get the new session
                 showSuccess("Session " + newSession.getSessionId() + " created successfully!");
+                ApplicationContext.getAuthSession().setActiveSessionId(newSession.getSessionId());
             }
 
         } catch (Exception e) {
