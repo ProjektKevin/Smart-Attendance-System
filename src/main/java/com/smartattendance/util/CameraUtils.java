@@ -2,6 +2,7 @@ package com.smartattendance.util;
 
 import org.opencv.videoio.VideoCapture;
 import com.smartattendance.config.Config;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 /**
  * Camera manager for camera/VideoCapture lifecycle
@@ -14,6 +15,7 @@ import com.smartattendance.config.Config;
 public class CameraUtils {
 
     private static CameraUtils instance;
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
     private VideoCapture capture;
     private int cameraId;
     private boolean isOpened = false;
@@ -47,6 +49,7 @@ public class CameraUtils {
      */
     public boolean openCamera(int cameraId) {
         if (isOpened) {
+            appLogger.info("Camera is already open with ID: " + this.cameraId);
             return true;
         }
 
@@ -55,8 +58,10 @@ public class CameraUtils {
 
         if (this.capture.isOpened()) {
             this.isOpened = true;
+            appLogger.info("Camera opened successfully with ID: " + cameraId);
             return true;
         } else {
+            appLogger.error("Failed to open camera with ID: " + cameraId);
             return false;
         }
     }
@@ -77,6 +82,7 @@ public class CameraUtils {
         if (this.capture != null && this.capture.isOpened()) {
             this.capture.release();
             this.isOpened = false;
+            appLogger.info("Camera released successfully");
         }
     }
 

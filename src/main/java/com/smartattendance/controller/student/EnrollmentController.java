@@ -70,6 +70,8 @@ public class EnrollmentController {
 	private final FaceDetectionService faceDetectionService = ApplicationContext.getFaceDetectionService();
 	private final ImageService imageService = ApplicationContext.getImageService();
 	private final CameraUtils cameraUtils = ApplicationContext.getCameraUtils();
+	private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+	private final AttendanceLogger attendanceLogger = AttendanceLogger.getInstance();
 
 	/**
 	 * Shared frame between the display thread and capture thread.
@@ -184,11 +186,11 @@ public class EnrollmentController {
 			Runnable captureTask = new Runnable() {
 				@Override
 				public void run() {
-					ApplicationLogger.getInstance()
+					appLogger
 							.info("Starting Enrollment Capture for Student: " + session.getCurrentUser().getUserName());
 
 					if (!capturing || captureCount.get() >= MAX_CAPTURES) {
-						ApplicationLogger.getInstance()
+						appLogger
 								.info("Stopping Enrollment Capture for Student: "
 										+ session.getCurrentUser().getUserName());
 						stopCapture();
@@ -204,10 +206,10 @@ public class EnrollmentController {
 						if (faceCount == 1) {
 							// Save image and store metadata
 							int studentId = session.getCurrentUser().getId();
-							ApplicationLogger.getInstance().info("Attempting to save image for student: " + studentId);
+							appLogger.info("Attempting to save image for student: " + studentId);
 							if (imageService.captureAndSaveImage(studentId, sharedFrame)) {
 								int count = captureCount.incrementAndGet();
-								AttendanceLogger.getInstance()
+								attendanceLogger
 										.info("Successfully captured " + count + " images for " + studentId);
 								Platform.runLater(() -> {
 									statusLabel.setText("Status: Capturing faces (" + count + "/" + MAX_CAPTURES + ")");
@@ -216,7 +218,7 @@ public class EnrollmentController {
 								System.err.println("Failed to save image for student: " + studentId);
 							}
 						} else {
-							ApplicationLogger.getInstance().warn("No face detected in current frame");
+							appLogger.warn("No face detected in current frame");
 						}
 					}
 				}
@@ -237,7 +239,7 @@ public class EnrollmentController {
 	 */
 	@FXML
 	protected void handleCancel(ActionEvent event) {
-		AttendanceLogger.getInstance()
+		attendanceLogger
 				.info("Enrollment cancelled by student: " + session.getCurrentUser().getUserName());
 
 		// Stop camera and clean up resources
@@ -250,10 +252,10 @@ public class EnrollmentController {
 			stage.setScene(new Scene(loginRoot));
 			stage.setTitle("Login");
 
-			ApplicationLogger.getInstance().info("Navigated back to login screen.");
+			appLogger.info("Navigated back to login screen.");
 		} catch (Exception e) {
 			statusLabel.setText("Status: Error navigating to login: " + e.getMessage());
-			ApplicationLogger.getInstance().error("Error navigating back to login", e);
+			appLogger.error("Error navigating back to login", e);
 			e.printStackTrace();
 		}
 	}
@@ -312,13 +314,13 @@ public class EnrollmentController {
 								stage.setScene(new Scene(studentRoot));
 								stage.setTitle("Student Portal");
 
-								AttendanceLogger.getInstance()
+								attendanceLogger
 										.info("Enrollment Successful For " + studentName);
-								ApplicationLogger.getInstance()
+								appLogger
 										.info("Navigating User to the Student Portal");
 							} catch (Exception e) {
 								this.statusLabel.setText("Error Loading Student Portal: " + e.getMessage());
-								ApplicationLogger.getInstance().error("Error Navigating to Student Portal", e);
+								appLogger.error("Error Navigating to Student Portal", e);
 								e.printStackTrace();
 							}
 						} else {
@@ -445,7 +447,7 @@ public class EnrollmentController {
 	/**
 	 * Show an info alert dialog to the user
 	 *
-	 * @param title the title of the alert
+	 * @param title   the title of the alert
 	 * @param message the message content
 	 */
 	private void showInfoAlert(String title, String message) {

@@ -39,6 +39,9 @@ public final class ApplicationContext {
     private static FaceProcessingService faceProcessingService;
     private static FaceRecognitionService faceRecognitionService;
 
+    // Logger
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
     /**
      * Initialize the application context.
      * This method initializes all services.
@@ -77,7 +80,8 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
         // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        // // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
+        // //
+        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         // autoAttendanceUpdater.startAutoUpdate(60);
     }
 
@@ -85,7 +89,7 @@ public final class ApplicationContext {
         try {
             // Load opencv locally
             nu.pattern.OpenCV.loadLocally();
-            ApplicationLogger.getInstance().info("OpenCV Loaded Successfully.");
+            appLogger.info("OpenCV Loaded Successfully.");
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
             System.out.println("Error loading opencv: " + e.getMessage());
@@ -106,15 +110,15 @@ public final class ApplicationContext {
 
             // Initialize face image processing
             faceProcessingService = new FaceProcessingService(faceDetectionService);
-            ApplicationLogger.getInstance().info("Image processing service initialized");
+            appLogger.info("Image processing service initialized");
 
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
-            ApplicationLogger.getInstance().info("Face recognition service initialized");
+            appLogger.info("Face recognition service initialized");
 
             // Initialize Image Service
             imageService = new ImageService(faceProcessingService);
-            ApplicationLogger.getInstance().info("Image service initialized");
+            appLogger.info("Image service initialized");
 
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
@@ -276,7 +280,7 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Stop auto attendance updater
         // if (autoAttendanceUpdater != null) {
-        //     autoAttendanceUpdater.stopAutoUpdate();
+        // autoAttendanceUpdater.stopAutoUpdate();
         // }
 
         // Release camera resources

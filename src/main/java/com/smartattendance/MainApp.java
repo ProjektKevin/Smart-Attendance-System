@@ -9,11 +9,13 @@ import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
+  private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
   @Override
   public void init() throws Exception {
     // Initialize ApplicationContext before UI loads
     ApplicationContext.initialize();
-    ApplicationLogger.getInstance().info("Application Context loaded");
+    appLogger.info("Application Context loaded");
   }
 
   @Override
@@ -22,14 +24,14 @@ public class MainApp extends Application {
     stage.setTitle("Smart Attendance System - Login");
     stage.setScene(new Scene(loginUI));
     stage.show();
-    ApplicationLogger.getInstance().info("App started");
+    appLogger.info("App started");
   }
 
   @Override
   public void stop() throws Exception {
     // Cleanup when application closes
     ApplicationContext.shutdown();
-    ApplicationLogger.getInstance().info("App stopped");
+    appLogger.info("App stopped");
   }
 
   public static void main(String[] args) {
