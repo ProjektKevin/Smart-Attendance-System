@@ -51,6 +51,43 @@ public class SessionRepository {
         return sessions;
     }
 
+    // Select closed sessions 
+    public List<Session> findClosedSessions() {
+        List<Session> sessions = new ArrayList<>();
+        String sql = "SELECT s.session_id, c.course_code, s.late_threshold, s.location, s.start_time, s.end_time, s.session_date, s.status FROM sessions s JOIN courses c ON s.course_id = c.course_id WHERE s.status = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, "Closed");
+
+            while (rs.next()) {
+                // Convert SQL types to Java time types
+                java.sql.Date sqlDate = rs.getDate("session_date");
+                Timestamp sqlStartTime = rs.getTimestamp("start_time");
+                Timestamp sqlEndTime = rs.getTimestamp("end_time");
+                
+                sessions.add(new Session(
+                    rs.getInt("session_id"),
+                    rs.getString("course_code"),
+                    sqlDate != null ? sqlDate.toLocalDate() : null,
+                    sqlStartTime != null ? sqlStartTime.toLocalDateTime().toLocalTime() : null,
+                    sqlEndTime != null ? sqlEndTime.toLocalDateTime().toLocalTime() : null,
+                    rs.getString("location"),
+                    rs.getInt("late_threshold"),
+                    rs.getString("status")
+                ));
+            }
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+
+        return sessions;
+    }
+
     // Select session by id
     public Session findById(int id) {
         String sql = "SELECT s.session_id, c.course_code, s.late_threshold, s.location, s.start_time, s.end_time, s.session_date, s.status FROM sessions s JOIN courses c ON s.course_id = c.course_id WHERE session_id = ?";

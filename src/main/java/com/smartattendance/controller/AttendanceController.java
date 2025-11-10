@@ -7,20 +7,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.AttendanceStatus;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.service.AttendanceMarker;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
+import com.smartattendance.service.AutoAttendanceMarker;
 import com.smartattendance.service.ManualAttendanceMarker;
 import com.smartattendance.service.StudentService;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -50,6 +56,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class AttendanceController implements AttendanceObserver {
 
@@ -80,10 +87,14 @@ public class AttendanceController implements AttendanceObserver {
     @FXML
     private TableColumn<AttendanceRecord, Boolean> colSelect;
 
+    // Create a background thread pool for periodic tasks
+    private Timeline uiRefresher;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final AttendanceService service = new AttendanceService();
     private final StudentService studentService = new StudentService();
+    private final SessionRepository sessionRepository = new SessionRepository();
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
-    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
+    // private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
     private Session currentSession;
     private Runnable backHandler;
 
@@ -202,52 +213,6 @@ public class AttendanceController implements AttendanceObserver {
         });
     }
 
-    // public static void requestUserConfirmation(AttendanceRecord record) {
-    //     Platform.runLater(() -> {
-    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-    //         alert.setTitle("Confirm Student Identity");
-    //         alert.setHeaderText("Low Confidence Detection");
-    //         alert.setContentText(String.format(
-    //                 // "Detected student:\n\nName: %s\nID: %d\nConfidence: %.2f\n\nIs this correct?",
-    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
-    //                 record.getStudent().getName(),
-    //                 record.getStudent().getStudentId()
-    //                 // record.getConfidence()
-    //         ));
-    //         Optional<ButtonType> result = alert.showAndWait();
-    //         if (result.isPresent() && result.get() == ButtonType.OK) {
-    //             // user confirmed → mark attendance
-    //             try {
-    //                 record.mark(observers);
-    //             } catch (Exception e) {
-    //                 System.err.println("Failed to save attendance record");
-    //                 e.printStackTrace();
-    //             }
-    //         } else {
-    //             // user declined → skip
-    //             System.out.println("Skipped marking for " + record.getStudent().getName());
-    //         }
-    //     });
-    // }
-    // public static boolean requestUserConfirmation(AttendanceRecord record, Consumer<Boolean> callback) {
-    //     Platform.runLater(() -> {
-    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-    //         alert.setTitle("Confirm Student Identity");
-    //         alert.setHeaderText("Low Confidence Detection");
-    //         alert.setContentText(String.format(
-    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
-    //                 record.getStudent().getName(),
-    //                 record.getStudent().getStudentId()
-    //         ));
-    //         // Use Yes/No buttons
-    //         ButtonType yesButton = new ButtonType("Yes");
-    //         ButtonType noButton = new ButtonType("No");
-    //         alert.getButtonTypes().setAll(yesButton, noButton);
-    //         Optional<ButtonType> result = alert.showAndWait();
-    //         boolean confirmed = result.isPresent() && result.get() == yesButton;
-    //         callback.accept(confirmed); // notify caller asynchronously
-    //     });
-    // }
     public static void requestUserConfirmationAsync(AttendanceRecord record, Consumer<Boolean> callback) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -270,6 +235,11 @@ public class AttendanceController implements AttendanceObserver {
 
     @FXML
     public void initialize() {
+        // Run once at startup (in background)
+        executor.submit(() -> {
+            AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, service);
+        });
+
         // Let each row have a selectable checkbox
         setupCheckBoxColumn();
 
@@ -375,97 +345,6 @@ public class AttendanceController implements AttendanceObserver {
             }
         });
 
-        // colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
-        // colNote.setCellFactory(column -> {
-        //     // TableCell<AttendanceRecord, String> cell = new TableCell<>() {
-        //     return new TextFieldTableCell<AttendanceRecord, String>() {
-        //         private final Label label = new Label();
-        //         @Override
-        //         public void startEdit() {
-        //             super.startEdit();
-        //             setGraphic(getTextField());
-        //             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         }
-        //         @Override
-        //         public void cancelEdit() {
-        //             super.cancelEdit();
-        //             label.setText(getItem());
-        //             setGraphic(label);
-        //             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         }
-        //         @Override
-        //         public void updateItem(String item, boolean empty) {
-        //             super.updateItem(item, empty);
-        //             if (empty || item == null) {
-        //                 setGraphic(null);
-        //             } else {
-        //                 label.setText(item);
-        //                 label.setWrapText(true);
-        //                 label.setMaxWidth(column.getWidth() - 10);
-        //                 label.setTooltip(new Tooltip("Double-click to edit"));
-        //                 HBox box = new HBox(5, label, new Label("✏️"));
-        //                 box.setAlignment(Pos.TOP_LEFT);
-        //                 setGraphic(box);
-        //                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //             }
-        //         }
-        //     };
-        //     // return cell;
-        // });
-        // Configure note column
-        // colNote.setCellValueFactory(cellData
-        //         -> new SimpleStringProperty(cellData.getValue().getNote())
-        // );
-        // colNote.setCellFactory(column -> new TextFieldTableCell<AttendanceRecord, String>() {
-        //     private final Label label = new Label();
-        //     private final Label editIcon = new Label("✏️");
-        //     {
-        //         label.setWrapText(true);
-        //         label.setTooltip(new Tooltip("Double-click to edit"));
-        //         editIcon.setStyle("-fx-opacity: 0.6; -fx-font-size: 12;"); // subtle hint
-        //     }
-        //     @Override
-        //     public void startEdit() {
-        //         super.startEdit();
-        //         // create editable TextField manually since getTextField() is protected
-        //         javafx.scene.control.TextField textField = new javafx.scene.control.TextField(getItem());
-        //         textField.setOnAction(e -> {
-        //             commitEdit(textField.getText());
-        //         });
-        //         textField.focusedProperty().addListener((obs, oldV, newV) -> {
-        //             if (!newV) {
-        //                 commitEdit(textField.getText());
-        //             }
-        //         });
-        //         setGraphic(textField);
-        //         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         textField.requestFocus();
-        //     }
-        //     @Override
-        //     public void cancelEdit() {
-        //         super.cancelEdit();
-        //         updateDisplay(getItem());
-        //     }
-        //     @Override
-        //     public void updateItem(String item, boolean empty) {
-        //         super.updateItem(item, empty);
-        //         if (empty || item == null) {
-        //             setGraphic(null);
-        //         } else {
-        //             updateDisplay(item);
-        //         }
-        //     }
-        //     private void updateDisplay(String text) {
-        //         label.setText(text);
-        //         label.setMaxWidth(colNote.getWidth() - 30);
-        //         HBox box = new HBox(5, label, editIcon);
-        //         box.setAlignment(Pos.TOP_LEFT);
-        //         setGraphic(box);
-        //         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //     }
-        // });
-        // F_MA: added by felicia handling marking attendance
-        // colNote.setCellFactory(TextFieldTableCell.forTableColumn());
         colNote.setOnEditCommit(event -> {
             AttendanceRecord record = event.getRowValue();
             record.setNote(event.getNewValue()); // update in-memory only
@@ -546,7 +425,22 @@ public class AttendanceController implements AttendanceObserver {
 
         // Make table editable if you want to edit notes or status
         attendanceTable.setEditable(true);
-        attendanceService.addObserver(this);
+
+        service.addObserver(this);
+
+        // Mark the closed sessions' attendance record pending status as absent if previously not marked due to app closed
+        AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, service);
+
+        // Reload data from database periodically to check session status
+        uiRefresher = new Timeline(new KeyFrame(Duration.seconds(60), e -> {
+            if (currentSession != null && "Closed".equals(currentSession.getStatus())) {
+                executor.submit(() -> {
+                    AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, service);
+                });
+            }
+        }));
+        uiRefresher.setCycleCount(Timeline.INDEFINITE);
+        uiRefresher.play();
     }
 
     // F_MA: modified by felicia handling marking attendance
@@ -580,7 +474,7 @@ public class AttendanceController implements AttendanceObserver {
             List<Student> allStudents = studentService.getStudentsBySessionId(currentSession);
 
             // 2. Get all existing attendance records
-            List<AttendanceRecord> existingRecords = attendanceService.findBySessionId(currentSession.getSessionId());
+            List<AttendanceRecord> existingRecords = service.findBySessionId(currentSession.getSessionId());
 
             // 3. Extract student IDs that already have records
             Set<Integer> existingStudentIds = existingRecords.stream()
@@ -744,6 +638,13 @@ public class AttendanceController implements AttendanceObserver {
 
     @FXML
     private void onBack() {
+        // Clean up resources first
+        if (uiRefresher != null) {
+            uiRefresher.stop();  // stop Timeline
+        }
+        if (executor != null) {
+            executor.shutdownNow();  // stop any background threads
+        }
         if (backHandler != null) {
             backHandler.run();
         } else {
@@ -753,6 +654,22 @@ public class AttendanceController implements AttendanceObserver {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+    }
+
+    /**
+     * Call this when the AttendanceController is no longer needed
+     */
+    public void shutdownExecutor() {
+        executor.shutdown(); // stops accepting new tasks
+        try {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                executor.shutdownNow(); // force shutdown if not terminated
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 

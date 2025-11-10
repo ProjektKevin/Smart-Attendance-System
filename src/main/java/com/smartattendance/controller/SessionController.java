@@ -39,12 +39,13 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class SessionController {
+
     @FXML
     private Label sessionsInfo;
     @FXML
     private TableView<Session> sessionTable;
     @FXML
-    private TableColumn<Session, Boolean> colSelect; 
+    private TableColumn<Session, Boolean> colSelect;
     @FXML
     private TableColumn<Session, String> colId;
     @FXML
@@ -71,9 +72,9 @@ public class SessionController {
     private Button stopButton;
     @FXML
     private CheckBox selectAllCheckBox;
-    @FXML 
+    @FXML
     private VBox sessionListContainer;
-    @FXML 
+    @FXML
     private VBox attendanceViewContainer;
 
     private final SessionService ss = new SessionService();
@@ -81,15 +82,17 @@ public class SessionController {
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
     // F_MA: added by felicia handling marking attendance
     private AttendanceController attendanceController; // store reference
+    // private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
+    // private final SessionRepository sessionRepository = new SessionRepository();
 
     @FXML
     public void initialize() {
         // Apply initial styling to the info label
         styleInfoLabel("normal", "Loaded sessions will appear here");
-        
+
         attendanceViewContainer.setVisible(false);
         attendanceViewContainer.setManaged(false);
-        
+
         // Initialise columns
         colId.setCellValueFactory(new PropertyValueFactory<>("sessionId"));
         colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
@@ -111,7 +114,7 @@ public class SessionController {
 
         // Add listener to update button states when selection changes
         sessionTable.itemsProperty().addListener((obs, oldItems, newItems) -> updateButtonStates());
-        
+
         // Select All checkbox listener
         if (selectAllCheckBox != null) {
             selectAllCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -133,66 +136,66 @@ public class SessionController {
         uiRefresher.play();
     }
 
-    public AttendanceController getAttendanceController() {
-        return attendanceController;
-    }
+    // public AttendanceController getAttendanceController() {
+    //     return attendanceController;
+    // }
 
     // Styles the info label based on message type
     // @param type "success", "error", "warning", or "normal"
     // @param message The text to display
     private void styleInfoLabel(String type, String message) {
         sessionsInfo.setText(message);
-        
+
         // Reset styles first
         sessionsInfo.setStyle("-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
-        
+
         switch (type.toLowerCase()) {
             case "success":
-                sessionsInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                sessionsInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
+                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "error":
-                sessionsInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                sessionsInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
+                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "warning":
-                sessionsInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                sessionsInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
+                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "normal":
             default:
-                sessionsInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; " +
-                                   "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                sessionsInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; "
+                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
         }
     }
 
     private void setupCheckBoxColumn() {
         colSelect.setCellFactory(col -> new CheckBoxTableCell<>(
-            index -> {
-                if (index >= 0 && index < sessionList.size()) {
-                    Session session = sessionList.get(index);
-                    return selectionMap.computeIfAbsent(
-                        session.getSessionId(), 
-                        k -> new SimpleBooleanProperty(false)
-                    ).get();
+                index -> {
+                    if (index >= 0 && index < sessionList.size()) {
+                        Session session = sessionList.get(index);
+                        return selectionMap.computeIfAbsent(
+                                session.getSessionId(),
+                                k -> new SimpleBooleanProperty(false)
+                        ).get();
+                    }
+                    return false;
+                },
+                index -> {
+                    if (index >= 0 && index < sessionList.size()) {
+                        Session session = sessionList.get(index);
+                        SimpleBooleanProperty selected = selectionMap.computeIfAbsent(
+                                session.getSessionId(),
+                                k -> new SimpleBooleanProperty(false)
+                        );
+                        selected.set(!selected.get());
+                        updateButtonStates();
+                    }
+                    return null;
                 }
-                return false;
-            },
-            index -> {
-                if (index >= 0 && index < sessionList.size()) {
-                    Session session = sessionList.get(index);
-                    SimpleBooleanProperty selected = selectionMap.computeIfAbsent(
-                        session.getSessionId(), 
-                        k -> new SimpleBooleanProperty(false)
-                    );
-                    selected.set(!selected.get());
-                    updateButtonStates();
-                }
-                return null;
-            }
         ));
-        
+
         // Ensures the checkbox column does not try to bind to a property
         colSelect.setCellValueFactory(cellData -> null);
     }
@@ -231,7 +234,6 @@ public class SessionController {
             // AttendanceController attendanceCtrl = loader.getController();
             // Save globally for AutoAttendanceUpdater to access
             ControllerRegistry.setAttendanceController(attendanceController);
-            
 
             // Pass session to the attendance controller
             attendanceController.setSession(session);
@@ -268,15 +270,25 @@ public class SessionController {
             boolean statusChanged = false;
 
             // Update status of sessions based on current time (Automate opening and closing of sessions)  
-            for (Session s : sessions){
+            for (Session s : sessions) {
                 String currentStatus = s.getStatus();
                 String updatedStatus = s.determineStatus(s.getSessionDate(), s.getStartTime(), s.getEndTime());
 
                 // If status needs to be updated, update in database
-                if (!currentStatus.equals(updatedStatus)){
+                if (!currentStatus.equals(updatedStatus)) {
                     s.setStatus(updatedStatus);
                     ss.updateSessionStatus(s);
                     statusChanged = true;
+
+                    // if ("Closed".equalsIgnoreCase(updatedStatus)) {
+                    //     try {
+                    //         AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);
+                    //         System.out.println("Pending records for session " + s.getSessionId() + " updated to Absent.");
+                    //     } catch (Exception e) {
+                    //         e.printStackTrace();
+                    //         showError("Failed to mark pending attendance for session " + s.getSessionId());
+                    //     }
+                    // }
                 }
             }
 
@@ -284,19 +296,19 @@ public class SessionController {
             if (statusChanged) {
                 sessions = ss.getAllSessions();
             }
-            
+
             // Sort sessions by sessionId in ascending order
-            sessions.sort(Comparator.comparing(Session::getSessionId));  
-            
+            sessions.sort(Comparator.comparing(Session::getSessionId));
+
             sessionList.setAll(sessions);
             sessionTable.setItems(sessionList);
-            
+
             // Clear selection map and repopulate
             selectionMap.clear();
             for (Session session : sessions) {
                 selectionMap.put(session.getSessionId(), new SimpleBooleanProperty(false));
             }
-            
+
             showInfo("Loaded " + sessions.size() + " sessions");
             updateButtonStates();
         } catch (Exception e) {
@@ -326,7 +338,7 @@ public class SessionController {
     private void updateButtonStates() {
         List<Session> selectedSessions = getSelectedSessions();
         boolean hasSelection = !selectedSessions.isEmpty();
-        
+
         // Update delete button state
         if (deleteButton != null) {
             if (!hasSelection) {
@@ -340,7 +352,7 @@ public class SessionController {
                 deleteButton.setTooltip(null);
             }
         }
-        
+
         // Update start button state
         if (startButton != null) {
             if (!hasSelection) {
@@ -354,7 +366,7 @@ public class SessionController {
                 startButton.setTooltip(null);
             }
         }
-        
+
         // Update stop button state
         if (stopButton != null) {
             if (!hasSelection) {
@@ -368,7 +380,7 @@ public class SessionController {
                 stopButton.setTooltip(null);
             }
         }
-        
+
         // Update select all checkbox state
         if (selectAllCheckBox != null) {
             selectAllCheckBox.setSelected(hasSelection && selectedSessions.size() == sessionList.size());
@@ -488,16 +500,16 @@ public class SessionController {
         }
 
         // Check if all sessions are selected and none are open
-        boolean shouldDeleteAll = selectedSessions.size() == sessionList.size() && 
-                                selectedSessions.stream().noneMatch(s -> "Open".equals(s.getStatus()));
+        boolean shouldDeleteAll = selectedSessions.size() == sessionList.size()
+                && selectedSessions.stream().noneMatch(s -> "Open".equals(s.getStatus()));
 
         if (shouldDeleteAll) {
             // Use deleteAll when all sessions are selected
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirm Delete All");
             alert.setHeaderText("Delete ALL Sessions");
-            alert.setContentText("WARNING: This will permanently delete ALL " + sessionList.size() + " sessions!\n\n" +
-                    "This action cannot be undone. Are you absolutely sure?");
+            alert.setContentText("WARNING: This will permanently delete ALL " + sessionList.size() + " sessions!\n\n"
+                    + "This action cannot be undone. Are you absolutely sure?");
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -523,12 +535,12 @@ public class SessionController {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirm Delete");
             alert.setHeaderText("Delete " + selectedSessions.size() + " Session(s)");
-            
+
             String sessionIds = selectedSessions.stream()
                     .map(Session::getSessionId)
                     .map(String::valueOf)
                     .collect(Collectors.joining(", "));
-            
+
             alert.setContentText("Are you sure you want to delete the selected session(s)?\n" + sessionIds);
 
             // Use deleteSession when some sessions are selected
@@ -540,7 +552,7 @@ public class SessionController {
                         ss.deleteSession(session.getSessionId());
                         successCount++;
                     }
-                    
+
                     loadSessionsFromDatabase();
                     showSuccess("Successfully deleted " + successCount + " session(s).");
                 } catch (Exception e) {
