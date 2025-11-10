@@ -129,7 +129,8 @@ public class RecognitionController {
                 // Update UI
                 Platform.runLater(() -> {
                     this.startButton.setText("Stop Recognition");
-                    this.startButton.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
+                    this.startButton.setStyle(
+                            "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
                     cameraStatusLabel.setText("Camera: Connected");
                     statusLabel.setText("Status: Recognition Active");
                     if (stopButton != null) {
@@ -146,7 +147,8 @@ public class RecognitionController {
         } else {
             this.cameraActive = false;
             this.startButton.setText("Start Recognition");
-            this.startButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
+            this.startButton.setStyle(
+                    "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
             this.statusLabel.setText("Status: Stopped");
 
             // Stop frame grabbing and release camera
@@ -329,7 +331,10 @@ public class RecognitionController {
 
         final int uniqueCount = recognizedStudentIds.size();
 
-        // TODO: Add the actual attendance marking 
+        // TODO: Add the actual attendance marking
+
+        // craft the object needed to pass to felicia
+        
 
         // Update UI
         Platform.runLater(() -> {
@@ -354,7 +359,8 @@ public class RecognitionController {
     }
 
     private void logUnkownFace(double confidence) {
-        // System.out.println("Low confidence face detected. Looks like: " + student.getName());
+        // System.out.println("Low confidence face detected. Looks like: " +
+        // student.getName());
         System.out.println("Only have this much confidence: " + confidence);
 
         totalDetections++;
@@ -376,7 +382,7 @@ public class RecognitionController {
     // Update FPS display
     private void updateFPS() {
         long currentTime = System.currentTimeMillis();
-        
+
         if (lastFrameTime > 0) {
             long frameDuration = currentTime - lastFrameTime;
             if (frameDuration > 0) {
@@ -389,18 +395,31 @@ public class RecognitionController {
                 });
             }
         }
-        
+
         lastFrameTime = currentTime;
     }
 
     // load enrolled students from session (if any)
     private void loadSessionStudentsAsync() {
         System.out.println("Start loading session students asynchronously");
-
         new Thread(() -> {
-          try {
+            try {
+                // Check if there's an active session
+                if (!ApplicationContext.getAuthSession().hasActiveSession()) {
+                    System.out.println("No active session");
+                    Platform.runLater(() -> {
+                        modelStatusLabel.setText("Model: No Active Session");
+                        statusLabel.setText("Status: Please start a session first");
+                    });
+                    return;
+                }
+
+                // Get the active session ID
+                Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
+                System.out.println("Active session ID: " + sessionId);
+
                 // Load students from database
-                int studentCount = faceRecognitionService.loadEnrolledStudentsByCourse("CS102"); // TODO: dynamic course code
+                int studentCount = faceRecognitionService.loadEnrolledStudentsByCourse(sessionId); 
 
                 // Update UI on JavaFX thread
                 Platform.runLater(() -> {
@@ -408,7 +427,7 @@ public class RecognitionController {
                         studentsLoaded = true;
                         modelStatusLabel.setText("Model: Loaded (" + studentCount + " students)");
                         statusLabel.setText("Status: Ready");
-                        
+
                         if (startButton != null) {
                             startButton.setDisable(false);
                         }
@@ -417,7 +436,7 @@ public class RecognitionController {
                     } else {
                         modelStatusLabel.setText("Model: No Students Found");
                         statusLabel.setText("Status: No enrolled students");
-                        
+
                         System.out.println("No enrolled students found in database");
                     }
                 });

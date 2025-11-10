@@ -82,11 +82,11 @@ public class FaceRecognitionService {
   }
 
   // ----- Student Session Management ------
-  public int loadEnrolledStudentsByCourse(String courseCode) throws SQLException {
-    System.out.println("Loading enrolled students for course: " + courseCode);
+  public int loadEnrolledStudentsByCourse(Integer sessionId) throws SQLException {
+    System.out.println("Loading enrolled students in sessionId: " + sessionId);
 
     // Fetch students from repository
-    List<Student> students = studentRepository.fetchEnrolledStudentsByCourse(courseCode);
+    List<Student> students = studentRepository.fetchEnrolledStudentsByCourse(sessionId);
 
     // Update internal list
     if (students == null) {
@@ -95,7 +95,7 @@ public class FaceRecognitionService {
       this.enrolledStudents = students;
     }
 
-    System.out.println("Loaded " + students.size() + " students for course " + courseCode);
+    System.out.println("Loaded " + students.size() + " students from sessionId " + sessionId);
     return students.size();
   }
 
