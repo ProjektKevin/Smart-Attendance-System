@@ -105,14 +105,8 @@ public class HistogramRecognizer extends Recognizer {
         // Convert correlation score to percentage (correlation is -1 to 1)
         double confidence = (bestScore + 1.0) * 50.0;
 
-        if (confidence >= getConfidenceThreshold()) {
-          System.out.println("Recognized: " + bestMatch.getName() +
-              " (confidence: " + String.format("%.2f%%", confidence) + ")");
-          return new RecognitionResult(bestMatch, confidence);
-        } else {
-          System.out.println("Best match below threshold: " + bestMatch.getName() +
-              " (confidence: " + String.format("%.2f%%", confidence) + ")");
-        }
+        System.out.println("Best match: " + bestMatch.getName());
+        return new RecognitionResult(bestMatch, confidence);
       }
 
       return new RecognitionResult();

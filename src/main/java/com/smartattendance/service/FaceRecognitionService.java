@@ -82,7 +82,7 @@ public class FaceRecognitionService {
   }
 
   // ----- Student Session Management ------
-  public int loadEnrolledStudentsByCourse(Integer sessionId) throws SQLException {
+  public int loadEnrolledStudentsBySessionId(Integer sessionId) throws SQLException {
     System.out.println("Loading enrolled students in sessionId: " + sessionId);
 
     // Fetch students from repository

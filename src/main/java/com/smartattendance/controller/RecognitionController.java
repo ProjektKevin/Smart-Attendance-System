@@ -24,7 +24,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.recognition.RecognitionResult;
@@ -60,8 +64,8 @@ public class RecognitionController {
     @FXML
     private ListView<String> recognitionListView;
     // =======================================================================
-    private final FaceDetectionService faceDetectionService = ApplicationContext.getFaceDetectionService();
-    private final FaceRecognitionService faceRecognitionService = ApplicationContext.getFaceRecognitionService();
+    private FaceDetectionService faceDetectionService;
+    private FaceRecognitionService faceRecognitionService;
 
     // OpenCV objects
     private VideoCapture capture = new VideoCapture();
@@ -85,10 +89,16 @@ public class RecognitionController {
     // Loading state
     private boolean studentsLoaded = false;
 
+    private static final double UNKNOWN_THRESHOLD = 30.0;
+
     // =======================================================================
     @FXML
     public void initialize() {
-        statusLabel.setText("Status: Ready");
+        // Get services from ApplicationContext
+        faceDetectionService = ApplicationContext.getFaceDetectionService();
+        faceRecognitionService = ApplicationContext.getFaceRecognitionService();
+
+        statusLabel.setText("Status: Loading...");
         cameraStatusLabel.setText("Camera: Disconnected");
         modelStatusLabel.setText("Model: Not Loaded");
 
@@ -219,10 +229,10 @@ public class RecognitionController {
                         List<RecognitionResult> results = faceRecognitionService.recognizeFaces(faceROIs);
 
                         // Step 4: Process results
-                        String[] recognizedNames = processRecognitionResults(results);
+                        processRecognitionResults(results);
 
                         // Step 5: Draw rectangles and labels
-                        faceDetectionService.drawFaceRectanglesWithLabels(frame, faces, recognizedNames);
+                        faceDetectionService.drawFaceRectanglesWithLabels(frame, faces, results);
 
                         // Step 6: Update UI
                         final int faceCount = facesArray.length;
@@ -266,19 +276,15 @@ public class RecognitionController {
         OpenCVUtils.onFXThread(view.imageProperty(), image);
     }
 
-    private String[] processRecognitionResults(List<RecognitionResult> results) {
-        String[] names = new String[results.size()];
+    private void processRecognitionResults(List<RecognitionResult> results) {
         long currentTime = System.currentTimeMillis();
 
         for (int i = 0; i < results.size(); i++) {
             RecognitionResult result = results.get(i);
-            double confidence = 0.0;
 
             if (result.isMatch()) {
                 Student student = result.getMatchedStudent();
-                confidence = result.getConfidenceScore();
-
-                names[i] = student.getName();
+                double confidence = result.getConfidenceScore();
 
                 // Update current recognition display
                 final String studentName = student.getName();
@@ -291,31 +297,39 @@ public class RecognitionController {
 
                 // Log attendance if cooldown period has passed
                 if (currentTime - lastRecognitionTime > RECOGNITION_COOLDOWN_MS) {
-                    logAttendance(student, confidence);
+                    // Handle based on confidence
+                    if (confidence >= UNKNOWN_THRESHOLD) {
+                        // Recognized face (confidence >= 30%)
+                        logAttendance(student, confidence);
+                    } else {
+                        // Unknown face (confidence < 30%)
+                        logUnknownFace(confidence);
+                    }
+
                     lastRecognitionTime = currentTime;
                 }
 
-            } else {
-                names[i] = "Unknown";
-
-                Platform.runLater(() -> {
-                    currentStudentLabel.setText("Current: Unknown");
-                    confidenceLabel.setText("Confidence: N/A");
-                });
-
-                // Log unkown if cooldown period has passed
-                if (currentTime - lastRecognitionTime > RECOGNITION_COOLDOWN_MS) {
-                    logUnkownFace(confidence);
-                    lastRecognitionTime = currentTime;
-                }
             }
         }
 
-        return names;
     }
 
     // Show attendance log in the UI
     private void logAttendance(Student student, double confidence) {
+        // Check if there's an active session
+        Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
+        if (sessionId == null) {
+            System.out.println("No active session - cannot mark attendance");
+            return;
+        }
+
+        // Get full session object
+        Session session = ApplicationContext.getSessionService().findById(sessionId);
+        if (session == null) {
+            System.out.println("Session not found - cannot mark attendance");
+            return;
+        }
+
         int studentId = student.getStudentId();
         String studentName = student.getName();
 
@@ -331,10 +345,22 @@ public class RecognitionController {
 
         final int uniqueCount = recognizedStudentIds.size();
 
-        // TODO: Add the actual attendance marking
+        try {
+            AttendanceRecord record = new AttendanceRecord(
+                    student,
+                    session,
+                    AttendanceStatus.PRESENT, // For now, always mark as PRESENT
+                    confidence,
+                    MarkMethod.AUTO,
+                    LocalDateTime.now());
 
-        // craft the object needed to pass to felicia
-        
+            // Pass to attendance service
+            ApplicationContext.getAttendanceService().markAttendance(record);
+
+            System.out.println("Attendance record created for: " + studentName);
+        } catch (Exception e) {
+            System.err.println("Error creating attendance record: " + e.getMessage());
+        }
 
         // Update UI
         Platform.runLater(() -> {
@@ -358,22 +384,23 @@ public class RecognitionController {
         }
     }
 
-    private void logUnkownFace(double confidence) {
-        // System.out.println("Low confidence face detected. Looks like: " +
-        // student.getName());
-        System.out.println("Only have this much confidence: " + confidence);
+    private void logUnknownFace(double confidence) {
+        System.out.println("Unknown face detected with confidence: " + confidence);
 
         totalDetections++;
 
         String timestamp = LocalDateTime.now().format(timeFormatter);
-        String logEntry = String.format("[%s] Unknown Face Detected!", timestamp);
+        String logEntry = String.format("[%s] Unknown Face Detected! (%.1f%%)", timestamp, confidence);
 
         Platform.runLater(() -> {
-            recognitionListView.getItems().add(0, logEntry);
+            currentStudentLabel.setText("Current: Unknown");
+        confidenceLabel.setText(String.format("Confidence: %.1f%%", confidence));
 
-            if (recognitionListView.getItems().size() > 50) {
-                recognitionListView.getItems().remove(50);
-            }
+        recognitionListView.getItems().add(0, logEntry);
+
+        if (recognitionListView.getItems().size() > 50) {
+            recognitionListView.getItems().remove(50);
+        }
         });
 
         System.out.println("UNKNOWN FACE: " + logEntry);
@@ -418,8 +445,19 @@ public class RecognitionController {
                 Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
                 System.out.println("Active session ID: " + sessionId);
 
+                // Get full session object from DB
+                Session activeSession = ApplicationContext.getSessionService().findById(sessionId);
+                if (activeSession == null) {
+                    System.out.println("Session not found in database");
+                    Platform.runLater(() -> {
+                        modelStatusLabel.setText("Model: Session Not Found");
+                        statusLabel.setText("Status: Invalid session");
+                    });
+                    return;
+                }
+
                 // Load students from database
-                int studentCount = faceRecognitionService.loadEnrolledStudentsByCourse(sessionId); 
+                int studentCount = faceRecognitionService.loadEnrolledStudentsBySessionId(sessionId);
 
                 // Update UI on JavaFX thread
                 Platform.runLater(() -> {

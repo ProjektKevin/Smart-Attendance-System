@@ -57,7 +57,6 @@ public class RecognitionService {
             //         15,
             //         "Open"
             // );
-
             // Session sess = new Session(
             //         9,
             //         "CS102",
@@ -68,7 +67,6 @@ public class RecognitionService {
             //         15,
             //         "Open"
             // );
-
             // Session sess = new Session(
             //         14,
             //         "CS102",
@@ -79,7 +77,6 @@ public class RecognitionService {
             //         15,
             //         "Open"
             // );
-
             // Session sess = new Session(
             //         6,
             //         "CS102",
@@ -90,7 +87,6 @@ public class RecognitionService {
             //         15,
             //         "Open"
             // );
-
             // Session sess = new Session(
             //         7,
             //         "CS102",
@@ -101,7 +97,6 @@ public class RecognitionService {
             //         15,
             //         "Open"
             // );
-
             // Session sess = new Session(
             //         9,
             //         "CS102",
