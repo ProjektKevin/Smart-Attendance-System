@@ -17,6 +17,7 @@ import com.smartattendance.model.enums.Role;
 import com.smartattendance.service.UserService;
 import com.smartattendance.service.ProfileService;
 import com.smartattendance.service.CourseService;
+import com.smartattendance.util.security.log.ApplicationLogger;
 import com.smartattendance.util.validation.ProfileValidator;
 import com.smartattendance.util.validation.ValidationResult;
 
@@ -106,6 +107,7 @@ public class ProfileController {
     private final ProfileService profileService = ApplicationContext.getProfileService();
     private final CourseService courseService = ApplicationContext.getCourseService();
     private final AuthSession session = ApplicationContext.getAuthSession();
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     // ====== State ======
     private User currentUser;
@@ -141,13 +143,34 @@ public class ProfileController {
      */
     private void loadProfile() {
         try {
-            // Show profile details UI
-            showProfileState();
-            displayProfileDetails();
+            userProfile = userService.getUserProfileDTO(currentUser.getId());
+
+            if (userProfile == null) {
+                // If no profile, allow the user to set the profile
+                showNoProfileState();
+
+                /*
+                 * The enrolled courses are set by the admin. Users cannot edit or delete them
+                 * In case user deleted profile, show the enrolled courses too
+                 */
+                if (currentUser.getRole() == Role.STUDENT) {
+                    loadEnrolledCourses();
+                }
+            } else {
+                // Show profile details UI
+                showProfileState();
+                displayProfileDetails();
+                /*
+                 * The enrolled courses are set by the admin. Users cannot edit or delete them
+                 * In case user deleted profile, show the enrolled courses too
+                 */
+                if (currentUser.getRole() == Role.STUDENT) {
+                    loadEnrolledCourses();
+                }
+            }
 
         } catch (Exception e) {
-            // chore(), Harry: Change back to logger with a different log level
-            System.out.println("Error loading profile: " + e.getMessage());
+            appLogger.error("Error loading profile: " + e);
             showError("Failed to load profile: ");
         }
     }
@@ -157,8 +180,21 @@ public class ProfileController {
      * Shows profile details and action buttons.
      */
     private void showProfileState() {
+        noProfileContainer.setVisible(false);
+        noProfileContainer.setManaged(false);
         profileContainer.setVisible(true);
         profileContainer.setManaged(true);
+    }
+
+    /**
+     * Display the "profile creation" state.
+     * Shows interface to create profile.
+     */
+    private void showNoProfileState() {
+        noProfileContainer.setVisible(true);
+        noProfileContainer.setManaged(true);
+        profileContainer.setVisible(false);
+        profileContainer.setManaged(false);
     }
 
     /**
@@ -166,7 +202,6 @@ public class ProfileController {
      */
     private void displayProfileDetails() {
         try {
-            userProfile = userService.getUserProfileDTO(currentUser.getId());
             firstNameField.setText(userProfile.getFirstName() != null
                     ? userProfile.getFirstName()
                     : "");
@@ -176,14 +211,12 @@ public class ProfileController {
             phoneField.setText(userProfile.getPhoneNo() != null
                     ? userProfile.getPhoneNo()
                     : "");
-            emailField.setText(userProfile.getEmail() != null
-                    ? userProfile.getEmail()
+            emailField.setText(currentUser.getEmail() != null
+                    ? currentUser.getEmail()
                     : "");
-
-            if (currentUser.getRole() == Role.STUDENT) {
-                loadEnrolledCourses();
-            }
         } catch (Exception e) {
+            appLogger.error("Error Displaying Profile Form Fields: ", e);
+            showError("Error Displaying Profile Form Fields: " + e.getMessage());
         }
     }
 
@@ -238,8 +271,8 @@ public class ProfileController {
                 noCourseLabel.setManaged(true);
             }
         } catch (Exception e) {
-            System.out.println("Error loading enrolled courses: " + e.getMessage());
-            e.printStackTrace();
+            appLogger.error("Error Loading Enrolled Courses: ", e);
+            showError("Error Loading Enrolled Courses: " + e.getMessage());
         }
     }
 
@@ -256,7 +289,8 @@ public class ProfileController {
             enterEditMode();
             showStatus("Enter your profile details");
         } catch (Exception e) {
-            showError("Failed to create profile: " + e.getMessage());
+            appLogger.error("Failed to Create Profile: ", e);
+            showError("Failed to Create Profile: " + e.getMessage());
         }
     }
 
@@ -284,6 +318,12 @@ public class ProfileController {
         firstNameField.setEditable(true);
         lastNameField.setEditable(true);
         phoneField.setEditable(true);
+        emailField.setEditable(false);
+
+        // Email cannot be deleted
+        emailField.setText(currentUser.getEmail() != null
+                ? currentUser.getEmail()
+                : "");
 
         // Toggle button visibility
         editButton.setVisible(false);
@@ -326,7 +366,6 @@ public class ProfileController {
             // Save to database
             if (userProfile == null) {
                 // New profile - insert
-                // chore(), Harry: Add logger and info dialog if unsuccessful
                 profileService.createUserProfile(
                         firstName.trim(),
                         lastName.trim(),
@@ -346,6 +385,7 @@ public class ProfileController {
             exitEditMode();
             showStatus("Profile saved successfully");
         } catch (Exception e) {
+            appLogger.error("Error Saving Profile: ", e);
             showError("Failed to save profile: " + e.getMessage());
         }
     }

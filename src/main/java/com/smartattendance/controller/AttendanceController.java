@@ -21,6 +21,7 @@ import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.ManualAttendanceMarker;
 import com.smartattendance.service.StudentService;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -50,6 +51,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class AttendanceController implements AttendanceObserver {
 
@@ -57,6 +59,8 @@ public class AttendanceController implements AttendanceObserver {
     private Label attendanceInfo;
     @FXML
     private Label lblSessionTitle;
+    @FXML
+    private Label lblAttendanceSummary;
     @FXML
     private Button createButton;
     @FXML
@@ -152,6 +156,11 @@ public class AttendanceController implements AttendanceObserver {
                         + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
         }
+
+        // Auto-clear after 3 seconds
+        // PauseTransition pause = new PauseTransition(Duration.seconds(3));
+        // pause.setOnFinished(e -> attendanceInfo.setText(""));
+        // pause.play();
     }
 
     public void setBackHandler(Runnable backHandler) {
@@ -556,6 +565,7 @@ public class AttendanceController implements AttendanceObserver {
             List<AttendanceRecord> records = service.findBySessionId(currentSession.getSessionId());
             attendanceList.setAll(records);
             attendanceTable.setItems(attendanceList);
+            updateAttendanceSummary();
             initSelectionMap();
             updateButtonStates();
 
@@ -569,6 +579,25 @@ public class AttendanceController implements AttendanceObserver {
             }
         }
     }
+
+    private void updateAttendanceSummary() {
+        if (attendanceTable.getItems() == null) {
+            return;
+        }
+
+        long total = attendanceTable.getItems().size();
+        long present = attendanceTable.getItems().stream()
+                .filter(r -> r.getStatus() == AttendanceStatus.PRESENT)
+                .count();
+        long late = attendanceTable.getItems().stream()
+                .filter(r -> r.getStatus() == AttendanceStatus.LATE)
+                .count();
+
+        lblAttendanceSummary.setText(
+                String.format("Present: %d | Late: %d | Total: %d", present, late, total)
+        );
+    }
+
 
     @FXML
     private void onCreateRecord() {
@@ -620,7 +649,7 @@ public class AttendanceController implements AttendanceObserver {
             AttendanceRecord newRecord = formController.getNewRecord();
             if (newRecord != null) {
                 loadAttendanceRecords();
-                showSuccess("Added record successfully.");
+                showSuccess("Added record for student " + newRecord.getStudent().getStudentId() + " - " + newRecord.getStudent().getName() + " successfully.");
             }
 
         } catch (Exception e) {

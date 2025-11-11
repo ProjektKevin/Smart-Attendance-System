@@ -1,35 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<VBox xmlns:fx="http://javafx.com/fxml" spacing="10" style="-fx-padding: 10;"
-      fx:controller="com.smartattendance.controller.ReportController">
 
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="From"/>
-        <DatePicker fx:id="fromDate"/>
-        <Label text="To"/>
-        <DatePicker fx:id="toDate"/>
-    </HBox>
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.smartattendance.controller.ReportController"
+      spacing="10"
+      style="-fx-padding: 10;">
 
-    <HBox spacing="10">
-        <Button text="Export CSV" onAction="#onExportCSV"/>
-        <Button text="Export PDF" onAction="#onExportPDF"/>
-        <Separator orientation="VERTICAL"/>
-        <Button text="Import Students CSV" onAction="#onImportStudentsCSV"/>
-        <Button text="Import Attendance CSV" onAction="#onImportAttendanceCSV"/>
-    </HBox>
+    <!-- Filters -->
+    <TitledPane text="Filters" expanded="true">
+        <VBox spacing="10" style="-fx-padding: 6 0 0 0;">
+            <!-- row 1 -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="From"/>
+                <DatePicker fx:id="fromDate"/>
+                <Label text="To"/>
+                <DatePicker fx:id="toDate"/>
 
-    <Separator/>
+                <!-- buttons for quick actions -->
+                <Button text="Latest Session" onAction="#onLatestSession"/>
+                <Button text="Reset filters" onAction="#onResetFilters"/>
+            </HBox>
+
+            <!-- row 2 -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Session:"/>
+                <ComboBox fx:id="sessionFilter" prefWidth="180"/>
+
+                <Label text="Course:"/>
+                <ComboBox fx:id="courseFilter" prefWidth="160"/>
+
+                <Label text="Status:"/>
+                <ComboBox fx:id="statusFilter" prefWidth="120"/>
+
+                <Label text="Method:"/>
+                <ComboBox fx:id="methodFilter" prefWidth="120"/>
+
+                <Label text="Confidence:"/>
+                <ComboBox fx:id="confidenceFilter" prefWidth="120"/>
+            </HBox>
+
+            <!-- row 3: export -->
+            <HBox spacing="10">
+                <Button text="Export CSV" onAction="#onExportCSV"/>
+                <Button text="Export Excel" onAction="#onExportExcel"/>
+                <Button text="Export PDF" onAction="#onExportPDF"/>
+            </HBox>
+        </VBox>
+    </TitledPane>
+
+    <!-- Report fields -->
+    <TitledPane text="Report Fields" expanded="true">
+        <VBox spacing="6" style="-fx-padding: 6 0 0 0;">
+            <CheckBox fx:id="selectAllFieldsCheck" text="Select all fields"/>
+            <HBox spacing="12">
+                <VBox spacing="4">
+                    <CheckBox fx:id="includeDateTimeCheck" text="Date/Time" selected="true"/>
+                    <CheckBox fx:id="includeSessionIdCheck" text="Session ID" selected="true"/>
+                    <CheckBox fx:id="includeCourseCodeCheck" text="Course" selected="true"/>
+                </VBox>
+                <VBox spacing="4">
+                    <CheckBox fx:id="includeStudentIdCheck" text="Student ID" selected="true"/>
+                    <CheckBox fx:id="includeStudentNameCheck" text="Student Name" selected="true"/>
+                    <CheckBox fx:id="includeStatusCheck" text="Status" selected="true"/>
+                </VBox>
+                <VBox spacing="4">
+                    <CheckBox fx:id="includeMethodCheck" text="Method" selected="true"/>
+                    <CheckBox fx:id="includeConfidenceCheck" text="Confidence" selected="true"/>
+                    <CheckBox fx:id="includeNoteCheck" text="Notes" selected="true"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </TitledPane>
 
     <!-- Email section -->
-    <Label text="Email Report" style="-fx-font-weight: bold;"/>
-    <HBox spacing="8">
-        <TextField fx:id="emailTo" promptText="recipient@example.com" prefWidth="280"/>
-        <TextField fx:id="emailSubject" promptText="Subject (e.g. Attendance Report) " prefWidth="320"/>
-        <Button text="Send PDF via Email" onAction="#onEmailPdf"/>
-        <Button text="Send CSV via Email" onAction="#onEmailCsv"/>
-    </HBox>
-    <TextArea fx:id="emailBody" promptText="Optional message…" prefRowCount="3"/>
+    <TitledPane text="Email Report" expanded="true">
+        <VBox spacing="8" style="-fx-padding: 6 0 0 0;">
+            <HBox spacing="8">
+                <TextField fx:id="emailTo" promptText="recipient@example.com" prefWidth="280"/>
+                <TextField fx:id="emailSubject" promptText="Subject (e.g. Attendance Report)" prefWidth="320"/>
+                <Button text="Send PDF via Email" onAction="#onEmailPdf"/>
+                <Button text="Send CSV via Email" onAction="#onEmailCsv"/>
+                <Button text="Send Excel via Email" onAction="#onEmailExcel"/>
+            </HBox>
+            <TextArea fx:id="emailBody"
+                      promptText="Optional message…"
+                      prefRowCount="5"
+                      prefHeight="140"
+                      minHeight="120" />
+        </VBox>
+    </TitledPane>
 
-    <Label fx:id="reportStatus" style="-fx-text-fill: #555;"/>
+    <!-- STATUS BAR -->
+    <HBox fx:id="statusBar"
+          style="-fx-background-color: #eef6ff; -fx-padding: 8 12; -fx-background-radius: 6;">
+        <Label fx:id="reportStatus"
+               style="-fx-font-weight: bold; -fx-text-fill: #135ca6;"
+               text="Select a range and export/import."/>
+    </HBox>
+
 </VBox>

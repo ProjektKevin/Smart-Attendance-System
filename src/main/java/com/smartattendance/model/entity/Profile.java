@@ -7,9 +7,6 @@ public class Profile extends AbstractEntity {
     private String lastName;
     private String phoneNo;
 
-    // Address (Optional)
-    // chore(), Harry: make a separate class if got time later on.
-
     /**
      * Custom constructor which sets student profile
      * 

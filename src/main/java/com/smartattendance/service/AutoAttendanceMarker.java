@@ -69,7 +69,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
         // if (confidence < confidenceThreshold) {
         //     continue;
         // }
-        System.out.println("run until here 4"); // for testing
+        // System.out.println("run until here 4"); // for testing
 
         try {
             // face recognition will only predict faces based on the roster, so no need to check again
@@ -91,7 +91,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             // long diffInMinutes = Duration.between(record.getTimestamp(), session.getStartTime()).toMinutes();
             LocalDateTime now = record.getTimestamp();
 
-            System.out.println("run until here 5"); // for testing
+            // System.out.println("run until here 5"); // for testing
 
             // First time marking
             // if the student is not marked as present before (still in default PENDING status), update the student attendance
@@ -109,7 +109,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 record.setMethod(MarkMethod.AUTO);
                 record.setNote("Auto-marked via face recognition");
 
-                System.out.println("run until here 7"); // for testing
+                // System.out.println("run until here 7"); // for testing
 
                 // if (diffInMinutes > record.getSession().getLateThresholdMinutes()) {
                 //     record.setStatus(AttendanceStatus.LATE);

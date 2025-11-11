@@ -6,6 +6,7 @@ import com.smartattendance.model.dto.student.StudentProfileDTO;
 import com.smartattendance.model.dto.user.UserListDTO;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.service.UserService;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import java.util.List;
 
@@ -39,8 +40,9 @@ public class StudentListController {
     @FXML
     private TextField searchField;
 
-    private UserService userService = ApplicationContext.getUserService();
-    private AuthService authService = ApplicationContext.getAuthService();
+    private final UserService userService = ApplicationContext.getUserService();
+    private final AuthService authService = ApplicationContext.getAuthService();
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     // Store all students for searching
     private List<UserListDTO> allStudents;
@@ -130,17 +132,45 @@ public class StudentListController {
                 });
     }
 
+    /*
+     * Handler to view user details: first, last name, email, role, email
+     * verification, courses..etc
+     * Restricted if the user has yet to registered
+     */
     private void onViewProfile(UserListDTO studentDto) {
         // Fetch full student profile data for the dialog
         StudentProfileDTO profileDto = userService.getStudentProfileDTO(studentDto.getId());
+
+        // Add Error Handling if profile is null
+        if (profileDto == null) {
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "User Has No Profile",
+                    "Invalid User Profile", "User Has Yet to Register Profile.");
+            return;
+        }
 
         // Open student profile dialog with DTO
         StudentProfileDialog profileDialog = new StudentProfileDialog(profileDto);
         profileDialog.show();
     }
 
+    /*
+     * Handler to enroll students into respective courses
+     * Load existing enrolled courses if any
+     * Max allowed courses to take is 4
+     * Admin should not enroll users unless they are registered or verified
+     */
     private void onEnrollCourse(UserListDTO studentDto) {
         try {
+            // Fetch full student profile data for the dialog
+            StudentProfileDTO profileDto = userService.getStudentProfileDTO(studentDto.getId());
+
+            // Add Error Handling if profile is null
+            if (profileDto == null) {
+                setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "User Has No Profile",
+                        "Invalid User Profile", "User Has Yet to Register Profile.");
+                return;
+            }
+
             // Open Enroll Course dialog
             EnrollCourseDialog dialog = new EnrollCourseDialog(studentDto);
             dialog.show();
@@ -157,13 +187,9 @@ public class StudentListController {
 
             // Check if there are no courses selected
             if (newCourseIds.isEmpty()) {
-                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                        javafx.scene.control.Alert.AlertType.WARNING);
-                alert.setTitle("No Courses Selected");
-                alert.setHeaderText("Please select at least one course");
-                alert.setContentText("You must select at least one course to enroll.");
-                alert.showAndWait();
-                return;
+                // Call UI Warning Dialog
+                setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "No Courses Selected",
+                        "Please select at least one course", "You must select at least one course to enroll.");
             }
 
             // Execute deletions
@@ -188,21 +214,16 @@ public class StudentListController {
                 summary.append("No changes made.");
             }
 
-            javafx.scene.control.Alert successAlert = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.INFORMATION);
-            successAlert.setTitle("Success");
-            successAlert.setHeaderText("Enrollments Updated");
-            successAlert.setContentText(summary.toString() + "\nStudent is now enrolled in " + newCourseIds.size()
-                    + " course(s).");
-            successAlert.showAndWait();
+            // Summary of the enrolled courses
+            setInfoDialog(javafx.scene.control.Alert.AlertType.INFORMATION, "Enrollments Updated",
+                    "Please select at least one course",
+                    summary.toString() + "\nStudent is now enrolled in " + newCourseIds.size()
+                            + " course(s).");
 
         } catch (Exception e) {
-            javafx.scene.control.Alert errorAlert = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.ERROR);
-            errorAlert.setTitle("Error");
-            errorAlert.setHeaderText("Failed to manage enrollments");
-            errorAlert.setContentText(e.getMessage());
-            errorAlert.showAndWait();
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Error",
+                    "Failed to Manage Enrollments", e.getMessage());
+            return;
         }
     }
 
@@ -223,20 +244,13 @@ public class StudentListController {
                 Platform.runLater(this::loadStudents);
 
                 // Show success message
-                javafx.scene.control.Alert successAlert = new javafx.scene.control.Alert(
-                        javafx.scene.control.Alert.AlertType.INFORMATION);
-                successAlert.setTitle("Success");
-                successAlert.setHeaderText("Student Deleted");
-                successAlert.setContentText("Student has been successfully deleted.");
-                successAlert.showAndWait();
+                setInfoDialog(javafx.scene.control.Alert.AlertType.INFORMATION, "Success",
+                        "Student Deleted", "Student Deleted Successfully");
             }
         } catch (Exception e) {
-            javafx.scene.control.Alert errorAlert = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.ERROR);
-            errorAlert.setTitle("Error");
-            errorAlert.setHeaderText("Failed to delete student");
-            errorAlert.setContentText(e.getMessage());
-            errorAlert.showAndWait();
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Error",
+                    "Failed to Delete Student", e.getMessage());
+            return;
         }
     }
 
@@ -260,12 +274,8 @@ public class StudentListController {
 
             if (user != null) {
                 // User already exists - show error message
-                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                        javafx.scene.control.Alert.AlertType.WARNING);
-                alert.setTitle("User Already Exists");
-                alert.setHeaderText("Cannot Add Student");
-                alert.setContentText("A user with email '" + email + "' already exists.");
-                alert.showAndWait();
+                setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "User Already Exists",
+                        "Cannot Add Student", "A user with email '" + email + "' already exists.");
                 return;
             }
 
@@ -278,29 +288,19 @@ public class StudentListController {
 
             if (isUserAdded) {
                 // Success message
-                javafx.scene.control.Alert successAlert = new javafx.scene.control.Alert(
-                        javafx.scene.control.Alert.AlertType.INFORMATION);
-                successAlert.setTitle("Success");
-                successAlert.setHeaderText("Student Added");
-                successAlert.setContentText("User Added: " + email);
-                successAlert.showAndWait();
+                setInfoDialog(javafx.scene.control.Alert.AlertType.INFORMATION, "Success",
+                        "Student Added", "User Added: " + email);
             } else {
                 // Failure message - invitation returned false
-                javafx.scene.control.Alert failAlert = new javafx.scene.control.Alert(
-                        javafx.scene.control.Alert.AlertType.WARNING);
-                failAlert.setTitle("Failed");
-                failAlert.setHeaderText("Could Not Add Student");
-                failAlert.setContentText("Failed to create account for: " + email);
-                failAlert.showAndWait();
+                setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "Failed",
+                        "Could Not Add Student", "Failed to create account for: " + email);
+                return;
             }
 
         } catch (Exception e) {
-            javafx.scene.control.Alert errorAlert = new javafx.scene.control.Alert(
-                    javafx.scene.control.Alert.AlertType.ERROR);
-            errorAlert.setTitle("Error");
-            errorAlert.setHeaderText("Failed to add student");
-            errorAlert.setContentText(e.getMessage());
-            errorAlert.showAndWait();
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Error",
+                    "Failed to add student", e.getMessage());
+            return;
         }
     }
 
@@ -339,6 +339,16 @@ public class StudentListController {
         searchField.clear();
         ObservableList<UserListDTO> observableStudents = FXCollections.observableArrayList(allStudents);
         table.setItems(observableStudents);
+    }
+
+    public void setInfoDialog(javafx.scene.control.Alert.AlertType alertType, String title, String headerText,
+            String content) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(headerText);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
 }
