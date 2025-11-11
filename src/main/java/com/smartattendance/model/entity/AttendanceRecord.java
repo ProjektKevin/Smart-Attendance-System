@@ -17,51 +17,56 @@ import com.smartattendance.service.AutoAttendanceMarker;
 
 public class AttendanceRecord {
 
+    // these two make it easy to persist/auto-mark, but they also couple the entity
     private AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
     private AutoAttendanceMarker autoAttendanceMarker = new AutoAttendanceMarker();
+
     private final Student student;
     private final Session session;
-    // private final String status;
+
     private AttendanceStatus status;
     private LocalDateTime timestamp;
     private LocalDateTime lastSeen;
     private MarkMethod method;
-    // private final String method; 
     private double confidence;
-    // private final LocalDateTime timestamp; 
     private String note;
+
+    // for detecting changes
     private AttendanceStatus originalStatus;
     private String originalNote;
 
-    // public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, LocalDateTime timestamp, MarkMethod method) {
-    //     this.student = student;
-    //     this.session = session;
-    //     // this.status = AttendanceStatus.ABSENT;
-    //     this.status = status;
-    //     this.confidence = confidence;
-    //     this.timestamp = timestamp;
-    //     this.lastSeen = timestamp;
-    //     this.method = method;
-    //     this.note = "";
-    // }
-    // F_MA: modified by felicia handling marking attendance
-    // this constructor will be called by SessionService.createAttendanceRecordsForSession when session created
-    public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp) {
+    // -------------------------------------------------------------------------
+    // 1) constructor used when session is created (no last_seen yet)
+    // -------------------------------------------------------------------------
+    public AttendanceRecord(Student student,
+                            Session session,
+                            AttendanceStatus status,
+                            double confidence,
+                            MarkMethod method,
+                            LocalDateTime timestamp) {
         this.student = student;
         this.session = session;
-        // this.status = AttendanceStatus.ABSENT;
         this.status = status;
         this.confidence = confidence;
         this.timestamp = timestamp;
-        this.lastSeen = timestamp;
+        this.lastSeen = timestamp;   // default: lastSeen = first timestamp
         this.method = method;
         this.note = "";
     }
 
-    public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp, LocalDateTime last_seen) {
+    // -------------------------------------------------------------------------
+    // 2) constructor used by repository (with BOTH marked_at and last_seen)
+    //    THIS is the one your repository is calling.
+    // -------------------------------------------------------------------------
+    public AttendanceRecord(Student student,
+                            Session session,
+                            AttendanceStatus status,
+                            double confidence,
+                            MarkMethod method,
+                            LocalDateTime timestamp,
+                            LocalDateTime last_seen) {
         this.student = student;
         this.session = session;
-        // this.status = AttendanceStatus.ABSENT;
         this.status = status;
         this.confidence = confidence;
         this.timestamp = timestamp;
@@ -70,49 +75,21 @@ public class AttendanceRecord {
         this.note = "";
     }
 
-    // // F_MA: modified by felicia handling marking attendance
-    // public AttendanceRecord(Student student, Session session, AttendanceStatus status, double confidence, MarkMethod method, LocalDateTime timestamp, String note) {
-    //     this.student = student;
-    //     this.session = session;
-    //     // this.status = AttendanceStatus.ABSENT;
-    //     this.status = status;
-    //     this.confidence = 0.0;
-    //     this.timestamp = timestamp;
-    //     this.lastSeen = timestamp;
-    //     this.method = null;
-    //     this.note = note;
-    // }
     /**
-     * Marks attendance with all relevant info.
+     * Marks attendance via auto marker.
      */
-    // F_MA: modified by felicia handling marking attendance
     public void mark(List<AttendanceObserver> observers) throws Exception {
-        // this.status = status;
-        // this.timestamp = timestamp;
-        // this.lastSeen = timestamp;
-        // this.method = method;
-        // if (note != null) {
-        //     this.note = note;
-        // }
-
         try {
             System.out.println("run until here 3"); // for testing
             autoAttendanceMarker.markAttendance(observers, this);
         } catch (Exception e) {
             throw new Exception("Failed to save attendance record", e);
         }
-
     }
-    // public void mark(AttendanceStatus status, LocalDateTime timestamp, MarkMethod method, String notes) {
-    //     this.status = status;
-    //     this.timestamp = timestamp;
-    //     this.lastSeen = timestamp;
-    //     this.method = method;
-    //     if (note != null) {
-    //         this.note = note;
-    //     }
-    // }
 
+    // -------------------------------------------------------------------------
+    // getters / setters
+    // -------------------------------------------------------------------------
     public Student getStudent() {
         return student;
     }
@@ -131,22 +108,6 @@ public class AttendanceRecord {
 
     public LocalDateTime getTimestamp() {
         return timestamp;
-    }
-
-    public AttendanceStatus getOriginalStatus() {
-        return originalStatus;
-    }
-
-    public void setOriginalStatus(AttendanceStatus originalStatus) {
-        this.originalStatus = originalStatus;
-    }
-
-    public String getOriginalNote() {
-        return originalNote;
-    }
-
-    public void setOriginalNote(String originalNote) {
-        this.originalNote = originalNote;
     }
 
     public void setTimestamp(LocalDateTime timestamp) {
@@ -189,6 +150,22 @@ public class AttendanceRecord {
         return attendanceRecordRepo;
     }
 
+    public AttendanceStatus getOriginalStatus() {
+        return originalStatus;
+    }
+
+    public void setOriginalStatus(AttendanceStatus originalStatus) {
+        this.originalStatus = originalStatus;
+    }
+
+    public String getOriginalNote() {
+        return originalNote;
+    }
+
+    public void setOriginalNote(String originalNote) {
+        this.originalNote = originalNote;
+    }
+
     public boolean isStatusChanged() {
         return !Objects.equals(originalStatus, status);
     }
@@ -196,5 +173,4 @@ public class AttendanceRecord {
     public boolean isNoteChanged() {
         return !Objects.equals(originalNote, note);
     }
-
 }
