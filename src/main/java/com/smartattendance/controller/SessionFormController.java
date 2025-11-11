@@ -33,6 +33,23 @@ public class SessionFormController {
         for (Course course : service.getCourses()) {
             cmbCourse.getItems().add(course.getCode());
         }
+
+        // Set placeholder text for text fields
+        setupPlaceholders();
+    }
+
+    private void setupPlaceholders() {
+        // Set placeholder text for each text field
+        txtStart.setPromptText("HH:MM (e.g., 09:00)");
+        txtEnd.setPromptText("HH:MM (e.g., 13:00)");
+        txtLocation.setPromptText("e.g., Room 101, Lab A");
+        txtLate.setPromptText("Minutes (e.g., 15)");
+        
+        // Set prompt text for combo box
+        cmbCourse.setPromptText("Select a course...");
+        
+        // Set prompt text for date picker
+        datePicker.setPromptText("Select session date");
     }
 
     public Session getNewSession() {

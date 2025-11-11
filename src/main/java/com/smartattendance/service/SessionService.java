@@ -70,16 +70,11 @@ public class SessionService {
 
     // Update session status
     public void updateSessionStatus(Session s) {
-    repo.updateStatus(s.getSessionId(), s.getStatus());
+        // System.out.println("SessionService: updateSessionStatus called for session " + s.getSessionId() +
+        //         " with status: " + s.getStatus());
+        repo.updateStatus(s.getSessionId(), s.getStatus());
+        // System.out.println("SessionService: updateSessionStatus completed for session " + s.getSessionId());
     }
-
-    // // Update session status
-    // public void updateSessionStatus(Session s) {
-    //     System.out.println("SessionService: updateSessionStatus called for session " + s.getSessionId() +
-    //             " with status: " + s.getStatus());
-    //     repo.updateStatus(s.getSessionId(), s.getStatus());
-    //     System.out.println("SessionService: updateSessionStatus completed for session " + s.getSessionId());
-    // }
 
     // Create Attendance Record for each student enrolled under the session created
     // based on matching course
@@ -187,12 +182,12 @@ public class SessionService {
                 !hasSessionEnded(session) &&
                 !hasOtherAutoStartSession(session.getSessionId()) &&
                 !isSessionOpen();
-        System.out.println("SessionService: Session " + session.getSessionId() +
-                " can have auto-start: " + canHave +
-                " (Status: " + session.getStatus() +
-                ", Ended: " + hasSessionEnded(session) +
-                ", Other Auto-start: " + hasOtherAutoStartSession(session.getSessionId()) +
-                ", Open Session: " + isSessionOpen() + ")");
+        // System.out.println("SessionService: Session " + session.getSessionId() +
+        //         " can have auto-start: " + canHave +
+        //         " (Status: " + session.getStatus() +
+        //         ", Ended: " + hasSessionEnded(session) +
+        //         ", Other Auto-start: " + hasOtherAutoStartSession(session.getSessionId()) +
+        //         ", Open Session: " + isSessionOpen() + ")");
         return canHave;
     }
 
@@ -203,14 +198,14 @@ public class SessionService {
         // - Open sessions (can auto-stop when time reaches end)
         // - NOT allowed for Closed sessions
         boolean canHave = !"Closed".equals(session.getStatus());
-        System.out.println("SessionService: Session " + session.getSessionId() +
-                " can have auto-stop: " + canHave + " (Status: " + session.getStatus() + ")");
+        // System.out.println("SessionService: Session " + session.getSessionId() +
+        //         " can have auto-stop: " + canHave + " (Status: " + session.getStatus() + ")");
         return canHave;
     }
 
     // Get reason why auto-start is disabled (for logging)
     // public String getAutoStartDisabledReason(Session session) {
-    //     if ("Closed".equals(session.getStatus())) {
+    //     if ("Closed".equals(session.getStatus())) w{
     //         return "Auto Start not available for closed sessions";
     //     } else if ("Open".equals(session.getStatus())) {
     //         return "Auto Start not available for open sessions";
@@ -230,8 +225,8 @@ public class SessionService {
         LocalDateTime endDateTime = LocalDateTime.of(session.getSessionDate(), session.getEndTime());
 
         boolean hasEnded = now.isAfter(endDateTime) || now.equals(endDateTime);
-        System.out.println("SessionService: Checking if session " + session.getSessionId() + " has ended - Current: " +
-                now + ", End: " + endDateTime + " - " + (hasEnded ? "ENDED" : "NOT ENDED"));
+        // System.out.println("SessionService: Checking if session " + session.getSessionId() + " has ended - Current: " +
+        //         now + ", End: " + endDateTime + " - " + (hasEnded ? "ENDED" : "NOT ENDED"));
         return hasEnded;
     }
 
@@ -240,15 +235,15 @@ public class SessionService {
     // Helper methods for UI to check what the decorator rules allow
     public boolean canAutoStart(Session session) {
         boolean result = autoSessionRule.canAutoStart(session);
-        System.out.println("SessionService: canAutoStart for session " + session.getSessionId() +
-                " (status: " + session.getStatus() + ") = " + result);
+        // System.out.println("SessionService: canAutoStart for session " + session.getSessionId() +
+        //         " (status: " + session.getStatus() + ") = " + result);
         return result;
     }
 
     public boolean canAutoStop(Session session) {
         boolean result = autoSessionRule.canAutoStop(session);
-        System.out.println("SessionService: canAutoStop for session " + session.getSessionId() +
-                " (status: " + session.getStatus() + ") = " + result);
+        // System.out.println("SessionService: canAutoStop for session " + session.getSessionId() +
+        //         " (status: " + session.getStatus() + ") = " + result);
         return result;
     }
 
@@ -258,12 +253,12 @@ public class SessionService {
         System.out.println("SessionService: Processing auto sessions (background)");
         List<Session> sessions = getAllSessions();
 
-        System.out.println("SessionService: Using rule chain: " + autoSessionRule.getRuleDescription());
+        // System.out.println("SessionService: Using rule chain: " + autoSessionRule.getRuleDescription());
 
         for (Session session : sessions) {
-            System.out.println("SessionService: Checking session " + session.getSessionId() +
-                    " - autoStart: " + session.isAutoStart() + ", autoStop: " + session.isAutoStop() +
-                    ", status: " + session.getStatus());
+            // System.out.println("SessionService: Checking session " + session.getSessionId() +
+            //         " - autoStart: " + session.isAutoStart() + ", autoStop: " + session.isAutoStop() +
+            //         ", status: " + session.getStatus());
 
             // Auto start logic - ONLY for sessions with auto_start = TRUE
             if (session.isAutoStart() && autoSessionRule.canAutoStart(session)) {
@@ -279,13 +274,13 @@ public class SessionService {
                 updateSessionStatus(session);
             }
         }
-        System.out.println("SessionService: Finished processing auto sessions");
+        // System.out.println("SessionService: Finished processing auto sessions");
     }
 
     // Method to get rule description for debugging
     public String getAutoSessionRulesDescription() {
         String description = autoSessionRule.getRuleDescription();
-        System.out.println("SessionService: Current auto session rules: " + description);
+        // System.out.println("SessionService: Current auto session rules: " + description);
         return description;
     }
 }

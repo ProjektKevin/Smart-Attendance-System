@@ -140,7 +140,7 @@ public class SessionController {
 
         // Auto session processor - runs every 30 seconds
         Timeline autoSessionProcessor = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
-            System.out.println("SessionController: Auto-session processor triggered (30-second interval)");
+            // System.out.println("SessionController: Auto-session processor triggered (30-second interval)");
 
             // Uses decorator pattern rules
             ss.processAutoSessions();
@@ -564,7 +564,7 @@ public class SessionController {
     }
 
     private void setupAutoStartColumn() {
-        System.out.println("SessionController: Setting up Auto Start column");
+        // System.out.println("SessionController: Setting up Auto Start column");
         colAutoStart.setCellFactory(column -> new TableCell<Session, Boolean>() {
             private final ToggleButton toggleButton = new ToggleButton();
             private boolean initializing = true;
@@ -578,7 +578,7 @@ public class SessionController {
                         Session session = getTableView().getItems().get(getIndex());
                         if (session != null) {
                             boolean newAutoStart = toggleButton.isSelected();
-                            System.out.println("Auto Start button CLICKED for session " + session.getSessionId());
+                            // System.out.println("Auto Start button CLICKED for session " + session.getSessionId());
 
                             // Update the setting (no validation needed - button is disabled if not allowed)
                             session.setAutoStart(newAutoStart);
@@ -623,8 +623,8 @@ public class SessionController {
 
                     // If auto-start is enabled but no longer allowed, disable it
                     if (!canHaveAutoStart && session.isAutoStart()) {
-                        System.out.println(
-                                "SessionController: Auto-start was enabled but is no longer allowed - disabling");
+                        // System.out.println(
+                        //         "SessionController: Auto-start was enabled but is no longer allowed - disabling");
                         session.setAutoStart(false);
                         ss.updateAutoSettings(session.getSessionId(), false, session.isAutoStop());
                     }
@@ -656,7 +656,7 @@ public class SessionController {
                         Session session = getTableView().getItems().get(getIndex());
                         if (session != null) {
                             boolean newAutoStop = toggleButton.isSelected();
-                            System.out.println("Auto Stop button CLICKED for session " + session.getSessionId());
+                            // System.out.println("Auto Stop button CLICKED for session " + session.getSessionId());
 
                             // Update the setting
                             session.setAutoStop(newAutoStop);
@@ -701,8 +701,8 @@ public class SessionController {
 
                     // If auto-stop is enabled but no longer allowed, disable it
                     if (!canHaveAutoStop && session.isAutoStop()) {
-                        System.out.println(
-                                "SessionController: Auto-stop was enabled but is no longer allowed - disabling");
+                        // System.out.println(
+                        //         "SessionController: Auto-stop was enabled but is no longer allowed - disabling");
                         session.setAutoStop(false);
                         ss.updateAutoSettings(session.getSessionId(), session.isAutoStart(), false);
                     }
@@ -725,41 +725,5 @@ public class SessionController {
 // ensure view for each type of user (e.g. admin, ta, student, prof) is
 // different
 // cannot create a session from 23:00 to 00:00?
-// - use decorator for auto-session policies (automating starting and stopping
-// processes) (set up for only auto-start)
-// - Both columns have buttons to toggle on and off (can only toggle one session
-// to be auto-started or auto-closed)
-// late threshold default is config and cannot be moree than duration of session
-
-// LOOKS LIKE IT WORKS BUT NOT SURE IF AUTO-CHANGE STATUS BECAUSE OF MY PROGRAM
-// OR ANOTHER PERSONS (NEED TO TEST THAT)
-// SessionService: Using rule chain: Time-based auto session rules (for
-// background processing only) + Single auto-start enforcement + Status
-// validation
-// SessionService: Checking session 1 - autoStart: true, autoStop: false,
-// status: Pending
-// SessionService: Checking session 1 - autoStart: true, autoStop: false,
-// status: Pending
-// SessionRepository: Found 0 other auto-start sessions excluding session 1
-// ConflictPreventionRule: No other auto-start sessions - ALLOWED
-// ConflictPreventionRule: No other auto-start sessions - ALLOWED
-// BaseTimeRule: Can auto-start session 1? Current:
-// 2025-11-11T03:06:49.291636900, Start: 2025-11-11T03:07 - NO
-// SessionService: Checking session 2 - autoStart: false, autoStop: false,
-// status: Pending
-// SessionService: Finished processing auto sessions
-// SessionController: Auto-session processor triggered (30-second interval)
-// SessionService: Processing auto sessions (background)
-// SessionService: Using rule chain: Time-based auto session rules (for
-// background processing only) + Single auto-start enforcement + Status
-// validation
-// SessionService: Checking session 1 - autoStart: true, autoStop: false,
-// status: Pending
-// SessionRepository: Found 0 other auto-start sessions excluding session 1
-// ConflictPreventionRule: No other auto-start sessions - ALLOWED
-// BaseTimeRule: Can auto-start session 1? Current:
-// 2025-11-11T03:07:19.280882700, Start: 2025-11-11T03:07 - YES
-// SessionService: AUTO-STARTING session 1
-// SessionService: Checking session 2 - autoStart: false, autoStop: false,
-// status: Pending
-// SessionService: Finished processing auto sessions
+// - if late threshold is not filled in, use deefault threshold in config.properties
+// - late threshold cannot be more than duration of session
