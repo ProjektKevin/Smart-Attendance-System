@@ -25,7 +25,7 @@ public class AttendanceService {
     private final List<AttendanceObserver> observers = new ArrayList<>();
     private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
     private final Map<String, AttendanceRecord> records = new HashMap<>();
-    private final double threshold = Double.parseDouble(Config.get("recognition.threshold"));
+    private final double threshold = Double.parseDouble(Config.get("recognition.high.threshold"));
     private final AttendanceRecordRepository repo;
 
     public AttendanceService(){

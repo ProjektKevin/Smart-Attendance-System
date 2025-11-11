@@ -110,7 +110,7 @@ public final class ApplicationContext {
      */
     private static void loadOpenCVServices() {
         try {
-            double threshold = Double.parseDouble(Config.get("recognition.threshold"));
+            double highThreshold = Double.parseDouble(Config.get("recognition.high.threshold"));
 
             // Cascade file variables
             String cascadePath = FileLoader.loadToTempFile("/haarcascades/haarcascade_frontalface_default.xml");
@@ -123,10 +123,10 @@ public final class ApplicationContext {
             appLogger.info("Image processing service initialized");
 
             // Initialize both recognizer models
-            histogramRecognizer = new HistogramRecognizer(faceProcessingService, threshold);
+            histogramRecognizer = new HistogramRecognizer(faceProcessingService, highThreshold);
             appLogger.info("Histogram recognizer initialized");
 
-            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService, threshold);
+            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService, highThreshold);
             appLogger.info("OpenFace recognizer initialized");
 
             // Initialize face recognition
