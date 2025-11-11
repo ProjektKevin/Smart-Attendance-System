@@ -96,7 +96,7 @@ public class AttendanceRecord {
         // }
 
         try {
-            System.out.println("run until here 3"); // for testing
+            // System.out.println("run until here 3"); // for testing
             autoAttendanceMarker.markAttendance(observers, this);
         } catch (Exception e) {
             throw new Exception("Failed to save attendance record", e);

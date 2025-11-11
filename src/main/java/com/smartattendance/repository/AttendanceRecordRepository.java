@@ -98,7 +98,7 @@ public class AttendanceRecordRepository {
 
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            System.out.println("Running query for session_id = " + sessionId); // ##for testing
+            // System.out.println("Running query for session_id = " + sessionId); // ##for testing
 
             ps.setInt(1, sessionId);
 
@@ -153,7 +153,7 @@ public class AttendanceRecordRepository {
 
         try (Connection conn = DatabaseUtil.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            System.out.println("Running query for session_id = " + sessionId); // ##for testing
+            // System.out.println("Running query for session_id = " + sessionId); // ##for testing
 
             ps.setInt(1, sessionId);
             ps.setString(2, capitalize(status.toString()));

@@ -21,6 +21,7 @@ import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.ManualAttendanceMarker;
 import com.smartattendance.service.StudentService;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -50,6 +51,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class AttendanceController implements AttendanceObserver {
 
@@ -152,6 +154,11 @@ public class AttendanceController implements AttendanceObserver {
                         + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
         }
+
+        // Auto-clear after 3 seconds
+        // PauseTransition pause = new PauseTransition(Duration.seconds(3));
+        // pause.setOnFinished(e -> attendanceInfo.setText(""));
+        // pause.play();
     }
 
     public void setBackHandler(Runnable backHandler) {
@@ -620,7 +627,7 @@ public class AttendanceController implements AttendanceObserver {
             AttendanceRecord newRecord = formController.getNewRecord();
             if (newRecord != null) {
                 loadAttendanceRecords();
-                showSuccess("Added record successfully.");
+                showSuccess("Added record for student " + newRecord.getStudent().getStudentId() + " - " + newRecord.getStudent().getName() + " successfully.");
             }
 
         } catch (Exception e) {
