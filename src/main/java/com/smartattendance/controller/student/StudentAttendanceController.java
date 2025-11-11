@@ -34,24 +34,24 @@ public class StudentAttendanceController {
 
     // tables
     @FXML private TableView<StudentAttendanceRow> table;
-    @FXML private TableView<StudentModuleSummary> summaryTable;
+    @FXML private TableView<StudentCourseSummary> summaryTable;
 
     // detail columns
     @FXML private TableColumn<StudentAttendanceRow, LocalDate> colDate;
-    @FXML private TableColumn<StudentAttendanceRow, String>    colModule;
+    @FXML private TableColumn<StudentAttendanceRow, String>    colCourse;
     @FXML private TableColumn<StudentAttendanceRow, String>    colStatus;
     @FXML private TableColumn<StudentAttendanceRow, String>    colMethod;
     @FXML private TableColumn<StudentAttendanceRow, String>    colMarkedAt;
 
     // summary columns
-    @FXML private TableColumn<StudentModuleSummary, String>  colSummaryModule;
-    @FXML private TableColumn<StudentModuleSummary, Integer> colSummaryAttended;
-    @FXML private TableColumn<StudentModuleSummary, Integer> colSummaryTotal;
-    @FXML private TableColumn<StudentModuleSummary, Double>  colSummaryPercent;
+    @FXML private TableColumn<StudentCourseSummary, String>  colSummaryCourse;
+    @FXML private TableColumn<StudentCourseSummary, Integer> colSummaryAttended;
+    @FXML private TableColumn<StudentCourseSummary, Integer> colSummaryTotal;
+    @FXML private TableColumn<StudentCourseSummary, Double>  colSummaryPercent;
 
     private final ObservableList<StudentAttendanceRow> masterData = FXCollections.observableArrayList();
     private final ObservableList<StudentAttendanceRow> filtered   = FXCollections.observableArrayList();
-    private final ObservableList<StudentModuleSummary> summary    = FXCollections.observableArrayList();
+    private final ObservableList<StudentCourseSummary> summary    = FXCollections.observableArrayList();
 
     private final StudentAttendanceService service = new StudentAttendanceService();
 
@@ -61,7 +61,7 @@ public class StudentAttendanceController {
 
         // ---- detail table setup ----
         if (colDate != null)   colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
-        if (colModule != null) colModule.setCellValueFactory(new PropertyValueFactory<>("module"));
+        if (colCourse != null) colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
         if (colStatus != null) colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         if (colMethod != null) colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
         if (colMarkedAt != null) colMarkedAt.setCellValueFactory(new PropertyValueFactory<>("markedAt"));
@@ -90,8 +90,8 @@ public class StudentAttendanceController {
         }
 
         // ---- summary table setup (progress bar) ----
-        if (colSummaryModule != null)
-            colSummaryModule.setCellValueFactory(new PropertyValueFactory<>("module"));
+        if (colSummaryCourse != null)
+            colSummaryCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
         if (colSummaryAttended != null)
             colSummaryAttended.setCellValueFactory(new PropertyValueFactory<>("attended"));
         if (colSummaryTotal != null)
@@ -141,12 +141,12 @@ public class StudentAttendanceController {
         if (fromDate != null) fromDate.setValue(today.minusDays(90));
 
         // populate course combo
-        Set<String> modules = masterData.stream()
-                .map(StudentAttendanceRow::getModule)
+        Set<String> courses = masterData.stream()
+                .map(StudentAttendanceRow::getCourse)
                 .collect(Collectors.toCollection(TreeSet::new));
         if (courseCombo != null) {
-            courseCombo.getItems().setAll(modules);
-            courseCombo.getItems().add(0, "All modules");
+            courseCombo.getItems().setAll(courses);
+            courseCombo.getItems().add(0, "All courses");
             courseCombo.getSelectionModel().selectFirst();
             courseCombo.valueProperty().addListener((obs, o, n) -> applyFilters());
         }
@@ -174,7 +174,7 @@ public class StudentAttendanceController {
     }
 
     private void applyFilters() {
-        String module = (courseCombo != null) ? courseCombo.getSelectionModel().getSelectedItem() : null;
+        String course = (courseCombo != null) ? courseCombo.getSelectionModel().getSelectedItem() : null;
         LocalDate from = (fromDate != null) ? fromDate.getValue() : null;
         LocalDate to   = (toDate != null)   ? toDate.getValue()   : null;
 
@@ -187,7 +187,7 @@ public class StudentAttendanceController {
             if (toDate != null)   toDate.setValue(to);
         }
 
-        var result = service.applyFilters(masterData, module, from, to);
+        var result = service.applyFilters(masterData, course, from, to);
         filtered.setAll(result.getRows());
         summary.setAll(result.getSummaries());
 

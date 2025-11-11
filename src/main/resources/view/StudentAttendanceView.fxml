@@ -26,13 +26,13 @@
     <!-- SUMMARY HEADER -->
     <HBox spacing="10" alignment="CENTER_LEFT">
         <!-- bumped from 13px to 15px -->
-        <Label text="Summary by module"
+        <Label text="Summary by course"
                style="-fx-font-size: 15px; -fx-font-weight: bold;"/>
     </HBox>
 
     <TableView fx:id="summaryTable" prefHeight="160" VBox.vgrow="NEVER">
         <columns>
-            <TableColumn fx:id="colSummaryModule" text="Module" prefWidth="140"/>
+            <TableColumn fx:id="colSummaryCourse" text="Course" prefWidth="140"/>
             <TableColumn fx:id="colSummaryAttended" text="Attended" prefWidth="80"/>
             <TableColumn fx:id="colSummaryTotal" text="Total" prefWidth="80"/>
             <TableColumn fx:id="colSummaryPercent" text="Percentage" prefWidth="220"/>
@@ -81,7 +81,7 @@
     <TableView fx:id="table" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn fx:id="colDate" text="Date" prefWidth="120"/>
-            <TableColumn fx:id="colModule" text="Module" prefWidth="120"/>
+            <TableColumn fx:id="colCourse" text="Course" prefWidth="120"/>
             <TableColumn fx:id="colStatus" text="Status" prefWidth="110"/>
             <TableColumn fx:id="colMethod" text="Method" prefWidth="110"/>
             <TableColumn fx:id="colMarkedAt" text="Marked At" prefWidth="180"/>

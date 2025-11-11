@@ -11,13 +11,13 @@ public class StudentAttendanceRowStyler {
     public static void setupDetailColumns(
             TableView<StudentAttendanceRow> table,
             TableColumn<StudentAttendanceRow, java.time.LocalDate> colDate,
-            TableColumn<StudentAttendanceRow, String> colModule,
+            TableColumn<StudentAttendanceRow, String> colCourse,
             TableColumn<StudentAttendanceRow, String> colStatus,
             TableColumn<StudentAttendanceRow, String> colMethod,
             TableColumn<StudentAttendanceRow, String> colMarkedAt
     ) {
         if (colDate != null)   colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
-        if (colModule != null) colModule.setCellValueFactory(new PropertyValueFactory<>("module"));
+        if (colCourse != null) colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
 
         if (colStatus != null) {
             colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));

@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.smartattendance.controller.student.StudentAttendanceRow;
-import com.smartattendance.controller.student.StudentModuleSummary;
+import com.smartattendance.controller.student.StudentCourseSummary;
 import com.smartattendance.model.dto.dashboard.AttendanceRecord;
 import com.smartattendance.model.dto.dashboard.DashboardFilter;
 import com.smartattendance.repository.DashboardRepository;
@@ -40,7 +40,7 @@ public class StudentAttendanceService {
                     rec.sessionDate != null ? rec.sessionDate :
                     (rec.markedAt != null ? rec.markedAt.toLocalDate() : LocalDate.now());
 
-            String module =
+            String course =
                     (rec.courseCode != null && !rec.courseCode.isBlank())
                             ? rec.courseCode
                             : (rec.courseId != null ? "Course " + rec.courseId : "Unknown");
@@ -57,7 +57,7 @@ public class StudentAttendanceService {
             // placeholder, unless your DTO has method
             String method = "-";
 
-            rows.add(new StudentAttendanceRow(date, module, status, method, markedAtStr));
+            rows.add(new StudentAttendanceRow(date, course, status, method, markedAtStr));
         }
 
         return rows;
@@ -65,32 +65,32 @@ public class StudentAttendanceService {
 
     public FilterResult applyFilters(
             List<StudentAttendanceRow> master,
-            String selectedModule,
+            String selectedCourse,
             LocalDate from,
             LocalDate to
     ) {
         List<StudentAttendanceRow> filtered = master.stream()
-                .filter(r -> selectedModule == null
-                        || "All modules".equals(selectedModule)
-                        || r.getModule().equals(selectedModule))
+                .filter(r -> selectedCourse == null
+                        || "All courses".equals(selectedCourse)
+                        || r.getCourse().equals(selectedCourse))
                 .filter(r -> from == null || !r.getDate().isBefore(from))
                 .filter(r -> to   == null || !r.getDate().isAfter(to))
                 .sorted(Comparator.comparing(StudentAttendanceRow::getDate).reversed())
                 .toList();
 
-        Map<String, List<StudentAttendanceRow>> byModule = new TreeMap<>();
+        Map<String, List<StudentAttendanceRow>> byCourse = new TreeMap<>();
         for (StudentAttendanceRow r : filtered) {
-            byModule.computeIfAbsent(r.getModule(), k -> new ArrayList<>()).add(r);
+            byCourse.computeIfAbsent(r.getCourse(), k -> new ArrayList<>()).add(r);
         }
 
-        List<StudentModuleSummary> summaries = new ArrayList<>();
-        byModule.forEach((module, list) -> {
+        List<StudentCourseSummary> summaries = new ArrayList<>();
+        byCourse.forEach((course, list) -> {
             long attended = list.stream()
                     .filter(r -> "present".equalsIgnoreCase(r.getStatus()))
                     .count();
             int total = list.size();
             double ratio = total == 0 ? Double.NaN : (attended * 1.0 / total);
-            summaries.add(new StudentModuleSummary(module, (int) attended, total, ratio));
+            summaries.add(new StudentCourseSummary(course, (int) attended, total, ratio));
         });
 
         return new FilterResult(filtered, summaries);
@@ -98,9 +98,9 @@ public class StudentAttendanceService {
 
     public static class FilterResult {
         private final List<StudentAttendanceRow> rows;
-        private final List<StudentModuleSummary> summaries;
+        private final List<StudentCourseSummary> summaries;
 
-        public FilterResult(List<StudentAttendanceRow> rows, List<StudentModuleSummary> summaries) {
+        public FilterResult(List<StudentAttendanceRow> rows, List<StudentCourseSummary> summaries) {
             this.rows = rows;
             this.summaries = summaries;
         }
@@ -109,7 +109,7 @@ public class StudentAttendanceService {
             return rows;
         }
 
-        public List<StudentModuleSummary> getSummaries() {
+        public List<StudentCourseSummary> getSummaries() {
             return summaries;
         }
     }
