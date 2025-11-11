@@ -100,33 +100,36 @@ public class StudentRepository {
         }
     }
 
-    public List<Student> fetchEnrolledStudentsByCourse(String courseCode) {
+    public List<Student> fetchEnrolledStudentsByCourse(Integer sessionId) {
         List<Student> students = new ArrayList<>();
         String sql = """
-                SELECT
+                SELECT 
                     u.user_id,
                     u.username,
                     fd.avg_histogram,
-                    fd.avg_embedding
+                    fd.avg_embedding,
+                    c.course_code
                 FROM users u
                 INNER JOIN face_data fd ON u.user_id = fd.student_id
                 INNER JOIN enrollments e ON u.user_id = e.user_id
                 INNER JOIN courses c ON e.course_id = c.course_id
-                WHERE u.role = 'STUDENT' AND c.course_code = ?
+                INNER JOIN sessions s ON c.course_id = s.course_id
+                WHERE u.role = 'STUDENT' AND s.session_id = ?
                 ORDER BY u.username
                 """;
 
         try (Connection conn = DatabaseUtil.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, courseCode);
+            stmt.setInt(1, sessionId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     int studentId = rs.getInt("user_id");
                     String userName = rs.getString("username");
+                    String courseCode = rs.getString("course_code");
                     byte[] histogramBytes = rs.getBytes("avg_histogram");
-                    byte[] embeddingBytes = rs.getBytes("avg_embedding");
+                    String strEmbedding = rs.getString("avg_embedding");
 
                     FaceData faceData = new FaceData();
 
@@ -137,8 +140,8 @@ public class StudentRepository {
                     }
 
                     
-                    if (embeddingBytes != null && embeddingBytes.length > 0) {
-                        Mat embedding = OpenCVUtils.bytesToMatEmbedding(embeddingBytes);
+                    if (strEmbedding != null) {
+                        Mat embedding = OpenCVUtils.postgresVectorToMat(strEmbedding);
                         if (!embedding.empty()) {
                             faceData.setFaceEmbedding(embedding);
                         }

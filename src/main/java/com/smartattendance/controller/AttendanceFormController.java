@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.AttendanceStatus;
-import com.smartattendance.model.entity.MarkMethod;
-import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
+import com.smartattendance.model.entity.Session;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.StudentService;
 

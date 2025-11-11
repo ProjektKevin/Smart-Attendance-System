@@ -248,28 +248,36 @@ public class CourseRepository {
     }
 
     /**
-     * Check if a student is already enrolled in a course
+     * Get all courses enrolled by a specific student
      *
-     * @param userId   The user ID
-     * @param courseId The course ID
-     * @return true if student is enrolled, false otherwise
+     * @param userId The user ID to filter by
+     * @return List of Course objects enrolled by the student
      */
-    public boolean isStudentEnrolledInCourse(Integer userId, Integer courseId) {
-        String sql = "SELECT 1 FROM enrollments WHERE user_id = ? AND course_id = ? LIMIT 1";
+    public List<Course> getCoursesByStudentId(Integer userId) {
+        List<Course> courses = new ArrayList<>();
+        String sql = "SELECT c.course_id, c.course_name, c.course_code " +
+                     "FROM courses c " +
+                     "JOIN enrollments e ON c.course_id = e.course_id " +
+                     "WHERE e.user_id = ? " +
+                     "ORDER BY c.course_code";
 
         try (Connection conn = DatabaseUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
-            ps.setInt(2, courseId);
 
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
+                while (rs.next()) {
+                    courses.add(new Course(
+                            rs.getInt("course_id"),
+                            rs.getString("course_name"),
+                            rs.getString("course_code")));
+                }
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        return courses;
     }
 }

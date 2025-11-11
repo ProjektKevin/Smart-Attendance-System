@@ -17,17 +17,14 @@
             <Label fx:id="titleLabel" text="CS102-Project-Smart Attendance System - Student Portal" />
             <Pane HBox.hgrow="ALWAYS" />
             <ToggleButton fx:id="themeToggle" text="Dark mode" onAction="#onThemeToggle" />
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="logoutButton" text="Logout" onAction="#handleLogout" style="-fx-font-size: 12; -fx-padding: 6 12;" />
         </ToolBar>
     </top>
 
     <center>
         <TabPane tabClosingPolicy="UNAVAILABLE">
             <tabs>
-                <Tab fx:id="tabCapture" text="Face Capture">
-                    <content>
-                        <fx:include source="EnrollmentView.fxml" />
-                    </content>
-                </Tab>
                 <Tab fx:id="tabAttendance" text="My Attendance">
                     <content>
                         <fx:include source="StudentAttendanceView.fxml" />

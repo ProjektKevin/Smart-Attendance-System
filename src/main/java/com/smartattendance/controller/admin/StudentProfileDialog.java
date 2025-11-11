@@ -2,6 +2,7 @@ package com.smartattendance.controller.admin;
 
 import com.smartattendance.model.dto.student.StudentProfileDTO;
 import com.smartattendance.model.enums.Status;
+import com.smartattendance.model.entity.Course;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -184,19 +185,18 @@ public class StudentProfileDialog {
             coursesFlowPane.setVgap(8);
             coursesFlowPane.setPadding(new Insets(10, 0, 0, 0));
 
-            for (String course : student.getEnrolledCourses()) {
+            for (Course course : student.getEnrolledCourses()) {
                 // Create a styled label for each course
-                Label courseLabel = new Label(course);
+                Label courseLabel = new Label(course.getCode() + " - " + course.getName());
                 courseLabel.setStyle(
                         "-fx-background-color: #e3f2fd; " +
-                        "-fx-border-color: #2196f3; " +
-                        "-fx-border-width: 1; " +
-                        "-fx-padding: 6 12; " +
-                        "-fx-border-radius: 4; " +
-                        "-fx-text-fill: #1976d2; " +
-                        "-fx-font-size: 11; " +
-                        "-fx-font-weight: 500;"
-                );
+                                "-fx-border-color: #2196f3; " +
+                                "-fx-border-width: 1; " +
+                                "-fx-padding: 6 12; " +
+                                "-fx-border-radius: 4; " +
+                                "-fx-text-fill: #1976d2; " +
+                                "-fx-font-size: 11; " +
+                                "-fx-font-weight: 500;");
                 coursesFlowPane.getChildren().add(courseLabel);
             }
 

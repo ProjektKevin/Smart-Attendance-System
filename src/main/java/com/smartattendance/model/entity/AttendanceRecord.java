@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AutoAttendanceMarker;

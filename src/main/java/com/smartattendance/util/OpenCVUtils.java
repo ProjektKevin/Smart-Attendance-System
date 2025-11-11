@@ -74,122 +74,171 @@ public final class OpenCVUtils {
 		return image;
 	}
 
-	  public static byte[] matHistogramToBytes(Mat histogram) {
-    if (histogram == null || histogram.empty()) {
-      return null;
-    }
+	public static byte[] matHistogramToBytes(Mat histogram) {
+		if (histogram == null || histogram.empty()) {
+			return null;
+		}
 
-    try {
-      int rows = histogram.rows();
-      int cols = histogram.cols();
-      int totalElements = rows * cols;
+		try {
+			int rows = histogram.rows();
+			int cols = histogram.cols();
+			int totalElements = rows * cols;
 
-      // Convert CV_32F to CV_64F first to avoid Mat.get() compatibility issues
-      Mat doubleMat = new Mat();
-      histogram.convertTo(doubleMat, CvType.CV_64F);
+			// Convert CV_32F to CV_64F first to avoid Mat.get() compatibility issues
+			Mat doubleMat = new Mat();
+			histogram.convertTo(doubleMat, CvType.CV_64F);
 
-      // Create byte buffer for float data (4 bytes per float)
-      ByteBuffer buffer = ByteBuffer.allocate(totalElements * 4);
+			// Create byte buffer for float data (4 bytes per float)
+			ByteBuffer buffer = ByteBuffer.allocate(totalElements * 4);
 
-      // Read data row by row
-      double[] rowData = new double[cols];
-      for (int i = 0; i < rows; i++) {
-        doubleMat.get(i, 0, rowData);
-        for (int j = 0; j < cols; j++) {
-          buffer.putFloat((float) rowData[j]);
-        }
-      }
+			// Read data row by row
+			double[] rowData = new double[cols];
+			for (int i = 0; i < rows; i++) {
+				doubleMat.get(i, 0, rowData);
+				for (int j = 0; j < cols; j++) {
+					buffer.putFloat((float) rowData[j]);
+				}
+			}
 
-      doubleMat.release();
-      return buffer.array();
+			doubleMat.release();
+			return buffer.array();
 
-    } catch (Exception e) {
-      System.err.println("Error converting histogram to bytes: " + e.getMessage());
-      return null;
-    }
-  }
+		} catch (Exception e) {
+			System.err.println("Error converting histogram to bytes: " + e.getMessage());
+			return null;
+		}
+	}
 
-  public static Mat bytesToMatHistogram(byte[] bytes) {
-    if (bytes == null || bytes.length == 0) {
-      return new Mat();
-    }
+	public static Mat bytesToMatHistogram(byte[] bytes) {
+		if (bytes == null || bytes.length == 0) {
+			return new Mat();
+		}
 
-    try {
-      int numElements = bytes.length / 4;
+		try {
+			int numElements = bytes.length / 4;
 
-      if (numElements != 256) {
-        System.err.println("Warning: Expected 256 histogram bins, got " + numElements);
-      }
+			if (numElements != 256) {
+				System.err.println("Warning: Expected 256 histogram bins, got " + numElements);
+			}
 
-      Mat histogram = new Mat(256, 1, CvType.CV_32F);
+			Mat histogram = new Mat(256, 1, CvType.CV_32F);
 
-      ByteBuffer buffer = ByteBuffer.wrap(bytes);
-      float[] data = new float[256];
+			ByteBuffer buffer = ByteBuffer.wrap(bytes);
+			float[] data = new float[256];
 
-      for (int i = 0; i < Math.min(256, numElements); i++) {
-        data[i] = buffer.getFloat();
-      }
+			for (int i = 0; i < Math.min(256, numElements); i++) {
+				data[i] = buffer.getFloat();
+			}
 
-      histogram.put(0, 0, data);
-      return histogram;
+			histogram.put(0, 0, data);
+			return histogram;
 
-    } catch (Exception e) {
-      System.err.println("Error converting bytes to histogram: " + e.getMessage());
-      return new Mat();
-    }
-  }
+		} catch (Exception e) {
+			System.err.println("Error converting bytes to histogram: " + e.getMessage());
+			return new Mat();
+		}
+	}
 
-  public static byte[] matEmbeddingToBytes(Mat embedding) {
-    if (embedding == null || embedding.empty()) {
-      return null;
-    }
+	// --------------------------------------------------------
+	/**
+	 * Convert OpenCV Mat (128-dimensional embedding) to double array
+	 * Handles both CV_32F (float) and CV_64F (double) Mat types
+	 */
+	public static float[] matToFloatArray(Mat mat) {
+		if (mat == null || mat.empty()) {
+			throw new IllegalArgumentException("Mat cannot be null or empty");
+		}
 
-    try {
-      int rows = embedding.rows();
-      int cols = embedding.cols();
-      int totalElements = rows * cols;
+		int totalElements = mat.rows() * mat.cols();
+		if (totalElements != 128) {
+			throw new IllegalArgumentException(
+					"Mat must contain exactly 128 elements. Got: " + totalElements);
+		}
 
-      ByteBuffer buffer = ByteBuffer.allocate(totalElements * 8);
+		Mat flatMat = mat.reshape(0, 1); // flatten to 1x128
+		float[] data = new float[128];
 
-      double[] data = new double[totalElements];
-      embedding.get(0, 0, data);
+		// Check Mat type and handle accordingly
+		int matType = flatMat.type();
 
-      for (double value : data) {
-        buffer.putDouble(value);
-      }
+		if (matType == CvType.CV_32F) {
+			// If Mat is float (CV_32F = 5), extract directly
+			flatMat.get(0, 0, data);
+		} else if (matType == CvType.CV_64F) {
+			// If Mat is double (CV_64F = 6), extract as double then convert to float
+			double[] doubleData = new double[128];
+			flatMat.get(0, 0, doubleData);
+			for (int i = 0; i < 128; i++) {
+				data[i] = (float) doubleData[i];
+			}
+		} else {
+			// For other types, convert to CV_32F first
+			Mat floatMat = new Mat();
+			flatMat.convertTo(floatMat, CvType.CV_32F);
+			floatMat.get(0, 0, data);
+			floatMat.release();
+		}
 
-      return buffer.array();
+		return data;
+	}
 
-    } catch (Exception e) {
-      System.err.println("Error converting embedding to bytes: " + e.getMessage());
-      return null;
-    }
-  }
+	/**
+	 * Convert double array to PostgreSQL pgvector string "[v1,v2,...,v128]"
+	 */
+	public static String floatArrayToPostgresVector(float[] floatArray) {
+		if (floatArray == null || floatArray.length != 128) {
+			throw new IllegalArgumentException(
+					"Float array must contain exactly 128 elements. Got: " +
+							(floatArray == null ? "null" : floatArray.length));
+		}
 
-  public static Mat bytesToMatEmbedding(byte[] bytes) {
-    if (bytes == null || bytes.length == 0) {
-      return new Mat();
-    }
+		StringBuilder vector = new StringBuilder("[");
+		for (int i = 0; i < floatArray.length; i++) {
+			vector.append(floatArray[i]);
+			if (i < floatArray.length - 1) {
+				vector.append(",");
+			}
+		}
+		vector.append("]");
+		return vector.toString();
+	}
 
-    try {
-      int numElements = bytes.length / 8;
+	/**
+	 * Convert OpenCV Mat to PostgreSQL pgvector string in one step
+	 */
+	public static String matToPostgresVector(Mat mat) {
+		float[] data = matToFloatArray(mat);
+		return floatArrayToPostgresVector(data);
+	}
 
-      Mat embedding = new Mat(numElements, 1, CvType.CV_64F);
+	/**
+	 * Convert PostgreSQL pgvector string "[v1,v2,...,v128]" to double array
+	 */
+	public static float[] postgresVectorToFloatArray(String vectorString) {
+		if (vectorString == null || vectorString.isEmpty()) {
+			throw new IllegalArgumentException("Vector string cannot be null or empty");
+		}
 
-      ByteBuffer buffer = ByteBuffer.wrap(bytes);
-      double[] data = new double[numElements];
+		vectorString = vectorString.replaceAll("[\\[\\]]", ""); // remove brackets
+		String[] parts = vectorString.split(",");
+		if (parts.length != 128) {
+			throw new IllegalArgumentException("Expected 128 elements, got: " + parts.length);
+		}
 
-      for (int i = 0; i < numElements; i++) {
-        data[i] = buffer.getDouble();
-      }
+		float[] data = new float[128];
+		for (int i = 0; i < 128; i++) {
+			data[i] = Float.parseFloat(parts[i].trim());
+		}
+		return data;
+	}
 
-      embedding.put(0, 0, data);
-      return embedding;
-
-    } catch (Exception e) {
-      System.err.println("Error converting bytes to embedding: " + e.getMessage());
-      return new Mat();
-    }
-  }
-
+	/**
+	 * Convert PostgreSQL pgvector string "[v1,v2,...,v128]" back to OpenCV Mat
+	 */
+	public static Mat postgresVectorToMat(String vectorString) {
+		float[] data = postgresVectorToFloatArray(vectorString);
+		Mat mat = new Mat(1, 128, CvType.CV_32F); // store as float
+		mat.put(0, 0, data);
+		return mat;
+	}
 }

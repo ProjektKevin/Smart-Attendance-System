@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
-import org.opencv.imgproc.Imgproc;
 
+import com.smartattendance.ApplicationContext;
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.StudentRepository;
 import com.smartattendance.service.recognition.HistogramRecognizer;
+import com.smartattendance.service.recognition.OpenFaceRecognizer;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.service.recognition.Recognizer;
 
@@ -19,19 +21,12 @@ public class FaceRecognitionService {
   private final StudentRepository studentRepository;
   private Recognizer recognizer;
   private List<Student> enrolledStudents;
-  private RecognitionAlgorithm currentAlgorithm;
-
-  public enum RecognitionAlgorithm {
-    HISTOGRAM,
-    DNN
-  }
 
   // ----- Constructor -----
   public FaceRecognitionService(FaceDetectionService faceDetectionService) {
     this.faceDetectionService = faceDetectionService;
     this.faceProcessingService = new FaceProcessingService(faceDetectionService);
     this.studentRepository = new StudentRepository();
-    this.recognizer = new HistogramRecognizer(faceProcessingService, 50.0);
     this.enrolledStudents = new ArrayList<>();
 
     System.out.println("FaceRecognitionService initialized with HistogramRecognizer");
@@ -52,6 +47,11 @@ public class FaceRecognitionService {
   public RecognitionResult recognizeFace(Mat faceROI) {
     if (faceROI == null || faceROI.empty()) {
       System.out.println("Cannot recognize empty face ROI");
+      return new RecognitionResult();
+    }
+
+    if (recognizer == null) {
+      System.err.println("ERROR: Recognizer not initialized! Call switchAlgorithm() first.");
       return new RecognitionResult();
     }
 
@@ -88,11 +88,11 @@ public class FaceRecognitionService {
   }
 
   // ----- Student Session Management ------
-  public int loadEnrolledStudentsByCourse(String courseCode) throws SQLException {
-    System.out.println("Loading enrolled students for course: " + courseCode);
+  public int loadEnrolledStudentsBySessionId(Integer sessionId) throws SQLException {
+    System.out.println("Loading enrolled students in sessionId: " + sessionId);
 
     // Fetch students from repository
-    List<Student> students = studentRepository.fetchEnrolledStudentsByCourse(courseCode);
+    List<Student> students = studentRepository.fetchEnrolledStudentsByCourse(sessionId);
 
     // Update internal list
     if (students == null) {
@@ -101,9 +101,52 @@ public class FaceRecognitionService {
       this.enrolledStudents = students;
     }
 
-    System.out.println("Loaded " + students.size() + " students for course " + courseCode);
+    System.out.println("Loaded " + students.size() + " students from sessionId " + sessionId);
     return students.size();
   }
 
-  
+  public void switchAlgorithm(String algorithmName) {
+    if (algorithmName == null) {
+      System.out.println("Algorithm name is null, defaulting to HISTOGRAM");
+      algorithmName = "HISTOGRAM";
+    }
+
+    System.out.println("Switching recognition algorithm to: " + algorithmName);
+
+    if (algorithmName.equalsIgnoreCase("OPENFACE")) {
+      if (ApplicationContext.getOpenFaceRecognizer() == null) {
+        System.err.println("OpenFace not available. Falling back to HISTOGRAM");
+        this.recognizer = ApplicationContext.getHistogramRecognizer();
+        algorithmName = "HISTOGRAM";
+        Config.set("recognition.algorithm", algorithmName);
+        return;
+      }
+
+      this.recognizer = ApplicationContext.getOpenFaceRecognizer();
+      System.out.println("Using OpenFaceRecognizer (DNN-based)");
+    } else {
+      this.recognizer = ApplicationContext.getHistogramRecognizer();
+      System.out.println("Using HistogramRecognizer");
+      algorithmName = "HISTOGRAM"; // Name Normalization
+    }
+
+    Config.set("recognition.algorithm", algorithmName);
+  }
+
+  // ----- Debugging Methods -----
+  // usage: System.out.println("Current algorithm: " +
+  // faceRecognitionService.getCurrentAlgorithm());
+  public String getCurrentAlgorithm() {
+    if (recognizer == null) {
+      return "NONE (not initialized)";
+    }
+
+    if (recognizer instanceof OpenFaceRecognizer) {
+      return "OPENFACE";
+    } else if (recognizer instanceof HistogramRecognizer) {
+      return "HISTOGRAM";
+    } else {
+      return "UNKNOWN";
+    }
+  }
 }

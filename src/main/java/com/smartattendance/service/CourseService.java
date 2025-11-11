@@ -101,13 +101,12 @@ public class CourseService {
     }
 
     /**
-     * Check if a student is already enrolled in a course
+     * Get all courses enrolled by a specific student
      *
-     * @param userId   The user ID
-     * @param courseId The course ID
-     * @return true if student is enrolled, false otherwise
+     * @param userId The user ID to filter by
+     * @return List of Course objects enrolled by the student
      */
-    public boolean isStudentEnrolledInCourse(Integer userId, Integer courseId) {
-        return courseRepo.isStudentEnrolledInCourse(userId, courseId);
+    public List<Course> getCoursesByStudentId(Integer userId) {
+        return courseRepo.getCoursesByStudentId(userId);
     }
 }

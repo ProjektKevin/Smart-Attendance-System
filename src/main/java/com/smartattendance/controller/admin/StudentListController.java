@@ -18,6 +18,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.util.Callback;
 
 /**
@@ -35,8 +36,14 @@ public class StudentListController {
     @FXML
     private TableColumn<UserListDTO, Integer> actionsColumn;
 
+    @FXML
+    private TextField searchField;
+
     private UserService userService = ApplicationContext.getUserService();
     private AuthService authService = ApplicationContext.getAuthService();
+
+    // Store all students for searching
+    private List<UserListDTO> allStudents;
 
     // Initialize student data
     @FXML
@@ -49,10 +56,10 @@ public class StudentListController {
     // Call DB for student data and set the table columns
     public void loadStudents() {
         // Fetch all students with STUDENT role as DTOs
-        List<UserListDTO> students = userService.getStudentListDTOs();
+        allStudents = userService.getStudentListDTOs();
 
         // Convert to ObservableList and populate table
-        ObservableList<UserListDTO> observableStudents = FXCollections.observableArrayList(students);
+        ObservableList<UserListDTO> observableStudents = FXCollections.observableArrayList(allStudents);
         table.setItems(observableStudents);
     }
 
@@ -125,7 +132,7 @@ public class StudentListController {
 
     private void onViewProfile(UserListDTO studentDto) {
         // Fetch full student profile data for the dialog
-        StudentProfileDTO profileDto = userService.getUserProfileDTO(studentDto.getId());
+        StudentProfileDTO profileDto = userService.getStudentProfileDTO(studentDto.getId());
 
         // Open student profile dialog with DTO
         StudentProfileDialog profileDialog = new StudentProfileDialog(profileDto);
@@ -295,6 +302,43 @@ public class StudentListController {
             errorAlert.setContentText(e.getMessage());
             errorAlert.showAndWait();
         }
+    }
+
+    /**
+     * Search students by email (case-insensitive, partial match)
+     * Filters the table to show only students matching the search query
+     */
+    @FXML
+    private void onSearchStudent() {
+        String searchText = searchField.getText().trim().toLowerCase();
+
+        if (searchText.isEmpty()) {
+            // If search is empty, show all students
+            ObservableList<UserListDTO> observableStudents = FXCollections.observableArrayList(allStudents);
+            table.setItems(observableStudents);
+            return;
+        }
+
+        // Filter students by email containing search text (case-insensitive)
+        List<UserListDTO> filteredList = new java.util.ArrayList<>();
+        for (UserListDTO student : allStudents) {
+            if (student.getEmail().toLowerCase().contains(searchText)) {
+                filteredList.add(student);
+            }
+        }
+
+        ObservableList<UserListDTO> observableStudents = FXCollections.observableArrayList(filteredList);
+        table.setItems(observableStudents);
+    }
+
+    /**
+     * Clear the search and show all students
+     */
+    @FXML
+    private void onClearSearch() {
+        searchField.clear();
+        ObservableList<UserListDTO> observableStudents = FXCollections.observableArrayList(allStudents);
+        table.setItems(observableStudents);
     }
 
 }

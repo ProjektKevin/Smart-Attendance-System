@@ -4,9 +4,6 @@ public class Student {
 
     private int studentId;
     private String name;
-
-    // this might become course object when implemented
-    // chore(): Link back to course id if done
     private String course;
     private FaceData faceData;
 
@@ -14,13 +11,24 @@ public class Student {
      * Custom constructor which sets student profile
      *
      * @param studentId The id of the profile
-     * @param user The user object to set authentication
-     * @param course The course the student is enrolled in
+     * @param name      The name of the student
+     * @param course    The course the student is enrolled in
      */
     public Student(int studentId, String name, String course) {
         this.studentId = studentId;
         this.name = name;
         this.course = course;
+    }
+
+    /**
+     * Custom constructor which sets student profile
+     *
+     * @param studentId The id of the profile
+     * @param name      The name of the student
+     */
+    public Student(int studentId, String name) {
+        this.studentId = studentId;
+        this.name = name;
     }
 
     public int getStudentId() {
