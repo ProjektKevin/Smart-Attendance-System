@@ -242,6 +242,11 @@ public class OpenFaceRecognizer extends Recognizer {
                     // Compute similarity (using cosine similarity)
                     double similarity = cosineSimilarity(inputEmbedding, storedEmbedding);
 
+                    System.out.println("Comparing with " + student.getName() +
+                            " - Input shape: " + inputEmbedding.rows() + "x" + inputEmbedding.cols() +
+                            ", Stored shape: " + storedEmbedding.rows() + "x" + storedEmbedding.cols() +
+                            ", Similarity: " + String.format("%.4f", similarity));
+
                     if (similarity > bestSimilarity) {
                         bestSimilarity = similarity;
                         bestMatch = student;
@@ -253,23 +258,34 @@ public class OpenFaceRecognizer extends Recognizer {
 
             inputEmbedding.release();
 
-            // Return result if meets threshold
-            if (bestMatch != null) {
-                // Convert similarity to percentage (cosine similarity is -1 to 1)
-                double confidence = (bestSimilarity + 1.0) * 50.0;
+            final double MIN_SIMILARITY_THRESHOLD = -0.70;
 
-                if (confidence >= getConfidenceThreshold()) {
-                    appLogger.info("Recognized: " + bestMatch.getName() +
-                            " (confidence: " + String.format("%.2f%%", confidence) + ")");
-                    System.out.println("Recognized: " + bestMatch.getName() +
-                            " (confidence: " + String.format("%.2f%%", confidence) +
-                            ", similarity: " + String.format("%.4f", bestSimilarity) + ")");
-                    return new RecognitionResult(bestMatch, confidence);
+            // Return result if meets threshold
+            if (bestMatch != null && bestSimilarity >= MIN_SIMILARITY_THRESHOLD) {
+                // Convert similarity to percentage (cosine similarity is -1 to 1)
+
+                // Mapping Formula for OpenFace embeddings:
+                // - similarity 0.7+ → 70%+ confidence (good match)
+                // - similarity 0.6  → 50% confidence (uncertain)
+                // - similarity 0.4  → 30% confidence (likely wrong)
+                // - similarity 0.2  → 10% confidence (definitely wrong)
+                double confidence;
+                if (bestSimilarity >= 0.6) {
+                    // Good match range: 0.6-1.0 maps to 50%-100%
+                    confidence = 50.0 + (bestSimilarity - 0.6) / 0.4 * 50.0;
+                } else if (bestSimilarity >= 0.0) {
+                    // Uncertain range: 0.0-0.6 maps to 10%-50%
+                    confidence = 10.0 + (bestSimilarity / 0.6) * 40.0;
                 } else {
-                    System.out.println("Best match below threshold: " + bestMatch.getName() +
+                    // Poor match range: -1.0-0.0 maps to 0%-10%
+                    confidence = Math.max(0, 10.0 + bestSimilarity * 10.0);
+                }
+
+
+                System.out.println("Recognized: " + bestMatch.getName() +
                             " (confidence: " + String.format("%.2f%%", confidence) +
                             ", similarity: " + String.format("%.4f", bestSimilarity) + ")");
-                }
+                return new RecognitionResult(bestMatch, confidence);
             }
 
             return new RecognitionResult();
@@ -341,6 +357,15 @@ public class OpenFaceRecognizer extends Recognizer {
             // Normalize the embedding (L2 normalization)
             Mat normalizedEmbedding = normalizeEmbedding(embedding);
             embedding.release();
+
+            // Force consistent shape (1 x 128)
+            if (normalizedEmbedding.rows() != 1 || normalizedEmbedding.cols() != 128) {
+                Mat reshaped = normalizedEmbedding.reshape(0, 1); // force 1x128
+                normalizedEmbedding.release();
+                normalizedEmbedding = reshaped;
+            }
+
+            System.out.println("Embedding shape: " + normalizedEmbedding.rows() + "x" + normalizedEmbedding.cols());
 
             return normalizedEmbedding;
 
