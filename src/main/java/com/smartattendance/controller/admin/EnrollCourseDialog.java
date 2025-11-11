@@ -64,13 +64,11 @@ public class EnrollCourseDialog {
      */
     private void loadExistingEnrollments() {
         try {
-            // Get student's current enrolled courses
-            List<Course> allCourses = courseService.getCourses();
+            // Get student's enrolled courses directly from database
+            List<Course> enrolledCourses = courseService.getCoursesByStudentId(student.getId());
 
-            for (Course course : allCourses) {
-                if (courseService.isStudentEnrolledInCourse(student.getId(), course.getId())) {
-                    originalCourseIds.add(course.getId());
-                }
+            for (Course course : enrolledCourses) {
+                originalCourseIds.add(course.getId());
             }
         } catch (Exception e) {
             e.printStackTrace();
