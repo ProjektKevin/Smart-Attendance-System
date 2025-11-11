@@ -695,7 +695,7 @@ public class ReportController {
         // Create session - sessId will be auto-generated if 0
         Session sess = new Session(sessionId,
             courseId.isEmpty() ? "COURSE?" : courseId,
-            date, LocalTime.of(9,0), LocalTime.of(10,0), "Room D", 15, "PENDING");
+            date, LocalTime.of(9,0), LocalTime.of(10,0), "Room D", 15, "PENDING", false, false);
 
         AttendanceRecord rec = new AttendanceRecord(st, sess,
             (status.isEmpty() ? AttendanceStatus.ABSENT : AttendanceStatus.valueOf(status.toUpperCase())),

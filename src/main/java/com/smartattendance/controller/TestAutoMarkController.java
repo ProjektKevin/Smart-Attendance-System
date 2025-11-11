@@ -40,7 +40,9 @@ public class TestAutoMarkController {
                     LocalTime.of(11, 0),
                     "Room 1",
                     15,
-                    "Closed"
+                    "Closed",
+                    false,
+                    false
             );
 
             // 3️⃣ Create an AttendanceRecord
@@ -80,7 +82,9 @@ public class TestAutoMarkController {
                     LocalTime.of(19, 0),
                     "Room 1",
                     15,
-                    "Open"
+                    "Open",
+                    false,
+                    false
             );
 
             // 3️⃣ Create an AttendanceRecord

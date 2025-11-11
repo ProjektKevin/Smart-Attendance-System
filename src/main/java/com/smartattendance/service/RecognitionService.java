@@ -121,7 +121,9 @@ public class RecognitionService {
                     LocalTime.of(10, 00),
                     "Room D",
                     15,
-                    "Open"
+                    "Open",
+                    false,
+                    false
             );
 
             // // 3️⃣ Create an AttendanceRecord
