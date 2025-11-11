@@ -1,17 +1,14 @@
 package com.smartattendance.config;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseUtil {
 
-    private static final Dotenv dotenv = Dotenv.load();
-
-    private static final String URL = dotenv.get("DATABASE_URL");
-    private static final String USER = dotenv.get("DATABASE_USER");
-    private static final String PASSWORD = dotenv.get("DATABASE_PASSWORD");
+    private static final String URL = ENV.getDatabaseURL();
+    private static final String USER = ENV.getDatabaseUser();
+    private static final String PASSWORD = ENV.getDatabasePassword();
 
     public static Connection getConnection() {
         try {

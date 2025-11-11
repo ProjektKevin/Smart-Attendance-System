@@ -64,4 +64,49 @@ public class CourseService {
     public List<StudentDTO> getAllStudents() {
         return courseRepo.findAllStudents();
     }
+
+    // ==================== Enrollment Methods ====================
+
+    /**
+     * Enroll a student in a course
+     *
+     * @param userId   The user ID to enroll
+     * @param courseId The course ID to enroll in
+     * @return true if enrollment was successful, false otherwise
+     */
+    public boolean enrollStudentInCourse(Integer userId, Integer courseId) {
+        return courseRepo.enrollStudentInCourse(userId, courseId);
+    }
+
+    /**
+     * Enroll a student in multiple courses
+     *
+     * @param userId    The user ID to enroll
+     * @param courseIds List of course IDs to enroll in
+     * @return true if all enrollments were successful, false if any failed
+     */
+    public boolean enrollStudentInCourses(Integer userId, List<Integer> courseIds) {
+        return courseRepo.enrollStudentInCourses(userId, courseIds);
+    }
+
+    /**
+     * Unenroll a student from a course
+     *
+     * @param userId   The user ID to unenroll
+     * @param courseId The course ID to unenroll from
+     * @return true if unenrollment was successful, false otherwise
+     */
+    public boolean unenrollStudentFromCourse(Integer userId, Integer courseId) {
+        return courseRepo.unenrollStudentFromCourse(userId, courseId);
+    }
+
+    /**
+     * Get all courses enrolled by a specific student
+     *
+     * @param userId The user ID to filter by
+     * @return List of Course objects enrolled by the student
+     */
+    public List<Course> getCoursesByStudentId(Integer userId) {
+        return courseRepo.getCoursesByStudentId(userId);
+    }
 }

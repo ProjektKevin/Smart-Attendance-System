@@ -1,13 +1,6 @@
 package com.smartattendance.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -15,37 +8,52 @@ import org.opencv.imgproc.Imgproc;
 public class FaceProcessingService {
     private final FaceDetectionService faceDetectionService;
 
-    // Processing parameters
-    private static final int DEFAULT_FACE_WIDTH = 100;
-    private static final int DEFAULT_FACE_HEIGHT = 100;
-    private static final boolean APPLY_HISTOGRAM_EQUALIZATION = true;
-
     // ===== Constructor =====
     public FaceProcessingService(FaceDetectionService faceDetectionService) {
         this.faceDetectionService = faceDetectionService;
     }
 
-
     // ===== Main Function =====
-    public Mat preprocessFace(Mat faceImg, Rect faceRect) {
-        return preprocessFace(faceImg, faceRect, DEFAULT_FACE_WIDTH, DEFAULT_FACE_HEIGHT);
+    public Mat preprocessFace(Mat faceImg, Rect faceRect, int targetWidth, int targetHeight) {
+        return preprocessFace(faceImg, faceRect, targetWidth, targetHeight, true);
     }
 
-    public Mat preprocessFace(Mat faceImg, Rect faceRect, int targetWidth, int targetHeight) {
-        Mat grayImg = null;
+    public Mat preprocessFace(Mat faceImg, Rect faceRect, int targetWidth, int targetHeight,
+            boolean isProcessingHistogram) {
+        Mat processedImg = null;
         Mat croppedFace = null;
         Mat resizedFace = null;
 
         try {
-            // Step 1: Convert to grayscale
-            grayImg = convertToGrayscale(faceImg);
-            if (grayImg.empty()) {
-                System.out.println("Failed to convert to grayscale");
-                return new Mat();
+            // Step 1: Convert to grayscale or correct the color channel
+            if (isProcessingHistogram) {
+                processedImg = convertToGrayscale(faceImg);
+                if (processedImg.empty()) {
+                    System.out.println("Failed to convert to grayscale");
+                    return new Mat();
+                }
+            } else {
+                processedImg = new Mat();
+
+                // Need to correct the color channels (needed format: RGB)
+                switch (faceImg.channels()) {
+                    case 1:
+                        Imgproc.cvtColor(faceImg, processedImg, Imgproc.COLOR_GRAY2RGB);
+                        break;
+                    case 3:
+                        Imgproc.cvtColor(faceImg, processedImg, Imgproc.COLOR_BGR2RGB);
+                        break;
+                    case 4:
+                        Imgproc.cvtColor(faceImg, processedImg, Imgproc.COLOR_BGRA2RGB);
+                        break;
+                    default:
+                        processedImg = faceImg.clone();
+                }
+
             }
 
             // Step 2: Crop the face region
-            croppedFace = cropDetectedFace(grayImg, faceRect);
+            croppedFace = cropDetectedFace(processedImg, faceRect);
             if (croppedFace.empty()) {
                 System.out.println("Failed to crop face");
                 return new Mat();
@@ -59,7 +67,7 @@ public class FaceProcessingService {
             }
 
             // Step 4: Apply histogram equalization for lighting normalization
-            if (APPLY_HISTOGRAM_EQUALIZATION) {
+            if (isProcessingHistogram) {
                 Mat equalizedFace = new Mat();
                 Imgproc.equalizeHist(resizedFace, equalizedFace);
                 resizedFace.release();
@@ -74,8 +82,8 @@ public class FaceProcessingService {
 
         } finally {
             // Clean up intermediate Mats
-            if (grayImg != null && !grayImg.empty()) {
-                grayImg.release();
+            if (processedImg != null && !processedImg.empty()) {
+                processedImg.release();
             }
             if (croppedFace != null && !croppedFace.empty()) {
                 croppedFace.release();
@@ -137,83 +145,5 @@ public class FaceProcessingService {
         return resized;
     }
 
-    // ------ Histogram Computation ------
-    public Mat computeHistogram(Mat image) {
-        if (image.empty()) {
-            System.out.println("Cannot compute histogram for empty image");
-            return new Mat();
-        }
-
-        Mat hist = new Mat();
-
-        try {
-            // Histogram parameters
-            MatOfInt histSize = new MatOfInt(256);
-            MatOfFloat ranges = new MatOfFloat(0f, 256f);
-            MatOfInt channels = new MatOfInt(0);
-
-            // Calculate histogram
-            Imgproc.calcHist(List.of(image), channels, new Mat(), hist, histSize, ranges);
-
-            // Normalize histogram to range [0, 1]
-            Core.normalize(hist, hist, 0, 1, Core.NORM_MINMAX);
-
-            return hist;
-        } catch (Exception e) {
-            System.err.println("Error computing histogram: " + e.getMessage());
-            if (!hist.empty()) {
-                hist.release();
-            }
-            return new Mat();
-        }
-
-    }
-
-    public Mat computeAverageHistogram(List<Mat> rawFaceImages) {
-        if (rawFaceImages.isEmpty() || rawFaceImages == null) {
-            return new Mat();
-        }
-
-        try {
-            Mat sumHistogram = Mat.zeros(256, 1, CvType.CV_32F); // safer initialization
-            int validCount = 0;
-
-            for (Mat rawImage : rawFaceImages) {
-                // Preprocess each face image
-                Rect fullRect = new Rect(0, 0, rawImage.cols(), rawImage.rows());
-                Mat preprocessedFace = preprocessFace(rawImage, fullRect);
-
-                // Compute histogram
-                Mat hist = computeHistogram(preprocessedFace);
-                if (!hist.empty()) {
-                    validCount++;
-                }
-                if (hist.type() != CvType.CV_32F || !hist.size().equals(new Size(1, 256))) {
-                    hist.convertTo(hist, CvType.CV_32F);
-                    hist = hist.reshape(1, 256); // ensure column vector
-                }
-                Core.add(sumHistogram, hist, sumHistogram);
-                hist.release();
-
-                preprocessedFace.release();
-            }
-
-            if (validCount == 0) {
-                System.out.println("No valid images to compute average histogram");
-                sumHistogram.release();
-                return new Mat();
-            }
-
-            // Compute average
-            sumHistogram.convertTo(sumHistogram, sumHistogram.type(), 1.0 / validCount);
-            Core.normalize(sumHistogram, sumHistogram, 0, 1, Core.NORM_MINMAX);
-
-            System.out.println("Computed average histogram from " + validCount + " images");
-            return sumHistogram;
-        } catch (Exception e) {
-            System.err.println("Error computing average histogram: " + e.getMessage());
-            return new Mat();
-        }
-    }
 
 }

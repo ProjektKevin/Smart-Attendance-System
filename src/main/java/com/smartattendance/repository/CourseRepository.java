@@ -174,4 +174,110 @@ public class CourseRepository {
         }
         return students;
     }
+
+    /**
+     * Enroll a student in a course
+     *
+     * @param userId   The user ID to enroll
+     * @param courseId The course ID to enroll in
+     * @return true if enrollment was successful, false otherwise
+     */
+    public boolean enrollStudentInCourse(Integer userId, Integer courseId) {
+        String sql = "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, courseId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            // Silently fail if enrollment already exists (duplicate key error)
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Enroll a student in multiple courses
+     *
+     * @param userId    The user ID to enroll
+     * @param courseIds List of course IDs to enroll in
+     * @return true if all enrollments were successful, false if any failed
+     */
+    public boolean enrollStudentInCourses(Integer userId, List<Integer> courseIds) {
+        if (courseIds == null || courseIds.isEmpty()) {
+            return false;
+        }
+
+        boolean allSuccess = true;
+        for (Integer courseId : courseIds) {
+            if (!enrollStudentInCourse(userId, courseId)) {
+                allSuccess = false;
+            }
+        }
+        return allSuccess;
+    }
+
+    /**
+     * Unenroll a student from a course
+     *
+     * @param userId   The user ID to unenroll
+     * @param courseId The course ID to unenroll from
+     * @return true if unenrollment was successful, false otherwise
+     */
+    public boolean unenrollStudentFromCourse(Integer userId, Integer courseId) {
+        String sql = "DELETE FROM enrollments WHERE user_id = ? AND course_id = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, courseId);
+
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Get all courses enrolled by a specific student
+     *
+     * @param userId The user ID to filter by
+     * @return List of Course objects enrolled by the student
+     */
+    public List<Course> getCoursesByStudentId(Integer userId) {
+        List<Course> courses = new ArrayList<>();
+        String sql = "SELECT c.course_id, c.course_name, c.course_code " +
+                     "FROM courses c " +
+                     "JOIN enrollments e ON c.course_id = e.course_id " +
+                     "WHERE e.user_id = ? " +
+                     "ORDER BY c.course_code";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    courses.add(new Course(
+                            rs.getInt("course_id"),
+                            rs.getString("course_name"),
+                            rs.getString("course_code")));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return courses;
+    }
 }

@@ -1,14 +1,13 @@
 package com.smartattendance.controller.student;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.User;
+import com.smartattendance.service.StudentAttendanceService;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,90 +18,144 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 
-/**
- * Shows student's attendance with filters and a per-module percentage summary.
- * Assumes there is an AttendanceRow POJO with properties:
- *   - String module
- *   - LocalDate date
- *   - String status  (e.g., "Present" / "Absent")
- *
- * Replace the demo data loader with your real data source when you wire the DB.
- */
 public class StudentAttendanceController {
 
-    // Filters
+    // filters
     @FXML private ComboBox<String> courseCombo;
-    @FXML private DatePicker fromDate, toDate;
+    @FXML private DatePicker fromDate;
+    @FXML private DatePicker toDate;
     @FXML private Label recordsLabel;
 
-    // Detail table
-    @FXML private TableView<AttendanceRow> table;
+    // tables
+    @FXML private TableView<StudentAttendanceRow> table;
+    @FXML private TableView<StudentCourseSummary> summaryTable;
 
-    // Summary table
-    @FXML private TableView<ModuleSummary> summaryTable;
-    @FXML private TableColumn<ModuleSummary, Double> colPercent;
+    // detail columns
+    @FXML private TableColumn<StudentAttendanceRow, LocalDate> colDate;
+    @FXML private TableColumn<StudentAttendanceRow, String>    colCourse;
+    @FXML private TableColumn<StudentAttendanceRow, String>    colStatus;
+    @FXML private TableColumn<StudentAttendanceRow, String>    colMethod;
+    @FXML private TableColumn<StudentAttendanceRow, String>    colMarkedAt;
 
-    // All rows (load once, then filter in-memory)
-    private final ObservableList<AttendanceRow> masterData = FXCollections.observableArrayList();
+    // summary columns
+    @FXML private TableColumn<StudentCourseSummary, String>  colSummaryCourse;
+    @FXML private TableColumn<StudentCourseSummary, Integer> colSummaryAttended;
+    @FXML private TableColumn<StudentCourseSummary, Integer> colSummaryTotal;
+    @FXML private TableColumn<StudentCourseSummary, Double>  colSummaryPercent;
 
-    // Current filtered view for details
-    private final ObservableList<AttendanceRow> filtered = FXCollections.observableArrayList();
+    private final ObservableList<StudentAttendanceRow> masterData = FXCollections.observableArrayList();
+    private final ObservableList<StudentAttendanceRow> filtered   = FXCollections.observableArrayList();
+    private final ObservableList<StudentCourseSummary> summary    = FXCollections.observableArrayList();
 
-    // Summary list
-    private final ObservableList<ModuleSummary> summary = FXCollections.observableArrayList();
+    private final StudentAttendanceService service = new StudentAttendanceService();
 
     @FXML
     private void initialize() {
-        // Demo data: replace with repository/API once available
-        loadDemoData();
+        System.out.println("[StudentAttendance] init");
 
-        // init filters
-        Set<String> modules = masterData.stream().map(AttendanceRow::getModule).collect(Collectors.toCollection(TreeSet::new));
-        courseCombo.getItems().setAll(modules);
-        courseCombo.getItems().add(0, "All modules");
-        courseCombo.getSelectionModel().selectFirst();
+        // ---- detail table setup ----
+        if (colDate != null)   colDate.setCellValueFactory(new PropertyValueFactory<>("date"));
+        if (colCourse != null) colCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
+        if (colStatus != null) colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        if (colMethod != null) colMethod.setCellValueFactory(new PropertyValueFactory<>("method"));
+        if (colMarkedAt != null) colMarkedAt.setCellValueFactory(new PropertyValueFactory<>("markedAt"));
 
-        // default dates (last 90 days)
-        toDate.setValue(LocalDate.now());
-        fromDate.setValue(toDate.getValue().minusDays(90));
-
-        // bind detail table & summary
-        table.setItems(filtered);
-        summaryTable.setItems(summary);
-
-        // nice progress cell for percentage
-        colPercent.setCellFactory(tc -> new TableCell<>() {
-            private final ProgressBar bar = new ProgressBar();
-            private final Label lbl = new Label();
-            private final HBox box = new HBox(8, bar, lbl);
-            {
-                bar.setMaxWidth(Double.MAX_VALUE);
-                box.setFillHeight(true);
-            }
-            @Override
-            protected void updateItem(Double ratio, boolean empty) {
-                super.updateItem(ratio, empty);
-                if (empty || ratio == null) {
-                    setGraphic(null);
-                } else {
-                    bar.setProgress(ratio.isNaN() ? 0 : ratio); // 0..1
-                    int pct = (int)Math.round((ratio.isNaN() ? 0 : ratio) * 100.0);
-                    lbl.setText(pct + "%");
-                    setGraphic(box);
+        // row color coding (matches legend in FXML)
+        if (table != null) {
+            table.setRowFactory(tv -> new TableRow<>() {
+                @Override
+                protected void updateItem(StudentAttendanceRow row, boolean empty) {
+                    super.updateItem(row, empty);
+                    if (empty || row == null) {
+                        setStyle("");
+                        return;
+                    }
+                    String s = row.getStatus() == null ? "" : row.getStatus().toLowerCase();
+                    switch (s) {
+                        case "present" -> setStyle("-fx-background-color: rgba(46,125,50,0.10);");
+                        case "late"    -> setStyle("-fx-background-color: rgba(245,124,0,0.10);");
+                        case "absent"  -> setStyle("-fx-background-color: rgba(198,40,40,0.10);");
+                        case "pending" -> setStyle("-fx-background-color: rgba(97,97,97,0.06);");
+                        default        -> setStyle("");
+                    }
                 }
-            }
-        });
+            });
+            table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
 
-        // apply once
+        // ---- summary table setup (progress bar) ----
+        if (colSummaryCourse != null)
+            colSummaryCourse.setCellValueFactory(new PropertyValueFactory<>("course"));
+        if (colSummaryAttended != null)
+            colSummaryAttended.setCellValueFactory(new PropertyValueFactory<>("attended"));
+        if (colSummaryTotal != null)
+            colSummaryTotal.setCellValueFactory(new PropertyValueFactory<>("total"));
+
+        if (colSummaryPercent != null) {
+            colSummaryPercent.setCellValueFactory(new PropertyValueFactory<>("ratio"));
+            colSummaryPercent.setCellFactory(tc -> new TableCell<>() {
+                private final ProgressBar bar = new ProgressBar();
+                private final Label lbl = new Label();
+                {
+                    bar.setMaxWidth(Double.MAX_VALUE);
+                    HBox.setHgrow(bar, Priority.ALWAYS);
+                }
+                @Override
+                protected void updateItem(Double value, boolean empty) {
+                    super.updateItem(value, empty);
+                    if (empty || value == null || value.isNaN()) {
+                        setGraphic(null);
+                    } else {
+                        double p = Math.max(0, Math.min(1, value));
+                        bar.setProgress(p);
+                        lbl.setText(String.format("%.0f%%", p * 100));
+                        setGraphic(new HBox(8, bar, lbl));
+                    }
+                }
+            });
+        }
+
+        if (summaryTable != null) {
+            summaryTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
+
+        // load data for logged-in student
+        User current = ApplicationContext.getAuthSession().getCurrentUser();
+        if (current != null) {
+            masterData.setAll(service.loadRowsForStudent(current.getId()));
+        }
+
+        // bind tables
+        if (table != null)        table.setItems(filtered);
+        if (summaryTable != null) summaryTable.setItems(summary);
+
+        // default dates
+        LocalDate today = LocalDate.now();
+        if (toDate != null)   toDate.setValue(today);
+        if (fromDate != null) fromDate.setValue(today.minusDays(90));
+
+        // populate course combo
+        Set<String> courses = masterData.stream()
+                .map(StudentAttendanceRow::getCourse)
+                .collect(Collectors.toCollection(TreeSet::new));
+        if (courseCombo != null) {
+            courseCombo.getItems().setAll(courses);
+            courseCombo.getItems().add(0, "All courses");
+            courseCombo.getSelectionModel().selectFirst();
+            courseCombo.valueProperty().addListener((obs, o, n) -> applyFilters());
+        }
+
+        // auto-apply on date change
+        if (fromDate != null) fromDate.valueProperty().addListener((obs, o, n) -> applyFilters());
+        if (toDate != null)   toDate.valueProperty().addListener((obs, o, n) -> applyFilters());
+
         applyFilters();
-
-        // react to quick filter changes (optional live update)
-        courseCombo.valueProperty().addListener((obs, o, n) -> applyFilters());
-        fromDate.valueProperty().addListener((obs, o, n) -> applyFilters());
-        toDate.valueProperty().addListener((obs, o, n) -> applyFilters());
     }
 
     @FXML
@@ -112,98 +165,34 @@ public class StudentAttendanceController {
 
     @FXML
     private void onResetFilters() {
-        courseCombo.getSelectionModel().selectFirst();
-        toDate.setValue(LocalDate.now());
-        fromDate.setValue(toDate.getValue().minusDays(90));
+        LocalDate today = LocalDate.now();
+        if (courseCombo != null && !courseCombo.getItems().isEmpty())
+            courseCombo.getSelectionModel().selectFirst();
+        if (fromDate != null) fromDate.setValue(today.minusDays(90));
+        if (toDate != null)   toDate.setValue(today);
         applyFilters();
     }
 
     private void applyFilters() {
-        String courseSel = courseCombo.getSelectionModel().getSelectedItem();
-        LocalDate from = fromDate.getValue();
-        LocalDate to = toDate.getValue();
+        String course = (courseCombo != null) ? courseCombo.getSelectionModel().getSelectedItem() : null;
+        LocalDate from = (fromDate != null) ? fromDate.getValue() : null;
+        LocalDate to   = (toDate != null)   ? toDate.getValue()   : null;
 
-        filtered.setAll(masterData.stream()
-                .filter(r -> (courseSel == null || courseSel.equals("All modules") || r.getModule().equals(courseSel)))
-                .filter(r -> (from == null || !r.getDate().isBefore(from)))
-                .filter(r -> (to == null   || !r.getDate().isAfter(to)))
-                .sorted(Comparator.comparing(AttendanceRow::getDate).reversed())
-                .toList());
-
-        recordsLabel.setText(filtered.size() + " records");
-
-        // recompute module summary over the *same* filtered set
-        Map<String, List<AttendanceRow>> byModule = filtered.stream()
-                .collect(Collectors.groupingBy(AttendanceRow::getModule, TreeMap::new, Collectors.toList()));
-
-        List<ModuleSummary> rows = new ArrayList<>();
-        byModule.forEach((module, list) -> {
-            long attended = list.stream().filter(r -> "Present".equalsIgnoreCase(r.getStatus())).count();
-            int total = list.size();
-            double ratio = total == 0 ? Double.NaN : (attended * 1.0 / total);
-            rows.add(new ModuleSummary(module, (int)attended, total, ratio));
-        });
-
-        summary.setAll(rows);
-    }
-
-    // --------------------------------------------------------------------
-    // Demo data (replace with real repository / service later)
-    private void loadDemoData() {
-        // A few recent dates across two modules
-        LocalDate today = LocalDate.now();
-        add(today.minusDays(3),  "CS101 - Programming",   "Present");
-        add(today.minusDays(10), "CS101 - Programming",   "Absent");
-        add(today.minusDays(17), "CS101 - Programming",   "Present");
-        add(today.minusDays(1),  "MTH120 - Calculus",     "Present");
-        add(today.minusDays(8),  "MTH120 - Calculus",     "Present");
-        add(today.minusDays(15), "MTH120 - Calculus",     "Absent");
-        add(today.minusDays(22), "MTH120 - Calculus",     "Present");
-        add(today.minusDays(5),  "PHY130 - Mechanics",    "Absent");
-        add(today.minusDays(12), "PHY130 - Mechanics",    "Present");
-        add(today.minusDays(19), "PHY130 - Mechanics",    "Present");
-        add(today.minusDays(26), "PHY130 - Mechanics",    "Present");
-    }
-
-    private void add(LocalDate date, String module, String status) {
-        masterData.add(new AttendanceRow(date, module, status));
-    }
-
-    // --------------------------------------------------------------------
-    // View models
-
-    /** Minimal row used by the details table. Adjust if your real model differs. */
-    public static class AttendanceRow {
-        private final LocalDate date;
-        private final String module;
-        private final String status;
-
-        public AttendanceRow(LocalDate date, String module, String status) {
-            this.date = date;
-            this.module = module;
-            this.status = status;
+        // small guard: if user picks reversed dates, swap
+        if (from != null && to != null && from.isAfter(to)) {
+            LocalDate tmp = from;
+            from = to;
+            to = tmp;
+            if (fromDate != null) fromDate.setValue(from);
+            if (toDate != null)   toDate.setValue(to);
         }
-        public LocalDate getDate()   { return date; }
-        public String getModule()    { return module; }
-        public String getStatus()    { return status; }
-    }
 
-    /** Summary row for the per-module table. */
-    public static class ModuleSummary {
-        private final String module;
-        private final int attended;
-        private final int total;
-        private final double ratio; // 0..1 (NaN if total == 0)
+        var result = service.applyFilters(masterData, course, from, to);
+        filtered.setAll(result.getRows());
+        summary.setAll(result.getSummaries());
 
-        public ModuleSummary(String module, int attended, int total, double ratio) {
-            this.module = module;
-            this.attended = attended;
-            this.total = total;
-            this.ratio = ratio;
+        if (recordsLabel != null) {
+            recordsLabel.setText(result.getRows().size() + " records");
         }
-        public String getModule()   { return module; }
-        public int getAttended()    { return attended; }
-        public int getTotal()       { return total; }
-        public Double getRatio()    { return ratio; }
     }
 }

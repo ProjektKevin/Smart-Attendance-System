@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
@@ -41,6 +42,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class SessionController {
+
     @FXML
     private Label sessionsInfo;
     @FXML
@@ -419,6 +421,7 @@ public class SessionController {
             if (newSession != null) {
                 loadSessionsFromDatabase(); // Reload to get the new session
                 showSuccess("Session " + newSession.getSessionId() + " created successfully!");
+                ApplicationContext.getAuthSession().setActiveSessionId(newSession.getSessionId());
             }
 
         } catch (Exception e) {
@@ -460,6 +463,8 @@ public class SessionController {
             // Start the session
             session.open();
             ss.updateSessionStatus(session);
+
+            ApplicationContext.getAuthSession().setActiveSessionId(session.getSessionId());
         }
 
         sessionTable.refresh();
@@ -481,6 +486,13 @@ public class SessionController {
             if (!"Closed".equals(session.getStatus())) {
                 session.close();
                 ss.updateSessionStatus(session);
+
+                // Clear Session ID from AuthSession
+                Integer activeSessionId = ApplicationContext.getAuthSession().getActiveSessionId();
+                if (activeSessionId != null && activeSessionId == session.getSessionId()) {
+                    ApplicationContext.getAuthSession().clearActiveSessionId();
+                }
+
                 successCount++;
             }
         }
@@ -508,8 +520,8 @@ public class SessionController {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Confirm Delete All");
             alert.setHeaderText("Delete ALL Sessions");
-            alert.setContentText("WARNING: This will permanently delete ALL " + sessionList.size() + " sessions!\n\n" +
-                    "This action cannot be undone. Are you absolutely sure?");
+            alert.setContentText("WARNING: This will permanently delete ALL " + sessionList.size() + " sessions!\n\n"
+                    + "This action cannot be undone. Are you absolutely sure?");
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {

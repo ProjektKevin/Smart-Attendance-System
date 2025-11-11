@@ -22,6 +22,10 @@ public abstract class Recognizer {
   }
 
   public void setConfidenceThreshold(double confidenceThreshold) {
+    if (confidenceThreshold < 0 || confidenceThreshold > 100) {
+      System.err.println("Invalid threshold: " + confidenceThreshold);
+      return;
+    }
     this.confidenceThreshold = confidenceThreshold;
   }
 

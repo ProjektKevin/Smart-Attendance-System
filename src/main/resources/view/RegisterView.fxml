@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<GridPane xmlns:fx="http://javafx.com/fxml"
+          fx:controller="com.smartattendance.controller.auth.RegisterController"
+          stylesheets="@styles/login.css"
+          styleClass="login-root"
+          hgap="14" vgap="14" alignment="CENTER">
+
+    <columnConstraints>
+        <ColumnConstraints halignment="RIGHT" minWidth="120" hgrow="NEVER"/>
+        <ColumnConstraints minWidth="260" hgrow="ALWAYS"/>
+    </columnConstraints>
+
+    <children>
+        <!-- Title (centered) -->
+        <Label text="Complete Your Registration"
+               styleClass="login-title"
+               GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="2"
+               GridPane.halignment="CENTER"/>
+
+        <!-- Subtitle/Info text -->
+        <Label text="Please create your account with username, name, and password"
+               style="-fx-font-size: 12px; -fx-text-fill: #6b7280; -fx-alignment: center;"
+               wrapText="true"
+               GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2"
+               GridPane.halignment="CENTER"/>
+
+        <!-- Username Field -->
+        <Label text="_Username:"
+               mnemonicParsing="true"
+               styleClass="form-label"
+               GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <VBox GridPane.rowIndex="2" GridPane.columnIndex="1" spacing="2" GridPane.hgrow="ALWAYS">
+            <TextField fx:id="usernameField"
+                       promptText="3-20 alphanumeric characters"
+                       styleClass="input"
+                       GridPane.hgrow="ALWAYS"/>
+            <Label fx:id="usernameError" text=""
+                   visible="${usernameError.text != ''}"
+                   managed="${usernameError.text != ''}"
+                   style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+        </VBox>
+
+        <!-- First Name Field -->
+        <Label text="_First Name:"
+               mnemonicParsing="true"
+               styleClass="form-label"
+               GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <VBox GridPane.rowIndex="3" GridPane.columnIndex="1" spacing="2" GridPane.hgrow="ALWAYS">
+            <TextField fx:id="firstNameField"
+                       promptText="Enter your first name"
+                       styleClass="input"
+                       GridPane.hgrow="ALWAYS"/>
+            <Label fx:id="firstNameError" text=""
+                   visible="${firstNameError.text != ''}"
+                   managed="${firstNameError.text != ''}"
+                   style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+        </VBox>
+
+        <!-- Last Name Field -->
+        <Label text="_Last Name:"
+               mnemonicParsing="true"
+               styleClass="form-label"
+               GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <VBox GridPane.rowIndex="4" GridPane.columnIndex="1" spacing="2" GridPane.hgrow="ALWAYS">
+            <TextField fx:id="lastNameField"
+                       promptText="Enter your last name"
+                       styleClass="input"
+                       GridPane.hgrow="ALWAYS"/>
+            <Label fx:id="lastNameError" text=""
+                   visible="${lastNameError.text != ''}"
+                   managed="${lastNameError.text != ''}"
+                   style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+        </VBox>
+
+        <!-- Password Field -->
+        <Label text="_Password:"
+               mnemonicParsing="true"
+               styleClass="form-label"
+               GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <VBox GridPane.rowIndex="5" GridPane.columnIndex="1" spacing="2" GridPane.hgrow="ALWAYS">
+            <PasswordField fx:id="passwordField"
+                           promptText="At least 8 characters, 1 uppercase, 1 lowercase, 1 number"
+                           styleClass="input"
+                           GridPane.hgrow="ALWAYS"/>
+            <Label fx:id="passwordError" text=""
+                   visible="${passwordError.text != ''}"
+                   managed="${passwordError.text != ''}"
+                   style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+        </VBox>
+
+        <!-- Confirm Password Field -->
+        <Label text="_Confirm Password:"
+               mnemonicParsing="true"
+               styleClass="form-label"
+               GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <VBox GridPane.rowIndex="6" GridPane.columnIndex="1" spacing="2" GridPane.hgrow="ALWAYS">
+            <PasswordField fx:id="confirmPasswordField"
+                           promptText="Re-enter your password"
+                           styleClass="input"
+                           GridPane.hgrow="ALWAYS"/>
+            <Label fx:id="confirmPasswordError" text=""
+                   visible="${confirmPasswordError.text != ''}"
+                   managed="${confirmPasswordError.text != ''}"
+                   style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
+        </VBox>
+
+        <!-- Error banner (auto-hide/show) -->
+        <Label fx:id="errorLabel"
+               text=""
+               styleClass="error-banner"
+               wrapText="true"
+               maxWidth="360"
+               visible="${errorLabel.text != ''}"
+               managed="${errorLabel.text != ''}"
+               GridPane.rowIndex="7" GridPane.columnIndex="0" GridPane.columnSpan="2"
+               GridPane.halignment="CENTER"/>
+
+        <!-- Success banner (auto-hide/show) -->
+        <Label fx:id="successLabel"
+               text=""
+               style="-fx-background-color: rgba(34, 197, 94, 0.10); -fx-text-fill: #15803d; -fx-font-size: 13px; -fx-font-weight: 600; -fx-padding: 10px 14px; -fx-background-radius: 10px; -fx-border-radius: 10px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 12, 0.2, 0, 2); -fx-alignment: center; -fx-text-alignment: center;"
+               wrapText="true"
+               maxWidth="360"
+               visible="${successLabel.text != ''}"
+               managed="${successLabel.text != ''}"
+               GridPane.rowIndex="8" GridPane.columnIndex="0" GridPane.columnSpan="2"
+               GridPane.halignment="CENTER"/>
+
+        <!-- Actions -->
+        <HBox spacing="12" alignment="CENTER_RIGHT"
+              GridPane.rowIndex="9" GridPane.columnIndex="0" GridPane.columnSpan="2">
+
+            <!-- Cancel Button -->
+            <Button fx:id="cancelButton"
+                    text="Cancel"
+                    onAction="#handleCancel"
+                    style="-fx-background-color: transparent; -fx-text-fill: #6b7280; -fx-font-size: 13px; -fx-cursor: hand; -fx-border-color: #d1d5db; -fx-border-radius: 10px; -fx-padding: 12px 18px;"/>
+
+            <!-- Submit Button -->
+            <Button fx:id="submitButton"
+                    text="Register"
+                    onAction="#handleSubmit"
+                    styleClass="primary-btn"/>
+        </HBox>
+    </children>
+</GridPane>

@@ -1,763 +1,435 @@
-// package com.smartattendance.controller;
-
-// import com.smartattendance.model.AttendanceRecord;
-// import com.smartattendance.model.Session;
-// import com.smartattendance.model.Student;
-// import com.smartattendance.service.AttendanceService;
-// import com.smartattendance.util.AppContext;
-// import com.smartattendance.util.EmailService;
-// import com.smartattendance.util.EmailSettings;
-// import javafx.application.Platform;
-// import javafx.fxml.FXML;
-// import javafx.scene.control.*;
-// import javafx.stage.FileChooser;
-// import org.apache.pdfbox.pdmodel.PDDocument;
-// import org.apache.pdfbox.pdmodel.PDPage;
-// import org.apache.pdfbox.pdmodel.PDPageContentStream;
-// import org.apache.pdfbox.pdmodel.common.PDRectangle;
-// import org.apache.pdfbox.pdmodel.font.PDType1Font;
-
-// import java.io.*;
-// import java.nio.charset.StandardCharsets;
-// import java.time.LocalDate;
-// import java.time.LocalDateTime;
-// import java.time.LocalTime;
-// import java.time.format.DateTimeFormatter;
-// import java.util.List;
-
-// public class ReportController {
-
-//   @FXML private DatePicker fromDate;
-//   @FXML private DatePicker toDate;
-//   @FXML private Label reportStatus;
-
-//   // Email UI
-//   @FXML private TextField emailTo;
-//   @FXML private TextField emailSubject;
-//   @FXML private TextArea  emailBody;
-
-//   private final AttendanceService attendance = AppContext.getAttendanceService();
-
-//   // keep track of the last exports to attach easily
-//   private File lastExportedPdf;
-//   private File lastExportedCsv;
-
-//   @FXML
-//   public void initialize() {
-//     LocalDate today = LocalDate.now();
-//     fromDate.setValue(today);
-//     toDate.setValue(today);
-//     reportStatus.setText("Select a range and export/import.");
-//     emailSubject.setText("Attendance Report");
-//     emailBody.setText("Hi,\n\nPlease find the attendance report attached.\n\nRegards,\nSmart Attendance");
-//   }
-
-//   /* ---------------- CSV export ---------------- */
-//   @FXML
-//   private void onExportCSV() {
-//     List<AttendanceRecord> rows = dataForRange();
-//     if (rows.isEmpty()) { reportStatus.setText("No data in range."); return; }
-
-//     FileChooser fc = new FileChooser();
-//     fc.setTitle("Save Attendance CSV");
-//     fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-//     fc.setInitialFileName("attendance.csv");
-//     File file = fc.showSaveDialog(null);
-//     if (file == null) return;
-
-//     try (BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-//       w.write("date,time,session_id,course_id,student_id,student_name,status,method,confidence,note\n");
-//       DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-//       DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm:ss");
-//       for (AttendanceRecord r : rows) {
-//         String date = r.getTimestamp().toLocalDate().format(df);
-//         String time = r.getTimestamp().toLocalTime().format(tf);
-//         Session s = r.getSession();
-//         Student st = r.getStudent();
-//         w.write(String.join(",",
-//             esc(date),
-//             esc(time),
-//             esc(s.getSessionId()),
-//             esc(s.getCourse()),
-//             esc(st.getStudentId()),
-//             esc(st.getName()),
-//             esc(r.getStatus()),
-//             esc(r.getMethod()),
-//             String.format("%.2f", r.getConfidence()),
-//             esc(r.getNote() == null ? "" : r.getNote())
-//         ));
-//         w.write("\n");
-//       }
-//       lastExportedCsv = file;
-//       reportStatus.setText("CSV exported: " + file.getName());
-//     } catch (IOException e) {
-//       reportStatus.setText("CSV export failed: " + e.getMessage());
-//     }
-//   }
-
-//   /* ---------------- PDF export ---------------- */
-//   @FXML
-//   private void onExportPDF() {
-//     List<AttendanceRecord> rows = dataForRange();
-//     if (rows.isEmpty()) { reportStatus.setText("No data in range."); return; }
-
-//     FileChooser fc = new FileChooser();
-//     fc.setTitle("Save Attendance PDF");
-//     fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-//     fc.setInitialFileName("attendance.pdf");
-//     File file = fc.showSaveDialog(null);
-//     if (file == null) return;
-
-//     try (PDDocument doc = new PDDocument()) {
-
-//       // page + layout params
-//       float margin = 36f;
-//       float leading = 14f;
-//       float y;
-//       float x = margin;
-
-//       // reusable header
-//       final String[] headers = {"Date","Time","Session","Course","Student","Status","Method","Conf"};
-//       final float[] widths   = { 55f, 45f,   60f,     55f,     150f,     55f,     55f,     35f };
-//       DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-//       DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
-
-//       // helpers to create a new page + header
-//       PDPage page = new PDPage(PDRectangle.A4);
-//       doc.addPage(page);
-//       PDPageContentStream cs = new PDPageContentStream(doc, page);
-//       try {
-//         y = page.getMediaBox().getHeight() - margin;
-
-//         // Title
-//         cs.beginText();
-//         cs.setFont(PDType1Font.HELVETICA_BOLD, 14);
-//         cs.newLineAtOffset(x, y);
-//         cs.showText("Attendance Report");
-//         cs.endText();
-//         y -= leading * 2;
-
-//         // Header row
-//         cs.setFont(PDType1Font.HELVETICA_BOLD, 10);
-//         y = drawRow(cs, x, y, leading, headers, widths);
-//         cs.setFont(PDType1Font.HELVETICA, 10);
-
-//         // Data rows
-//         for (AttendanceRecord r : rows) {
-//           if (y < margin + leading * 2) {
-//             // new page
-//             cs.close();
-//             page = new PDPage(PDRectangle.A4);
-//             doc.addPage(page);
-//             cs = new PDPageContentStream(doc, page);
-//             y = page.getMediaBox().getHeight() - margin;
-//             // header on new page
-//             cs.setFont(PDType1Font.HELVETICA_BOLD, 10);
-//             y = drawRow(cs, x, y, leading, headers, widths);
-//             cs.setFont(PDType1Font.HELVETICA, 10);
-//           }
-//           String[] row = {
-//               r.getTimestamp().toLocalDate().format(df),
-//               r.getTimestamp().toLocalTime().format(tf),
-//               r.getSession().getSessionId(),
-//               r.getSession().getCourseId(),
-//               r.getStudent().getName() + " (" + r.getStudent().getStudentId() + ")",
-//               r.getStatus(),
-//               r.getMethod(),
-//               String.format("%.2f", r.getConfidence())
-//           };
-//           y = drawRow(cs, x, y, leading, row, widths);
-//         }
-//       } finally {
-//         cs.close();
-//       }
-
-//       doc.save(file);
-//       lastExportedPdf = file;
-//       reportStatus.setText("PDF exported: " + file.getName());
-//     } catch (Exception e) {
-//       reportStatus.setText("PDF export failed: " + e.getMessage());
-//     }
-//   }
-
-//   /* ---------------- Email buttons ---------------- */
-//   @FXML
-//   private void onEmailPdf() {
-//     if (lastExportedPdf == null || !lastExportedPdf.exists()) {
-//       reportStatus.setText("Export a PDF first.");
-//       return;
-//     }
-//     sendEmailWithAttachments(List.of(lastExportedPdf));
-//   }
-
-//   @FXML
-//   private void onEmailCsv() {
-//     if (lastExportedCsv == null || !lastExportedCsv.exists()) {
-//       reportStatus.setText("Export a CSV first.");
-//       return;
-//     }
-//     sendEmailWithAttachments(List.of(lastExportedCsv));
-//   }
-
-//   private void sendEmailWithAttachments(List<File> files) {
-//     final String to = safe(emailTo.getText());
-//     if (to.isBlank()) { reportStatus.setText("Enter recipient email."); return; }
-
-//     final String subject = (emailSubject.getText() == null || emailSubject.getText().isBlank())
-//             ? "Attendance Report" : emailSubject.getText();
-
-//     final String body = (emailBody.getText() == null || emailBody.getText().isBlank())
-//             ? "Please find the report attached." : emailBody.getText();
-
-//     final List<File> attachments = (files == null) ? List.of() : List.copyOf(files);
-//     final EmailService svc = new EmailService(EmailSettings.fromEnv());
-
-//     reportStatus.setText("Sending email…");
-
-//     Thread t = new Thread(() -> {
-//       try {
-//         svc.send(to, subject, body, attachments);
-//         Platform.runLater(() -> reportStatus.setText("Email sent to " + to));
-//       } catch (Exception ex) {
-//         final String msg = ex.getMessage();
-//         Platform.runLater(() -> reportStatus.setText("Email failed: " + msg));
-//       }
-//     }, "mail-sender");
-//     t.setDaemon(true);
-//     t.start();
-//   }
-
-//   /* ---------------- Imports ---------------- */
-//   @FXML
-//   private void onImportStudentsCSV() {
-//     FileChooser fc = new FileChooser();
-//     fc.setTitle("Import Students CSV");
-//     fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-//     File file = fc.showOpenDialog(null);
-//     if (file == null) return;
-
-//     int imported = 0;
-//     try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-//       String line; boolean headerSkipped = false;
-//       while ((line = br.readLine()) != null) {
-//         if (!headerSkipped) { headerSkipped = true; continue; }
-//         String[] parts = splitCsv(line);
-//         if (parts.length < 3) continue;
-//         String id = parts[0].trim();
-//         String name = parts[1].trim();
-//         String course = parts[2].trim();
-//         if (id.isEmpty() || name.isEmpty()) continue;
-
-//         var svc = AppContext.getStudentService();
-//         var found = svc.findById(id);
-//         if (found == null) {
-//           svc.addStudent(new Student(id, name, course));
-//           imported++;
-//         }
-//       }
-//       reportStatus.setText("Imported students: " + imported);
-//     } catch (IOException e) {
-//       reportStatus.setText("Import failed: " + e.getMessage());
-//     }
-//   }
-
-//   @FXML
-//   private void onImportAttendanceCSV() {
-//     FileChooser fc = new FileChooser();
-//     fc.setTitle("Import Attendance CSV");
-//     fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-//     File file = fc.showOpenDialog(null);
-//     if (file == null) return;
-
-//     int imported = 0;
-//     try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-//       String line; boolean headerSkipped = false;
-//       DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-//       DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm[:ss]");
-//       while ((line = br.readLine()) != null) {
-//         if (!headerSkipped) { headerSkipped = true; continue; }
-//         String[] p = splitCsv(line);
-//         if (p.length < 9) continue;
-
-//         LocalDate date = LocalDate.parse(p[0].trim(), df);
-//         LocalTime time = LocalTime.parse(p[1].trim(), tf);
-//         String sessId = p[2].trim();
-//         String courseId = p[3].trim();
-//         String stuId = p[4].trim();
-//         String stuName = p[5].trim();
-//         String status = p[6].trim();
-//         String method = p[7].trim();
-//         double conf = safeDouble(p[8].trim());
-//         String note = p.length > 9 ? p[9] : "";
-
-//         Student st = AppContext.getStudentService().findById(stuId);
-//         if (st == null) {
-//           st = new Student(stuId, stuName.isEmpty() ? stuId : stuName, "CS?");
-//           AppContext.getStudentService().addStudent(st);
-//         }
-//         Session sess = new Session(sessId.isEmpty() ? "IMP-" + System.nanoTime() : sessId,
-//             courseId.isEmpty() ? "COURSE?" : courseId,
-//             date, LocalTime.of(9,0), LocalTime.of(10,0), "Imported", 15);
-
-//         AttendanceRecord rec = new AttendanceRecord(st, sess,
-//             (status.isEmpty() ? "Present" : status),
-//             (method.isEmpty() ? "Import" : method),
-//             conf, LocalDateTime.of(date, time));
-//         rec.setNote(note);
-//         AppContext.getAttendanceService().markAttendance(rec);
-//         imported++;
-//       }
-//       reportStatus.setText("Imported attendance rows: " + imported);
-//     } catch (Exception e) {
-//       reportStatus.setText("Import failed: " + e.getMessage());
-//     }
-//   }
-
-//   /* ---------------- helpers ---------------- */
-//   private List<AttendanceRecord> dataForRange() {
-//     LocalDate from = fromDate.getValue();
-//     LocalDate to = toDate.getValue();
-//     return attendance.getBetween(from, to);
-//   }
-
-//   private static String esc(String s) {
-//     String v = s.replace("\"", "\"\"");
-//     return (v.contains(",") || v.contains("\"") || v.contains("\n")) ? "\"" + v + "\"" : v;
-//   }
-
-//   private static String[] splitCsv(String line) {
-//     java.util.List<String> out = new java.util.ArrayList<>();
-//     StringBuilder cur = new StringBuilder();
-//     boolean q = false;
-//     for (int i = 0; i < line.length(); i++) {
-//       char c = line.charAt(i);
-//       if (c == '"') q = !q;
-//       else if (c == ',' && !q) { out.add(cur.toString().trim()); cur.setLength(0); }
-//       else cur.append(c);
-//     }
-//     out.add(cur.toString().trim());
-//     return out.toArray(new String[0]);
-//   }
-
-//   private static float drawRow(PDPageContentStream cs, float x, float y, float leading,
-//                                String[] cols, float[] widths) throws IOException {
-//     float cursorX = x;
-//     cs.beginText();
-//     cs.newLineAtOffset(cursorX, y);
-//     for (int i = 0; i < cols.length; i++) {
-//       cs.showText(trunc(cols[i], (int)(widths[i] / 6))); // rough fit
-//       cs.newLineAtOffset(widths[i], 0);
-//     }
-//     cs.endText();
-//     return y - leading;
-//   }
-
-//   private static String trunc(String s, int max) {
-//     if (s == null) return "";
-//     return (s.length() <= max) ? s : s.substring(0, Math.max(0, max - 1)) + "…";
-//   }
-
-//   private static double safeDouble(String s) {
-//     try { return Double.parseDouble(s); } catch (Exception e) { return 0.0; }
-//   }
-
-//   private static String safe(String s) { return (s == null) ? "" : s.trim(); }
-// }
-
 package com.smartattendance.controller;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-
-import com.smartattendance.ApplicationContext;
-import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.AttendanceStatus;
-import com.smartattendance.model.entity.MarkMethod;
-import com.smartattendance.model.entity.Session;
-import com.smartattendance.model.entity.Student;
-import com.smartattendance.service.AttendanceService;
-import com.smartattendance.service.StudentService;
-import com.smartattendance.util.EmailService;
-import com.smartattendance.util.EmailSettings;
+import com.smartattendance.service.AttendanceReportService;
+import com.smartattendance.util.report.AttendanceReportRow;
+import com.smartattendance.util.report.ReportSpec;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 
+/**
+ * Thin controller:
+ * - read UI
+ * - call service
+ * - show status
+ */
 public class ReportController {
 
-  @FXML private DatePicker fromDate;
-  @FXML private DatePicker toDate;
-  @FXML private Label reportStatus;
+    // dates
+    @FXML private DatePicker fromDate;
+    @FXML private DatePicker toDate;
 
-  // Email UI
-  @FXML private TextField emailTo;
-  @FXML private TextField emailSubject;
-  @FXML private TextArea  emailBody;
+    // filters
+    @FXML private ComboBox<String> sessionFilter;
+    @FXML private ComboBox<String> courseFilter;
+    @FXML private ComboBox<String> statusFilter;
+    @FXML private ComboBox<String> methodFilter;
+    @FXML private ComboBox<String> confidenceFilter;
 
-  private final AttendanceService attendance = ApplicationContext.getAttendanceService();
-  private final StudentService studentService = ApplicationContext.getStudentService();
+    // columns
+    @FXML private CheckBox selectAllFieldsCheck;
+    @FXML private CheckBox includeDateTimeCheck;
+    @FXML private CheckBox includeSessionIdCheck;
+    @FXML private CheckBox includeCourseCodeCheck;
+    @FXML private CheckBox includeStudentIdCheck;
+    @FXML private CheckBox includeStudentNameCheck;
+    @FXML private CheckBox includeStatusCheck;
+    @FXML private CheckBox includeMethodCheck;
+    @FXML private CheckBox includeConfidenceCheck;
+    @FXML private CheckBox includeNoteCheck;
 
-  // keep track of the last exports to attach easily
-  private File lastExportedPdf;
-  private File lastExportedCsv;
+    // email
+    @FXML private TextField emailTo;
+    @FXML private TextField emailSubject;
+    @FXML private TextArea  emailBody;
 
-  @FXML
-  public void initialize() {
-    LocalDate today = LocalDate.now();
-    fromDate.setValue(today);
-    toDate.setValue(today);
-    reportStatus.setText("Select a range and export/import.");
-    emailSubject.setText("Attendance Report");
-    emailBody.setText("Hi,\n\nPlease find the attendance report attached.\n\nRegards,\nSmart Attendance");
-  }
+    @FXML private Label reportStatus;
 
-  /* ---------------- CSV export ---------------- */
-  @FXML
-  private void onExportCSV() {
-    List<AttendanceRecord> rows = dataForRange();
-    if (rows.isEmpty()) { reportStatus.setText("No data in range."); return; }
+    private final AttendanceReportService reportService = new AttendanceReportService();
 
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Save Attendance CSV");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-    fc.setInitialFileName("attendance.csv");
-    File file = fc.showSaveDialog(null);
-    if (file == null) return;
+    // we store the last generated files so the email buttons can attach them
+    private File lastPdf;
+    private File lastCsv;
+    private File lastXlsx;
 
-    try (BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-      w.write("date,time,session_id,course_id,student_id,student_name,status,method,confidence,note\n");
-      DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-      DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm:ss");
-      for (AttendanceRecord r : rows) {
-        String date = r.getTimestamp().toLocalDate().format(df);
-        String time = r.getTimestamp().toLocalTime().format(tf);
-        Session s = r.getSession();
-        Student st = r.getStudent();
-        w.write(String.join(",",
-            esc(date),
-            esc(time),
-            esc(String.valueOf(s.getSessionId())), // convert int to String
-            esc(s.getCourse()),
-            esc(Integer.toString(st.getStudentId())),
-            esc(st.getName()),
-            esc((r.getStatus()).toString()),
-            esc(r.getMethod().toString()),
-            String.format("%.2f", r.getConfidence()),
-            esc(r.getNote() == null ? "" : r.getNote())
-        ));
-        w.write("\n");
-      }
-      lastExportedCsv = file;
-      reportStatus.setText("CSV exported: " + file.getName());
-    } catch (IOException e) {
-      reportStatus.setText("CSV export failed: " + e.getMessage());
-    }
-  }
+    private boolean updatingSelectAll = false;
 
-  /* ---------------- PDF export ---------------- */
-  @FXML
-  private void onExportPDF() {
-    List<AttendanceRecord> rows = dataForRange();
-    if (rows.isEmpty()) { reportStatus.setText("No data in range."); return; }
+    @FXML
+    public void initialize() {
+        // defaults
+        LocalDate today = LocalDate.now();
+        if (fromDate != null) fromDate.setValue(today);
+        if (toDate   != null) toDate.setValue(today);
 
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Save Attendance PDF");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-    fc.setInitialFileName("attendance.pdf");
-    File file = fc.showSaveDialog(null);
-    if (file == null) return;
-
-    try (PDDocument doc = new PDDocument()) {
-
-      // page + layout params
-      float margin = 36f;
-      float leading = 14f;
-      float y;
-      float x = margin;
-
-      // reusable header
-      final String[] headers = {"Date","Time","Session","Course","Student","Status","Method","Conf"};
-      final float[] widths   = { 55f, 45f,   60f,     55f,     150f,     55f,     55f,     35f };
-      DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-      DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
-
-      // helpers to create a new page + header
-      PDPage page = new PDPage(PDRectangle.A4);
-      doc.addPage(page);
-      PDPageContentStream cs = new PDPageContentStream(doc, page);
-      try {
-        y = page.getMediaBox().getHeight() - margin;
-
-        // Title
-        cs.beginText();
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 14);
-        cs.newLineAtOffset(x, y);
-        cs.showText("Attendance Report");
-        cs.endText();
-        y -= leading * 2;
-
-        // Header row
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 10);
-        y = drawRow(cs, x, y, leading, headers, widths);
-        cs.setFont(PDType1Font.HELVETICA, 10);
-
-        // Data rows
-        for (AttendanceRecord r : rows) {
-          if (y < margin + leading * 2) {
-            // new page
-            cs.close();
-            page = new PDPage(PDRectangle.A4);
-            doc.addPage(page);
-            cs = new PDPageContentStream(doc, page);
-            y = page.getMediaBox().getHeight() - margin;
-            // header on new page
-            cs.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            y = drawRow(cs, x, y, leading, headers, widths);
-            cs.setFont(PDType1Font.HELVETICA, 10);
-          }
-          String[] row = {
-              r.getTimestamp().toLocalDate().format(df),
-              r.getTimestamp().toLocalTime().format(tf),
-              String.valueOf(r.getSession().getSessionId()), // convert int to String
-              r.getSession().getCourse(),
-              r.getStudent().getName() + " (" + r.getStudent().getStudentId() + ")",
-              r.getStatus().toString(),
-              r.getMethod().toString(),
-              String.format("%.2f", r.getConfidence())
-          };
-          y = drawRow(cs, x, y, leading, row, widths);
+        if (reportStatus != null) {
+            reportStatus.setText("Select filters and export.");
         }
-      } finally {
-        cs.close();
-      }
 
-      doc.save(file);
-      lastExportedPdf = file;
-      reportStatus.setText("PDF exported: " + file.getName());
-    } catch (Exception e) {
-      reportStatus.setText("PDF export failed: " + e.getMessage());
-    }
-  }
-
-  /* ---------------- Email buttons ---------------- */
-  @FXML
-  private void onEmailPdf() {
-    if (lastExportedPdf == null || !lastExportedPdf.exists()) {
-      reportStatus.setText("Export a PDF first.");
-      return;
-    }
-    sendEmailWithAttachments(List.of(lastExportedPdf));
-  }
-
-  @FXML
-  private void onEmailCsv() {
-    if (lastExportedCsv == null || !lastExportedCsv.exists()) {
-      reportStatus.setText("Export a CSV first.");
-      return;
-    }
-    sendEmailWithAttachments(List.of(lastExportedCsv));
-  }
-
-  private void sendEmailWithAttachments(List<File> files) {
-    final String to = safe(emailTo.getText());
-    if (to.isBlank()) { reportStatus.setText("Enter recipient email."); return; }
-
-    final String subject = (emailSubject.getText() == null || emailSubject.getText().isBlank())
-            ? "Attendance Report" : emailSubject.getText();
-
-    final String body = (emailBody.getText() == null || emailBody.getText().isBlank())
-            ? "Please find the report attached." : emailBody.getText();
-
-    final List<File> attachments = (files == null) ? List.of() : List.copyOf(files);
-    final EmailService svc = new EmailService(EmailSettings.fromEnv());
-
-    reportStatus.setText("Sending email…");
-
-    Thread t = new Thread(() -> {
-      try {
-        svc.send(to, subject, body, attachments);
-        Platform.runLater(() -> reportStatus.setText("Email sent to " + to));
-      } catch (Exception ex) {
-        final String msg = ex.getMessage();
-        Platform.runLater(() -> reportStatus.setText("Email failed: " + msg));
-      }
-    }, "mail-sender");
-    t.setDaemon(true);
-    t.start();
-  }
-
-  /* ---------------- Imports ---------------- */
-  @FXML
-  private void onImportStudentsCSV() {
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Import Students CSV");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-    File file = fc.showOpenDialog(null);
-    if (file == null) return;
-
-    int imported = 0;
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-      String line; boolean headerSkipped = false;
-      while ((line = br.readLine()) != null) {
-        if (!headerSkipped) { headerSkipped = true; continue; }
-        String[] parts = splitCsv(line);
-        if (parts.length < 3) continue;
-        String id = parts[0].trim();
-        String name = parts[1].trim();
-        String course = parts[2].trim();
-        if (id.isEmpty() || name.isEmpty()) continue;
-
-        var found = studentService.findById(Integer.parseInt(id));
-        if (found == null) {
-          studentService.addStudent(new Student(Integer.parseInt(id), name, course));
-          imported++;
+        if (emailSubject != null) {
+            emailSubject.setText("Attendance Report");
         }
-      }
-      reportStatus.setText("Imported students: " + imported);
-    } catch (IOException e) {
-      reportStatus.setText("Import failed: " + e.getMessage());
+        if (emailBody != null) {
+            emailBody.setText("Please find the attached attendance report.");
+        }
+
+        // column defaults
+        setColumnChecks(true);
+        if (selectAllFieldsCheck != null) {
+            selectAllFieldsCheck.setSelected(true);
+            selectAllFieldsCheck.selectedProperty().addListener((obs, ov, nv) -> {
+                if (updatingSelectAll) return;
+                updatingSelectAll = true;
+                setColumnChecks(nv);
+                updatingSelectAll = false;
+            });
+        }
+        // when individual boxes change → maybe uncheck selectAll
+        registerColumnForSelectAll(includeDateTimeCheck);
+        registerColumnForSelectAll(includeSessionIdCheck);
+        registerColumnForSelectAll(includeCourseCodeCheck);
+        registerColumnForSelectAll(includeStudentIdCheck);
+        registerColumnForSelectAll(includeStudentNameCheck);
+        registerColumnForSelectAll(includeStatusCheck);
+        registerColumnForSelectAll(includeMethodCheck);
+        registerColumnForSelectAll(includeConfidenceCheck);
+        registerColumnForSelectAll(includeNoteCheck);
+
+        // load dropdowns from DB via service
+        loadDropDowns();
     }
-  }
 
-  @FXML
-  private void onImportAttendanceCSV() {
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Import Attendance CSV");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-    File file = fc.showOpenDialog(null);
-    if (file == null) return;
+    private void loadDropDowns() {
+        // sessions
+        if (sessionFilter != null) {
+            sessionFilter.getItems().setAll(reportService.getSessionOptions());
+            if (!sessionFilter.getItems().isEmpty()) {
+                sessionFilter.getSelectionModel().select(0); // "All" or first
+            }
+        }
+        // courses
+        if (courseFilter != null) {
+            courseFilter.getItems().setAll(reportService.getCourseOptions());
+            if (!courseFilter.getItems().isEmpty()) {
+                courseFilter.getSelectionModel().select(0);
+            }
+        }
+        // statuses / methods / confidences – fixed in service
+        if (statusFilter != null) {
+            statusFilter.getItems().setAll(reportService.getStatusOptions());
+            statusFilter.getSelectionModel().selectFirst();
+        }
+        if (methodFilter != null) {
+            methodFilter.getItems().setAll(reportService.getMethodOptions());
+            methodFilter.getSelectionModel().selectFirst();
+        }
+        if (confidenceFilter != null) {
+            confidenceFilter.getItems().setAll(reportService.getConfidenceOptions());
+            confidenceFilter.getSelectionModel().selectFirst();
+        }
+    }
 
-    int imported = 0;
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-      String line; boolean headerSkipped = false;
-      DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-      DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm[:ss]");
-      while ((line = br.readLine()) != null) {
-        if (!headerSkipped) { headerSkipped = true; continue; }
-        String[] p = splitCsv(line);
-        if (p.length < 9) continue;
+    private void setColumnChecks(boolean v) {
+        safeSet(includeDateTimeCheck, v);
+        safeSet(includeSessionIdCheck, v);
+        safeSet(includeCourseCodeCheck, v);
+        safeSet(includeStudentIdCheck, v);
+        safeSet(includeStudentNameCheck, v);
+        safeSet(includeStatusCheck, v);
+        safeSet(includeMethodCheck, v);
+        safeSet(includeConfidenceCheck, v);
+        safeSet(includeNoteCheck, v);
+    }
 
-        LocalDate date = LocalDate.parse(p[0].trim(), df);
-        LocalTime time = LocalTime.parse(p[1].trim(), tf);
-        String sessId = p[2].trim();
-        String courseId = p[3].trim();
-        int stuId = Integer.parseInt(p[4].trim());
-        String stuName = p[5].trim();
-        String status = p[6].trim();
-        String method = p[7].trim();
-        double conf = safeDouble(p[8].trim());
-        String note = p.length > 9 ? p[9] : "";
+    private void registerColumnForSelectAll(CheckBox cb) {
+        if (cb == null) return;
+        cb.selectedProperty().addListener((obs, ov, nv) -> {
+            if (updatingSelectAll) return;
+            if (!nv && selectAllFieldsCheck != null) {
+                selectAllFieldsCheck.setSelected(false);
+            } else if (nv && selectAllFieldsCheck != null && areAllColumnsSelected()) {
+                selectAllFieldsCheck.setSelected(true);
+            }
+        });
+    }
 
-        // Parse session ID from string to int
-        int sessionId = 0; // 0 will trigger auto-generation
-        if (!sessId.isEmpty()) {
+    private boolean areAllColumnsSelected() {
+        return isChecked(includeDateTimeCheck)
+                && isChecked(includeSessionIdCheck)
+                && isChecked(includeCourseCodeCheck)
+                && isChecked(includeStudentIdCheck)
+                && isChecked(includeStudentNameCheck)
+                && isChecked(includeStatusCheck)
+                && isChecked(includeMethodCheck)
+                && isChecked(includeConfidenceCheck)
+                && isChecked(includeNoteCheck);
+    }
+
+    private boolean isChecked(CheckBox cb) {
+        return cb != null && cb.isSelected();
+    }
+
+    private void safeSet(CheckBox cb, boolean v) {
+        if (cb != null) cb.setSelected(v);
+    }
+
+    /* =================== buttons =================== */
+
+    @FXML
+    private void onLatestSession() {
+        // ask the service for latest
+        var latest = reportService.getLatestSession();
+        if (latest == null) {
+            setStatus("No sessions found.");
+            return;
+        }
+
+        // select in combo
+        if (sessionFilter != null) {
+            sessionFilter.getSelectionModel().select(latest.display);
+        }
+        // also set course to that session's course
+        if (courseFilter != null && latest.courseDisplay != null) {
+            courseFilter.getSelectionModel().select(latest.courseDisplay);
+        }
+
+        // set dates to that day
+        if (fromDate != null) fromDate.setValue(latest.date);
+        if (toDate   != null) toDate.setValue(latest.date);
+
+        setStatus("Latest session selected.");
+    }
+
+    @FXML
+    private void onResetFilters() {
+        LocalDate today = LocalDate.now();
+        if (fromDate != null) fromDate.setValue(today);
+        if (toDate   != null) toDate.setValue(today);
+
+        if (sessionFilter != null && !sessionFilter.getItems().isEmpty())
+            sessionFilter.getSelectionModel().selectFirst();
+        if (courseFilter != null && !courseFilter.getItems().isEmpty())
+            courseFilter.getSelectionModel().selectFirst();
+        if (statusFilter != null && !statusFilter.getItems().isEmpty())
+            statusFilter.getSelectionModel().selectFirst();
+        if (methodFilter != null && !methodFilter.getItems().isEmpty())
+            methodFilter.getSelectionModel().selectFirst();
+        if (confidenceFilter != null && !confidenceFilter.getItems().isEmpty())
+            confidenceFilter.getSelectionModel().selectFirst();
+
+        setStatus("Filters reset.");
+    }
+
+    @FXML
+    private void onExportPDF() {
+        if (!atLeastOneColumnSelected()) {
+            setStatus("Select at least one column.");
+            return;
+        }
+        var filter = buildFilter();
+        var spec   = buildReportSpec();
+
+        List<AttendanceReportRow> rows = reportService.getAttendance(filter);
+        if (rows.isEmpty()) {
+            setStatus("No data to export.");
+            return;
+        }
+
+        File target = chooseFile("attendance-report.pdf", "PDF files", "*.pdf");
+        if (target == null) {
+            setStatus("PDF export cancelled.");
+            return;
+        }
+
+        try {
+            reportService.generatePdfReport(rows, spec, target);
+            lastPdf = target;
+            setStatus("PDF exported: " + target.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            setStatus("PDF export failed: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onExportExcel() {
+        if (!atLeastOneColumnSelected()) {
+            setStatus("Select at least one column.");
+            return;
+        }
+        var filter = buildFilter();
+        var spec   = buildReportSpec();
+
+        List<AttendanceReportRow> rows = reportService.getAttendance(filter);
+        if (rows.isEmpty()) {
+            setStatus("No data to export.");
+            return;
+        }
+
+        File target = chooseFile("attendance-report.xlsx", "Excel files", "*.xlsx");
+        if (target == null) {
+            setStatus("Excel export cancelled.");
+            return;
+        }
+
+        try {
+            reportService.generateXlsxReport(rows, spec, target);
+            lastXlsx = target;
+            setStatus("Excel exported: " + target.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            setStatus("Excel export failed: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onExportCSV() {
+        if (!atLeastOneColumnSelected()) {
+            setStatus("Select at least one column.");
+            return;
+        }
+        var filter = buildFilter();
+        var spec   = buildReportSpec();
+
+        List<AttendanceReportRow> rows = reportService.getAttendance(filter);
+        if (rows.isEmpty()) {
+            setStatus("No data to export.");
+            return;
+        }
+
+        File target = chooseFile("attendance-report.csv", "CSV files", "*.csv");
+        if (target == null) {
+            setStatus("CSV export cancelled.");
+            return;
+        }
+
+        try {
+            reportService.generateCsvReport(rows, spec, target);
+            lastCsv = target;
+            setStatus("CSV exported: " + target.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            setStatus("CSV export failed: " + e.getMessage());
+        }
+    }
+
+    // ====== email buttons ======
+
+    @FXML
+    private void onEmailPdf() {
+        if (lastPdf == null || !lastPdf.exists()) {
+            setStatus("Export a PDF first.");
+            return;
+        }
+        sendEmailWith(lastPdf);
+    }
+
+    @FXML
+    private void onEmailCsv() {
+        if (lastCsv == null || !lastCsv.exists()) {
+            setStatus("Export a CSV first.");
+            return;
+        }
+        sendEmailWith(lastCsv);
+    }
+
+    @FXML
+    private void onEmailExcel() {
+        if (lastXlsx == null || !lastXlsx.exists()) {
+            setStatus("Export an Excel first.");
+            return;
+        }
+        sendEmailWith(lastXlsx);
+    }
+
+    private void sendEmailWith(File file) {
+        String to = emailTo != null ? emailTo.getText() : "";
+        if (to == null || to.isBlank()) {
+            setStatus("Enter recipient email.");
+            return;
+        }
+        String subject = (emailSubject != null && !emailSubject.getText().isBlank())
+                ? emailSubject.getText()
+                : "Attendance Report";
+        String body = (emailBody != null && !emailBody.getText().isBlank())
+                ? emailBody.getText()
+                : "Please find the report attached.";
+
+        setStatus("Sending email...");
+
+        // run async
+        new Thread(() -> {
             try {
-                sessionId = Integer.parseInt(sessId);
-            } catch (NumberFormatException e) {
-                // If invalid, use 0 (auto-generate)
-                sessionId = 0; 
+                reportService.sendEmail(to, subject, body, file);
+                Platform.runLater(() -> setStatus("Email sent to " + to));
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> setStatus("Email failed: " + e.getMessage()));
             }
+        }, "mail-thread").start();
+    }
+
+    /* ================= helpers ================= */
+
+    private boolean atLeastOneColumnSelected() {
+        return isChecked(includeDateTimeCheck)
+                || isChecked(includeSessionIdCheck)
+                || isChecked(includeCourseCodeCheck)
+                || isChecked(includeStudentIdCheck)
+                || isChecked(includeStudentNameCheck)
+                || isChecked(includeStatusCheck)
+                || isChecked(includeMethodCheck)
+                || isChecked(includeConfidenceCheck)
+                || isChecked(includeNoteCheck);
+    }
+
+    private AttendanceReportService.ReportFilter buildFilter() {
+        AttendanceReportService.ReportFilter f = new AttendanceReportService.ReportFilter();
+        f.fromDate = fromDate != null ? fromDate.getValue() : null;
+        f.toDate   = toDate   != null ? toDate.getValue()   : null;
+        f.sessionDisplay = sessionFilter != null ? sessionFilter.getValue() : null;
+        f.courseDisplay  = courseFilter  != null ? courseFilter.getValue()  : null;
+        f.status         = statusFilter  != null ? statusFilter.getValue()  : null;
+        f.method         = methodFilter  != null ? methodFilter.getValue()  : null;
+        f.confidenceExpr = confidenceFilter != null ? confidenceFilter.getValue() : null;
+        return f;
+    }
+
+    private ReportSpec buildReportSpec() {
+        return new ReportSpec.Builder()
+                .includeDateTime(isChecked(includeDateTimeCheck))
+                .includeSessionId(isChecked(includeSessionIdCheck))
+                .includeCourseCode(isChecked(includeCourseCodeCheck))
+                .includeStudentId(isChecked(includeStudentIdCheck))
+                .includeStudentName(isChecked(includeStudentNameCheck))
+                .includeStatus(isChecked(includeStatusCheck))
+                .includeMethod(isChecked(includeMethodCheck))
+                .includeConfidence(isChecked(includeConfidenceCheck))
+                .includeNote(isChecked(includeNoteCheck))
+                .build();
+    }
+
+    private File chooseFile(String defaultName, String desc, String... exts) {
+        FileChooser fc = new FileChooser();
+        fc.setInitialFileName(defaultName);
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(desc, exts));
+        return fc.showSaveDialog(null);
+    }
+
+    private void setStatus(String msg) {
+        if (reportStatus != null) {
+            reportStatus.setText(msg);
         }
-
-        Student st = studentService.findById(stuId);
-        if (st == null) {
-            // Validate required fields before creating student
-            if (stuName == null || stuName.trim().isEmpty()) {
-                stuName = "Unknown Student"; // Better default
-            }
-            String actualCourse = courseId != null && !courseId.isEmpty() ? courseId : "Unknown Course";
-            st = new Student(stuId, stuName.trim(), actualCourse);
-            studentService.addStudent(st);
-        }
-        // Create session - sessId will be auto-generated if 0
-        Session sess = new Session(sessionId,
-            courseId.isEmpty() ? "COURSE?" : courseId,
-            date, LocalTime.of(9,0), LocalTime.of(10,0), "Room D", 15, "PENDING", false, false);
-
-        AttendanceRecord rec = new AttendanceRecord(st, sess,
-            (status.isEmpty() ? AttendanceStatus.ABSENT : AttendanceStatus.valueOf(status.toUpperCase())),
-            conf, (method.isEmpty() ? MarkMethod.MANUAL : MarkMethod.valueOf(method.toUpperCase())),
-            LocalDateTime.of(date, time));
-        rec.setNote(note);
-        ApplicationContext.getAttendanceService().markAttendance(rec);
-        imported++;
-      }
-      reportStatus.setText("Imported attendance rows: " + imported);
-    } catch (Exception e) {
-      reportStatus.setText("Import failed: " + e.getMessage());
+        System.out.println("[ReportController] " + msg);
     }
-  }
-
-  /* ---------------- helpers ---------------- */
-  private List<AttendanceRecord> dataForRange() {
-    LocalDate from = fromDate.getValue();
-    LocalDate to = toDate.getValue();
-    return attendance.getBetween(from, to);
-  }
-
-  private static String esc(String s) {
-    String v = s.replace("\"", "\"\"");
-    return (v.contains(",") || v.contains("\"") || v.contains("\n")) ? "\"" + v + "\"" : v;
-  }
-
-  private static String[] splitCsv(String line) {
-    java.util.List<String> out = new java.util.ArrayList<>();
-    StringBuilder cur = new StringBuilder();
-    boolean q = false;
-    for (int i = 0; i < line.length(); i++) {
-      char c = line.charAt(i);
-      if (c == '"') q = !q;
-      else if (c == ',' && !q) { out.add(cur.toString().trim()); cur.setLength(0); }
-      else cur.append(c);
-    }
-    out.add(cur.toString().trim());
-    return out.toArray(new String[0]);
-  }
-
-  private static float drawRow(PDPageContentStream cs, float x, float y, float leading,
-                               String[] cols, float[] widths) throws IOException {
-    float cursorX = x;
-    cs.beginText();
-    cs.newLineAtOffset(cursorX, y);
-    for (int i = 0; i < cols.length; i++) {
-      cs.showText(trunc(cols[i], (int)(widths[i] / 6))); // rough fit
-      cs.newLineAtOffset(widths[i], 0);
-    }
-    cs.endText();
-    return y - leading;
-  }
-
-  private static String trunc(String s, int max) {
-    if (s == null) return "";
-    return (s.length() <= max) ? s : s.substring(0, Math.max(0, max - 1)) + "…";
-  }
-
-  private static double safeDouble(String s) {
-    try { return Double.parseDouble(s); } catch (Exception e) { return 0.0; }
-  }
-
-  private static String safe(String s) { return (s == null) ? "" : s.trim(); }
 }

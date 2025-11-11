@@ -6,10 +6,10 @@ import java.time.LocalTime;
 import java.util.List;
 
 import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.AttendanceStatus;
-import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.repository.StudentRepository;

@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.smartattendance.model.enums.Role;
+
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.entity.User;
 
@@ -25,7 +27,7 @@ public class PostgresUserRepository {
                             rs.getInt("user_id"),
                             rs.getString("username"),
                             rs.getString("email"),
-                            rs.getString("role"),
+                            Role.valueOf(rs.getString("role").toUpperCase()),
                             rs.getBoolean("is_email_verified"));
 
                 }
@@ -52,9 +54,8 @@ public class PostgresUserRepository {
                             rs.getInt("user_id"),
                             rs.getString("username"),
                             rs.getString("email"),
-                            rs.getString("role"),
-                            rs.getBoolean("is_email_verified")
-                    ));
+                            Role.valueOf(rs.getString("role").toUpperCase()),
+                            rs.getBoolean("is_email_verified")));
                 }
             }
 
@@ -62,5 +63,20 @@ public class PostgresUserRepository {
             e.printStackTrace();
         }
         return filteredUsersByRole;
+    }
+
+    public boolean deleteUserById(Integer userId) {
+        String sql = "DELETE FROM users WHERE user_id = ?";
+        int rowsAffected = 0;
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            rowsAffected = pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rowsAffected == 1;
     }
 }

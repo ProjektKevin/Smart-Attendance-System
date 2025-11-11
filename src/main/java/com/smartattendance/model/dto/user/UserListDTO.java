@@ -1,6 +1,7 @@
 package com.smartattendance.model.dto.user;
 
 import com.smartattendance.model.entity.User;
+import com.smartattendance.model.enums.Role;
 
 /**
  * DTO for Student List table display
@@ -9,7 +10,7 @@ public class UserListDTO {
     private Integer id;
     private String email;
     private boolean emailVerified;
-    private String role;
+    private Role role;
 
     /**
      * Constructor from User entity
@@ -35,7 +36,7 @@ public class UserListDTO {
         return emailVerified;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 }

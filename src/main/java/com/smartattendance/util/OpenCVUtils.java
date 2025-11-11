@@ -2,7 +2,9 @@ package com.smartattendance.util;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
+import java.nio.ByteBuffer;
 
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import javafx.application.Platform;
@@ -72,5 +74,171 @@ public final class OpenCVUtils {
 		return image;
 	}
 
+	public static byte[] matHistogramToBytes(Mat histogram) {
+		if (histogram == null || histogram.empty()) {
+			return null;
+		}
 
+		try {
+			int rows = histogram.rows();
+			int cols = histogram.cols();
+			int totalElements = rows * cols;
+
+			// Convert CV_32F to CV_64F first to avoid Mat.get() compatibility issues
+			Mat doubleMat = new Mat();
+			histogram.convertTo(doubleMat, CvType.CV_64F);
+
+			// Create byte buffer for float data (4 bytes per float)
+			ByteBuffer buffer = ByteBuffer.allocate(totalElements * 4);
+
+			// Read data row by row
+			double[] rowData = new double[cols];
+			for (int i = 0; i < rows; i++) {
+				doubleMat.get(i, 0, rowData);
+				for (int j = 0; j < cols; j++) {
+					buffer.putFloat((float) rowData[j]);
+				}
+			}
+
+			doubleMat.release();
+			return buffer.array();
+
+		} catch (Exception e) {
+			System.err.println("Error converting histogram to bytes: " + e.getMessage());
+			return null;
+		}
+	}
+
+	public static Mat bytesToMatHistogram(byte[] bytes) {
+		if (bytes == null || bytes.length == 0) {
+			return new Mat();
+		}
+
+		try {
+			int numElements = bytes.length / 4;
+
+			if (numElements != 256) {
+				System.err.println("Warning: Expected 256 histogram bins, got " + numElements);
+			}
+
+			Mat histogram = new Mat(256, 1, CvType.CV_32F);
+
+			ByteBuffer buffer = ByteBuffer.wrap(bytes);
+			float[] data = new float[256];
+
+			for (int i = 0; i < Math.min(256, numElements); i++) {
+				data[i] = buffer.getFloat();
+			}
+
+			histogram.put(0, 0, data);
+			return histogram;
+
+		} catch (Exception e) {
+			System.err.println("Error converting bytes to histogram: " + e.getMessage());
+			return new Mat();
+		}
+	}
+
+	// --------------------------------------------------------
+	/**
+	 * Convert OpenCV Mat (128-dimensional embedding) to double array
+	 * Handles both CV_32F (float) and CV_64F (double) Mat types
+	 */
+	public static float[] matToFloatArray(Mat mat) {
+		if (mat == null || mat.empty()) {
+			throw new IllegalArgumentException("Mat cannot be null or empty");
+		}
+
+		int totalElements = mat.rows() * mat.cols();
+		if (totalElements != 128) {
+			throw new IllegalArgumentException(
+					"Mat must contain exactly 128 elements. Got: " + totalElements);
+		}
+
+		Mat flatMat = mat.reshape(0, 1); // flatten to 1x128
+		float[] data = new float[128];
+
+		// Check Mat type and handle accordingly
+		int matType = flatMat.type();
+
+		if (matType == CvType.CV_32F) {
+			// If Mat is float (CV_32F = 5), extract directly
+			flatMat.get(0, 0, data);
+		} else if (matType == CvType.CV_64F) {
+			// If Mat is double (CV_64F = 6), extract as double then convert to float
+			double[] doubleData = new double[128];
+			flatMat.get(0, 0, doubleData);
+			for (int i = 0; i < 128; i++) {
+				data[i] = (float) doubleData[i];
+			}
+		} else {
+			// For other types, convert to CV_32F first
+			Mat floatMat = new Mat();
+			flatMat.convertTo(floatMat, CvType.CV_32F);
+			floatMat.get(0, 0, data);
+			floatMat.release();
+		}
+
+		return data;
+	}
+
+	/**
+	 * Convert double array to PostgreSQL pgvector string "[v1,v2,...,v128]"
+	 */
+	public static String floatArrayToPostgresVector(float[] floatArray) {
+		if (floatArray == null || floatArray.length != 128) {
+			throw new IllegalArgumentException(
+					"Float array must contain exactly 128 elements. Got: " +
+							(floatArray == null ? "null" : floatArray.length));
+		}
+
+		StringBuilder vector = new StringBuilder("[");
+		for (int i = 0; i < floatArray.length; i++) {
+			vector.append(floatArray[i]);
+			if (i < floatArray.length - 1) {
+				vector.append(",");
+			}
+		}
+		vector.append("]");
+		return vector.toString();
+	}
+
+	/**
+	 * Convert OpenCV Mat to PostgreSQL pgvector string in one step
+	 */
+	public static String matToPostgresVector(Mat mat) {
+		float[] data = matToFloatArray(mat);
+		return floatArrayToPostgresVector(data);
+	}
+
+	/**
+	 * Convert PostgreSQL pgvector string "[v1,v2,...,v128]" to double array
+	 */
+	public static float[] postgresVectorToFloatArray(String vectorString) {
+		if (vectorString == null || vectorString.isEmpty()) {
+			throw new IllegalArgumentException("Vector string cannot be null or empty");
+		}
+
+		vectorString = vectorString.replaceAll("[\\[\\]]", ""); // remove brackets
+		String[] parts = vectorString.split(",");
+		if (parts.length != 128) {
+			throw new IllegalArgumentException("Expected 128 elements, got: " + parts.length);
+		}
+
+		float[] data = new float[128];
+		for (int i = 0; i < 128; i++) {
+			data[i] = Float.parseFloat(parts[i].trim());
+		}
+		return data;
+	}
+
+	/**
+	 * Convert PostgreSQL pgvector string "[v1,v2,...,v128]" back to OpenCV Mat
+	 */
+	public static Mat postgresVectorToMat(String vectorString) {
+		float[] data = postgresVectorToFloatArray(vectorString);
+		Mat mat = new Mat(1, 128, CvType.CV_32F); // store as float
+		mat.put(0, 0, data);
+		return mat;
+	}
 }

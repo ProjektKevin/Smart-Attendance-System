@@ -5,16 +5,22 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.FlowPane;
 import javafx.application.Platform;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.dto.user.UserProfileDTO;
 import com.smartattendance.model.entity.AuthSession;
-import com.smartattendance.model.entity.Profile;
 import com.smartattendance.model.entity.User;
+import com.smartattendance.model.entity.Course;
+import com.smartattendance.model.enums.Role;
+import com.smartattendance.service.UserService;
 import com.smartattendance.service.ProfileService;
+import com.smartattendance.service.CourseService;
 import com.smartattendance.util.validation.ProfileValidator;
 import com.smartattendance.util.validation.ValidationResult;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +28,7 @@ import java.util.Map;
  * Handles displaying and editing user profile information.
  * Shows conditional UI: "Create Profile" button if no profile exists,
  * or "Edit Profile" button if profile exists.
+ * 
  * @author Thiha Swan Htet
  */
 public class ProfileController {
@@ -42,6 +49,9 @@ public class ProfileController {
 
     @FXML
     private TextField lastNameField;
+
+    @FXML
+    private TextField emailField;
 
     @FXML
     private TextField phoneField;
@@ -77,16 +87,29 @@ public class ProfileController {
     @FXML
     private Label errorLabel;
 
+    // Courses Section Components
+    @FXML
+    private VBox coursesContainer;
+
+    @FXML
+    private Label courseCountLabel;
+
+    @FXML
+    private FlowPane coursesFlowPane;
+
+    @FXML
+    private Label noCourseLabel;
+
     // ====== Dependencies ======
 
+    private final UserService userService = ApplicationContext.getUserService();
     private final ProfileService profileService = ApplicationContext.getProfileService();
-
+    private final CourseService courseService = ApplicationContext.getCourseService();
     private final AuthSession session = ApplicationContext.getAuthSession();
 
     // ====== State ======
-
-    private Profile currentProfile;
     private User currentUser;
+    private UserProfileDTO userProfile;
     private boolean isEditMode = false;
 
     /**
@@ -118,16 +141,10 @@ public class ProfileController {
      */
     private void loadProfile() {
         try {
-            currentProfile = profileService.getUserProfile(currentUser.getId());
+            // Show profile details UI
+            showProfileState();
+            displayProfileDetails();
 
-            if (currentProfile == null) {
-                // Show create profile UI
-                showNoProfileState();
-            } else {
-                // Show profile details UI
-                showProfileState();
-                displayProfileDetails();
-            }
         } catch (Exception e) {
             // chore(), Harry: Change back to logger with a different log level
             System.out.println("Error loading profile: " + e.getMessage());
@@ -136,40 +153,94 @@ public class ProfileController {
     }
 
     /**
-     * Display the "no profile" state.
-     * Shows message and "Create Profile" button.
-     */
-    private void showNoProfileState() {
-        noProfileContainer.setVisible(true);
-        noProfileContainer.setManaged(true);
-        profileContainer.setVisible(false);
-        profileContainer.setManaged(false);
-    }
-
-    /**
      * Display the "profile exists" state.
      * Shows profile details and action buttons.
      */
     private void showProfileState() {
-        noProfileContainer.setVisible(false);
-        noProfileContainer.setManaged(false);
         profileContainer.setVisible(true);
         profileContainer.setManaged(true);
     }
 
     /**
-     * Populate profile fields with data from currentProfile.
+     * Populate profile fields with data from userProfile.
      */
     private void displayProfileDetails() {
-        firstNameField.setText(currentProfile.getFirstName() != null
-                ? currentProfile.getFirstName()
-                : "");
-        lastNameField.setText(currentProfile.getLastName() != null
-                ? currentProfile.getLastName()
-                : "");
-        phoneField.setText(currentProfile.getPhoneNo() != null
-                ? currentProfile.getPhoneNo()
-                : "");
+        try {
+            userProfile = userService.getUserProfileDTO(currentUser.getId());
+            firstNameField.setText(userProfile.getFirstName() != null
+                    ? userProfile.getFirstName()
+                    : "");
+            lastNameField.setText(userProfile.getLastName() != null
+                    ? userProfile.getLastName()
+                    : "");
+            phoneField.setText(userProfile.getPhoneNo() != null
+                    ? userProfile.getPhoneNo()
+                    : "");
+            emailField.setText(userProfile.getEmail() != null
+                    ? userProfile.getEmail()
+                    : "");
+
+            if (currentUser.getRole() == Role.STUDENT) {
+                loadEnrolledCourses();
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    /**
+     * Load and display enrolled courses if the user is a STUDENT.
+     * Shows courses in a responsive FlowPane with styled labels.
+     */
+    private void loadEnrolledCourses() {
+        try {
+            // Check if current user is a STUDENT
+            if (currentUser.getRole() != Role.STUDENT) {
+                // Hide courses section for non-students (ADMIN, INSTRUCTOR, etc.)
+                coursesContainer.setVisible(false);
+                coursesContainer.setManaged(false);
+                return;
+            }
+
+            // Show courses section for students
+            coursesContainer.setVisible(true);
+            coursesContainer.setManaged(true);
+
+            // Load all courses and filter by enrollment
+            List<Course> enrolledCourses = courseService.getCoursesByStudentId(currentUser.getId());
+
+            // Update course count
+            courseCountLabel.setText("Total: " + enrolledCourses.size() + " course(s)");
+
+            // Clear previous courses from FlowPane
+            coursesFlowPane.getChildren().clear();
+
+            // Display courses or "no courses" message
+            if (!enrolledCourses.isEmpty()) {
+                noCourseLabel.setVisible(false);
+                noCourseLabel.setManaged(false);
+
+                for (Course course : enrolledCourses) {
+                    // Create a styled label for each course
+                    Label courseLabel = new Label(course.getCode() + " - " + course.getName());
+                    courseLabel.setStyle(
+                            "-fx-background-color: #e3f2fd; " +
+                                    "-fx-border-color: #2196f3; " +
+                                    "-fx-border-width: 1; " +
+                                    "-fx-padding: 6 12; " +
+                                    "-fx-border-radius: 4; " +
+                                    "-fx-text-fill: #1976d2; " +
+                                    "-fx-font-size: 11; " +
+                                    "-fx-font-weight: 500;");
+                    coursesFlowPane.getChildren().add(courseLabel);
+                }
+            } else {
+                noCourseLabel.setVisible(true);
+                noCourseLabel.setManaged(true);
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading enrolled courses: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -253,8 +324,9 @@ public class ProfileController {
             clearFieldErrors();
 
             // Save to database
-            if (currentProfile == null) {
+            if (userProfile == null) {
                 // New profile - insert
+                // chore(), Harry: Add logger and info dialog if unsuccessful
                 profileService.createUserProfile(
                         firstName.trim(),
                         lastName.trim(),
@@ -284,14 +356,14 @@ public class ProfileController {
      */
     @FXML
     private void onCancelEdit() {
-        if (currentProfile != null) {
+        if (userProfile != null) {
             // Reload original profile data
             displayProfileDetails();
             exitEditMode();
             showStatus("");
         } else {
             // Creating new profile but cancelled - go back to no profile state
-            currentProfile = null;
+            userProfile = null;
             loadProfile();
         }
     }
@@ -340,7 +412,7 @@ public class ProfileController {
             if (alert.showAndWait().get() == javafx.scene.control.ButtonType.OK) {
                 // Delete profile
                 profileService.deleteUserProfile(currentUser.getId());
-                currentProfile = null;
+                userProfile = null;
                 showStatus("Profile deleted successfully");
 
                 // Reload to show "Create Profile" screen

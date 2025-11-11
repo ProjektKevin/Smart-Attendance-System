@@ -6,10 +6,10 @@ import java.time.LocalTime;
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AttendanceRecord;
-import com.smartattendance.model.entity.AttendanceStatus;
-import com.smartattendance.model.entity.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.service.AttendanceService;
 
 import javafx.fxml.FXML;
@@ -18,7 +18,7 @@ public class TestAutoMarkController {
     // Use shared attendance service so Reports can see the records
 
     private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
-    private final double threshold = Double.parseDouble(Config.get("recognition.threshold"));
+    private final double threshold = Double.parseDouble(Config.get("recognition.high.threshold"));
 
     public AttendanceService getAttendanceService() {
         return attendanceService;

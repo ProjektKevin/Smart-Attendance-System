@@ -1,10 +1,12 @@
 package com.smartattendance.model.entity;
 
+import com.smartattendance.model.enums.Role;
+
 public class User extends AbstractEntity {
   private Integer id;
   private String email;
   private String userName;
-  private String role;
+  private Role role;
   private String passwordHash;
   private boolean isEmailVerified;
 
@@ -15,7 +17,7 @@ public class User extends AbstractEntity {
    * @param passwordHash The hashed password of the user
    * @param role         The role of the user
    */
-  public User(String userName, String passwordHash, String role) {
+  public User(String userName, String passwordHash, Role role) {
     this.userName = userName;
     this.passwordHash = passwordHash;
     this.role = role;
@@ -32,7 +34,7 @@ public class User extends AbstractEntity {
    * @param isEmailVerified The email verification of the user
    * 
    */
-  public User(Integer id, String username, String email, String passwordHash, String role, boolean isEmailVerified) {
+  public User(Integer id, String username, String email, String passwordHash, Role role, boolean isEmailVerified) {
     this.id = id;
     this.userName = username;
     this.email = email;
@@ -42,7 +44,7 @@ public class User extends AbstractEntity {
   }
 
   /**
-   * Custom default constructor
+   * Custom default constructor (For Authentication)
    * 
    * @param id              The id of the user
    * @param username        The username of the user
@@ -51,7 +53,7 @@ public class User extends AbstractEntity {
    * @param isEmailVerified The email verification of the user
    * 
    */
-  public User(Integer id, String username, String email, String role, boolean isEmailVerified) {
+  public User(Integer id, String username, String email, Role role, boolean isEmailVerified) {
     this.id = id;
     this.userName = username;
     this.email = email;
@@ -100,11 +102,11 @@ public class User extends AbstractEntity {
     this.passwordHash = passwordHash;
   }
 
-  public String getRole() {
+  public Role getRole() {
     return role;
   }
 
-  public void setRole(String role) {
+  public void setRole(Role role) {
     this.role = role;
   }
 

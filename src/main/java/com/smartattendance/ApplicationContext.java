@@ -1,27 +1,30 @@
 package com.smartattendance;
 
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AuthSession;
-import com.smartattendance.repository.AuthRepository;
-import com.smartattendance.repository.CourseRepository;
-import com.smartattendance.repository.PostgresUserRepository;
-import com.smartattendance.repository.ProfileRepository;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.service.CourseService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.service.FaceRecognitionService;
+import com.smartattendance.service.ImageService;
 import com.smartattendance.service.ProfileService;
+import com.smartattendance.service.SessionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
-import com.smartattendance.util.AutoAttendanceUpdater;
+import com.smartattendance.service.recognition.HistogramRecognizer;
+import com.smartattendance.util.CameraUtils;
+import com.smartattendance.service.recognition.OpenFaceRecognizer;
+// import com.smartattendance.util.AutoAttendanceUpdater;
 import com.smartattendance.util.FileLoader;
-import com.smartattendance.util.security.LoggerUtil;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public final class ApplicationContext {
 
     private static boolean initialized = false;
     private static AuthSession session;
+    private static SessionService sessionService;
 
     // Business Services
     private static AuthService authService;
@@ -30,22 +33,23 @@ public final class ApplicationContext {
     private static AttendanceService attendanceService;
     private static ProfileService profileService;
     private static CourseService courseService;
+    private static ImageService imageService;
 
     // Busines Utils & Controller
     // F_MA: added by felicia handling marking attendance
-    private static AutoAttendanceUpdater autoAttendanceUpdater;
+    // private static AutoAttendanceUpdater autoAttendanceUpdater;
     // private static AttendanceController attendanceController;
-
-    // DB Repositories
-    private static AuthRepository authRepository;
-    private static PostgresUserRepository userRepository;
-    private static ProfileRepository profileRepository;
-    private static CourseRepository courseRepository;
 
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
     private static FaceProcessingService faceProcessingService;
     private static FaceRecognitionService faceRecognitionService;
+
+    private static HistogramRecognizer histogramRecognizer;
+    private static OpenFaceRecognizer openFaceRecognizer;
+
+    // Logger
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     /**
      * Initialize the application context.
@@ -60,6 +64,7 @@ public final class ApplicationContext {
 
         // Set session
         session = new AuthSession();
+        sessionService = new SessionService();
 
         // Load Opencv
         loadOpenCV();
@@ -69,42 +74,34 @@ public final class ApplicationContext {
 
         // chore(), William: Add config loading here after implementation
 
-        // chore(), William: Add database initialization here after implementation
-
-        // chore(), All: Add repositories here after implementation
-        authRepository = new AuthRepository();
-        userRepository = new PostgresUserRepository();
-        profileRepository = new ProfileRepository();
-        // courseRepository = new CourseRepository();
-
         // Initialize services
-        authService = new AuthService(authRepository);
-        userService = new UserService(userRepository);
+        authService = new AuthService();
+        userService = new UserService();
         studentService = new StudentService();
-        attendanceService = new AttendanceService();
-        profileService = new ProfileService(profileRepository);
+        profileService = new ProfileService();
         courseService = new CourseService();
         // F_MA: added by felicia handling marking attendance
         attendanceService = new AttendanceService();
 
+        initialized = true;
+
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
-        autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
+        // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
         // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
-        autoAttendanceUpdater.startAutoUpdate(60);
+        // autoAttendanceUpdater.startAutoUpdate(60);
 
-        initialized = true;
+        // Apply recognition algorithm from the config
+        applyRecognitionAlgorithm();
     }
 
     public static void loadOpenCV() {
         try {
             // Load opencv locally
             nu.pattern.OpenCV.loadLocally();
-            LoggerUtil.LOGGER.info("OpenCV Loaded Successfully.");
+            appLogger.info("OpenCV Loaded Successfully.");
         } catch (Exception e) {
-            // chore(), Harry: Change back to logger with a different log level
-            System.out.println("Error loading opencv: " + e.getMessage());
-            // chore(), Harry: Add custom throw error or built in error
+            appLogger.error("Error loading opencv", e);
         }
     }
 
@@ -113,6 +110,8 @@ public final class ApplicationContext {
      */
     private static void loadOpenCVServices() {
         try {
+            double highThreshold = Double.parseDouble(Config.get("recognition.high.threshold"));
+
             // Cascade file variables
             String cascadePath = FileLoader.loadToTempFile("/haarcascades/haarcascade_frontalface_default.xml");
 
@@ -121,16 +120,35 @@ public final class ApplicationContext {
 
             // Initialize face image processing
             faceProcessingService = new FaceProcessingService(faceDetectionService);
-            LoggerUtil.LOGGER.info("Image processing service initialized");
+            appLogger.info("Image processing service initialized");
+
+            // Initialize both recognizer models
+            histogramRecognizer = new HistogramRecognizer(faceProcessingService, highThreshold);
+            appLogger.info("Histogram recognizer initialized");
+
+            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService, highThreshold);
+            appLogger.info("OpenFace recognizer initialized");
 
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
-            LoggerUtil.LOGGER.info("Face recognition service initialized");
+            appLogger.info("Face recognition service initialized");
+            if (!openFaceRecognizer.isModelLoaded()) {
+                appLogger.warn("OpenFace model failed to load! Recognition will not work.");
+                System.err.println("WARNING: OpenFace model not loaded. Check model file path.");
+                throw new IllegalStateException("OpenFace model required but failed to load");
+            }
+            appLogger.info("Face recognition service initialized");
 
+            // Initialize Image Service
+            imageService = new ImageService(faceProcessingService);
+            appLogger.info("Image service initialized");
+
+            openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
+
+        } catch (IllegalStateException e) {
+            appLogger.error("OpenFace Unavailable", e);
         } catch (Exception e) {
-            // chore(), Harry: Change back to logger with a different log level
-            System.out.println("Error loading opencv: " + e.getMessage());
-            // chore(), Harry: Add custom throw error or built in error
+            appLogger.error("Error Loading OpenCV Services", e);
         }
     }
 
@@ -154,6 +172,17 @@ public final class ApplicationContext {
     public static AuthService getAuthService() {
         checkInitialized();
         return authService;
+    }
+
+    /**
+     * Get the SessionService instance.
+     *
+     * @return SessionService
+     * @throws IllegalStateException if not initialized
+     */
+    public static SessionService getSessionService() {
+        checkInitialized();
+        return sessionService;
     }
 
     /**
@@ -245,6 +274,48 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the ImageService instance.
+     *
+     * @return ImageService
+     * @throws IllegalStateException if not initialized
+     */
+    public static ImageService getImageService() {
+        checkInitialized();
+        return imageService;
+    }
+
+    /**
+     * Get the HistogramRecognizer instance (DNN-based).
+     *
+     * @return HistogramRecognizer
+     * @throws IllegalStateException if not initialized
+     */
+    public static HistogramRecognizer getHistogramRecognizer() {
+        checkInitialized();
+        return histogramRecognizer;
+    }
+
+    /**
+     * Get the OpenFaceRecognizer instance (DNN-based).
+     *
+     * @return OpenFaceRecognizer
+     * @throws IllegalStateException if not initialized
+     */
+    public static OpenFaceRecognizer getOpenFaceRecognizer() {
+        checkInitialized();
+        return openFaceRecognizer;
+    }
+
+    /**
+     * Get the CameraUtils instance
+     *
+     * @return CameraUtils instance
+     */
+    public static CameraUtils getCameraUtils() {
+        return CameraUtils.getInstance();
+    }
+
+    /**
      * Check if ApplicationContext has been initialized.
      *
      * @throws IllegalStateException if not initialized
@@ -257,6 +328,20 @@ public final class ApplicationContext {
     }
 
     /**
+     * Apply the configured recognition algorithm to FaceRecognitionService
+     */
+    public static void applyRecognitionAlgorithm() {
+        checkInitialized();
+
+        String algorithm = Config.get("recognition.algorithm");
+        if (algorithm == null) {
+            algorithm = "HISTOGRAM"; // default
+        }
+
+        faceRecognitionService.switchAlgorithm(algorithm);
+    }
+
+    /**
      * Shutdown and cleanup resources.
      */
     public static void shutdown() {
@@ -266,9 +351,12 @@ public final class ApplicationContext {
 
         // F_MA: added by felicia handling marking attendance
         // Stop auto attendance updater
-        if (autoAttendanceUpdater != null) {
-            autoAttendanceUpdater.stopAutoUpdate();
-        }
+        // if (autoAttendanceUpdater != null) {
+        // autoAttendanceUpdater.stopAutoUpdate();
+        // }
+
+        // Release camera resources
+        CameraUtils.getInstance().releaseCamera();
 
         // chore(), Harry: Add cleanup logic here (close database connections, release
         // resources, etc.)
