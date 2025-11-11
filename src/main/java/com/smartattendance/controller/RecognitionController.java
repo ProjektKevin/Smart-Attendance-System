@@ -107,6 +107,9 @@ public class RecognitionController {
         loadSessionStudentsAsync();
         System.out.println("Loading done!");
 
+        // Check parametes
+        
+
         // Safety Camera release
         if (this.cameraActive) {
             this.stopAcquisition();

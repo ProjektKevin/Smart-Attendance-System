@@ -2,6 +2,7 @@ package com.smartattendance.service;
 
 import org.opencv.objdetect.CascadeClassifier;
 
+import com.smartattendance.config.Config;
 import com.smartattendance.service.recognition.RecognitionResult;
 
 import org.opencv.core.MatOfRect;
@@ -29,8 +30,15 @@ public class FaceDetectionService {
     private static final int DEFAULT_RECT_THICKNESS = 2;
 
     // Confidence thresholds
-    private static final double HIGH_CONFIDENCE_THRESHOLD = 70.0;
-    private static final double LOW_CONFIDENCE_THRESHOLD = 30.0;
+    private static double getHighThreshold() {
+        String value = Config.get("recognition.high.threshold");
+        return value != null ? Double.parseDouble(value) : 70.0; // Default 70.0
+    }
+
+    private static double getLowThreshold() {
+        String value = Config.get("recognition.low.threshold");
+        return value != null ? Double.parseDouble(value) : 50.0; // Default 50.0
+    }
 
     /**
      * Custom constructor which loads the cascadepath for either the detection or
@@ -124,6 +132,9 @@ public class FaceDetectionService {
         Rect[] facesArray = faces.toArray();
         int faceCount = facesArray.length;
 
+        double highThreshold = getHighThreshold();
+        double lowThreshold = getLowThreshold();
+
         for (int i = 0; i < facesArray.length; i++) {
             Rect rect = facesArray[i];
 
@@ -138,16 +149,16 @@ public class FaceDetectionService {
                     double confidence = result.getConfidenceScore();
 
                     // Determine color based on confidence
-                    if (confidence >= HIGH_CONFIDENCE_THRESHOLD) {
+                    if (confidence >= highThreshold) {
                         color = GREEN_RECT_COLOR;
-                    } else if (confidence >= LOW_CONFIDENCE_THRESHOLD) {
+                    } else if (confidence >= lowThreshold) {
                         color = YELLOW_RECT_COLOR;
                     } else {
                         color = RED_RECT_COLOR;
                     }
 
                     // Set label based on confidence threshold
-                    if (confidence >= LOW_CONFIDENCE_THRESHOLD) {
+                    if (confidence >= lowThreshold) {
                         label = result.getMatchedStudent().getName();
                     } else {
                         label = "Unknown";

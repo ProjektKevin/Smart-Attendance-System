@@ -16,7 +16,7 @@ public class RecognitionService {
     // Use shared attendance service so Reports can see the records
 
     private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
-    private final double threshold = Double.parseDouble(Config.get("recognition.threshold"));
+    private final double threshold = Double.parseDouble(Config.get("recognition.high.threshold"));
 
     public AttendanceService getAttendanceService() {
         return attendanceService;
