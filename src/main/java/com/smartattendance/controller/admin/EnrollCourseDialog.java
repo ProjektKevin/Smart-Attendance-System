@@ -4,14 +4,12 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Course;
 import com.smartattendance.model.dto.user.UserListDTO;
 import com.smartattendance.service.CourseService;
-import com.smartattendance.service.UserService;
 
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -27,25 +25,25 @@ import java.util.Set;
  * Modal dialog for managing student course enrollments
  * Supports viewing, adding, editing, and deleting course enrollments
  * Displays up to 4 course slots with smart state tracking
+ * 
  * @author Thiha Swan Htet
  */
 public class EnrollCourseDialog {
     private final Stage stage;
     private final UserListDTO student;
     private final CourseService courseService = ApplicationContext.getCourseService();
-    private final UserService userService = ApplicationContext.getUserService();
 
     private boolean submitted = false;
 
     // State tracking
-    private List<Integer> originalCourseIds = new ArrayList<>();  // Current enrollments
-    private List<Integer> newCourseIds = new ArrayList<>();        // After user edits
+    private List<Integer> originalCourseIds = new ArrayList<>(); // Current enrollments
+    private List<Integer> newCourseIds = new ArrayList<>(); // After user edits
 
     // UI Components
     private List<ComboBox<String>> courseComboBoxes = new ArrayList<>();
     private List<Label> courseErrorLabels = new ArrayList<>();
     private List<Button> deleteCourseButtons = new ArrayList<>();
-    private List<Boolean> isExistingCourse = new ArrayList<>();  // Track if slot was originally filled
+    private List<Boolean> isExistingCourse = new ArrayList<>(); // Track if slot was originally filled
     private VBox formContainer;
     private Button addCourseBtn;
     private Label statusLabel;
@@ -135,11 +133,12 @@ public class EnrollCourseDialog {
     }
 
     /**
-     * Fill the form with existing enrollments first, then empty slots up to MAX_COURSES
+     * Fill the form with existing enrollments first, then empty slots up to
+     * MAX_COURSES
      */
     private void fillFormWithExistingAndEmpty() {
-        int totalSlots = Math.max(originalCourseIds.size(), 1);  // At least 1 slot
-        totalSlots = Math.min(totalSlots, MAX_COURSES);           // Max 4 slots
+        int totalSlots = Math.max(originalCourseIds.size(), 1); // At least 1 slot
+        totalSlots = Math.min(totalSlots, MAX_COURSES); // Max 4 slots
 
         // Create slots for all existing courses
         for (Integer courseId : originalCourseIds) {
@@ -161,7 +160,8 @@ public class EnrollCourseDialog {
 
         // Create horizontal box for this course field
         HBox courseFieldBox = new HBox(10);
-        courseFieldBox.setStyle("-fx-border-color: #f0f0f0; -fx-border-width: 1; -fx-padding: 10; -fx-background-color: #f9f9f9;");
+        courseFieldBox.setStyle(
+                "-fx-border-color: #f0f0f0; -fx-border-width: 1; -fx-padding: 10; -fx-background-color: #f9f9f9;");
 
         // Label
         Label courseLabel = new Label("Course " + (fieldIndex + 1) + ":");
@@ -288,7 +288,9 @@ public class EnrollCourseDialog {
      */
     private void handleDeleteCourseField(int index) {
         if (courseComboBoxes.size() <= 1) {
-            return; // Must have at least one field
+            setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "Warning", "Course Deletion",
+                    "Student Must Be Enrolled to At Least One Course");
+            return;
         }
 
         // Remove from lists
@@ -426,6 +428,22 @@ public class EnrollCourseDialog {
      */
     public boolean isSubmitted() {
         return submitted;
+    }
+
+    /**
+     * Show an alert dialog to the user
+     */
+    /**
+     * Show an alert dialog to the user
+     */
+    public void setInfoDialog(javafx.scene.control.Alert.AlertType alertType, String title, String headerText,
+            String content) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(headerText);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     /**

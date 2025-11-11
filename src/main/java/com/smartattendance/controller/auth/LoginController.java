@@ -193,7 +193,8 @@ public class LoginController {
             User user = authService.getUserByEmail(email);
 
             if (user == null) {
-                showAlert("User Not Found", "Please contact your administrator for invitation.");
+                setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Invalid User", "User Not Found",
+                        "Please contact your administrator for invitation.");
                 return;
             }
 
@@ -239,8 +240,8 @@ public class LoginController {
                 // Logger to verify email sending
                 appLogger.info("Email Sent Successfully To: " + user.getEmail());
             } catch (Exception e) {
-                String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-                showAlert("Email Error", "Failed to send verification email: " + errorMsg);
+                setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Email Error",
+                        "Failed to send verification email", e.getMessage());
                 appLogger.error("Error sending verification email to: " + user.getEmail(), e);
                 // Clean up the verification record since email wasn't sent
                 authService.deleteVerification(user.getId(), verificationType);
@@ -266,7 +267,8 @@ public class LoginController {
             appLogger.info("Token Validation: " + isTokenValid);
 
             if (!isTokenValid) {
-                showAlert("Invalid Token", "The token is invalid or has expired.");
+                setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Authentication Error",
+                        "Invalid Token", "The token is invalid or has expired.");
                 authService.deleteExpiredVerifications();
                 return;
             }
@@ -297,9 +299,10 @@ public class LoginController {
             }
 
         } catch (Exception e) {
-            String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            showAlert("Forgot Password Error", "An error occurred while processing your request: " + errorMsg);
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Forgot Password Error",
+                    "An error occurred while processing your request", e.getMessage());
             appLogger.error("Error handling forgot password request", e);
+            return;
         }
     }
 
@@ -351,10 +354,10 @@ public class LoginController {
 
             appLogger.info("Loaded " + roleName + " portal successfully");
         } catch (Exception e) {
-            String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            showAlert("Portal Loading Error",
-                    "Unable to open " + (role == Role.ADMIN ? "admin" : "student") + " portal: " + errorMsg);
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Portal Loading Error",
+                    "Unable to open " + (role == Role.ADMIN ? "admin" : "student") + " portal: ", e.getMessage());
             appLogger.error("Error loading " + role + " portal", e);
+            return;
         }
     }
 
@@ -372,12 +375,14 @@ public class LoginController {
 
             appLogger.info("Loaded enrollment portal successfully");
 
-            showAlert("Face Enrollment Required",
+            setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "Enrollment Warning",
+                    "Face Enrollment Required",
                     "Your facial data is not enrolled yet. Please complete the enrollment process to continue.");
         } catch (Exception e) {
-            String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            showAlert("Enrollment Portal Error", "Unable to open enrollment portal: " + errorMsg);
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Enrollment Portal Error",
+                    "Unable to open enrollment portal", e.getMessage());
             appLogger.error("Error loading enrollment portal", e);
+            return;
         }
     }
 
@@ -397,9 +402,10 @@ public class LoginController {
 
             appLogger.info("Loaded forget password portal successfully for user: " + user.getUserName());
         } catch (Exception e) {
-            String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            showAlert("Password Reset Error", "Unable to load password reset portal: " + errorMsg);
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Password Reset Error",
+                    "Unable to load password reset portal", e.getMessage());
             appLogger.error("Error loading forget password portal for user: " + user.getUserName(), e);
+            return;
         }
     }
 
@@ -419,21 +425,23 @@ public class LoginController {
 
             appLogger.info("Loaded registration portal successfully for user: " + user.getUserName());
         } catch (Exception e) {
-            String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-            showAlert("Registration Error", "Unable to load registration portal: " + errorMsg);
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Registration Error",
+                    "Unable to load registration portal", e.getMessage());
             appLogger.error("Error loading registration portal for user: " + user.getUserName(), e);
+            return;
         }
     }
 
     /**
      * Show an alert dialog to the user
      */
-    private void showAlert(String title, String message) {
+    public void setInfoDialog(javafx.scene.control.Alert.AlertType alertType, String title, String headerText,
+            String content) {
         javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                javafx.scene.control.Alert.AlertType.INFORMATION);
+                alertType);
         alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setHeaderText(headerText);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 

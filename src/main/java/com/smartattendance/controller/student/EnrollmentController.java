@@ -1,6 +1,7 @@
 package com.smartattendance.controller.student;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.ImageService;
@@ -17,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
-import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -35,9 +35,10 @@ import javafx.stage.Stage;
  * Controller to connect the camera view from student enrollment and call
  * required services to perform face detection, and enrollment
  *
- * User captures faces → images saved to disk + metadata to DB
- * Load all images, train using HistogramRecognizer (compute average histogram)
- * Save average histogram to face_data table in DB
+ * User captures faces → images saved to disk
+ * Load all images, train using HistogramRecognizer and OpenFaceRecognizer
+ * (compute average histogram and embedding)
+ * Save average histogram and average embedding to face_data table in DB
  * Delete captured images folder to free disk space
  *
  * @author Thiha Swan Htet
@@ -63,7 +64,7 @@ public class EnrollmentController {
 	// Capture settings
 	private static final int CAPTURE_INTERVAL_MS = 1000; // 1 second
 	private AtomicInteger captureCount = new AtomicInteger(0);
-	private static final int MAX_CAPTURES = 20;
+	private static final int MAX_CAPTURES = Integer.parseInt(Config.get("enrollment.image.amount"));
 
 	// Dependencies
 	private final AuthSession session = ApplicationContext.getAuthSession();
@@ -137,7 +138,7 @@ public class EnrollmentController {
 				});
 			} else {
 				// log the error
-				System.err.println("Impossible to open the camera connection...");
+				appLogger.error("Impossible to Open Camera Connection");
 				Platform.runLater(() -> statusLabel.setText("Status: Camera Error"));
 			}
 		} else {
@@ -178,7 +179,8 @@ public class EnrollmentController {
 
 			// Update UI
 			Platform.runLater(() -> {
-				this.captureButton.setText("Stop Capture");
+				this.captureButton.setText("Capturing...");
+				this.captureButton.setDisable(true);
 				this.statusLabel.setText("Status: Capturing faces (0/" + MAX_CAPTURES + ")");
 			});
 
@@ -228,35 +230,6 @@ public class EnrollmentController {
 			this.captureTimer.scheduleAtFixedRate(captureTask, 0, CAPTURE_INTERVAL_MS, TimeUnit.MILLISECONDS);
 		} else {
 			stopCapture();
-		}
-	}
-
-	/**
-	 * Handle cancel button click
-	 * Stops camera, cleans up resources, and navigates back to login screen
-	 *
-	 * @param event the cancel button event
-	 */
-	@FXML
-	protected void handleCancel(ActionEvent event) {
-		attendanceLogger
-				.info("Enrollment cancelled by student: " + session.getCurrentUser().getUserName());
-
-		// Stop camera and clean up resources
-		stopAcquisition();
-
-		// Navigate back to login screen
-		try {
-			Parent loginRoot = FXMLLoader.load(getClass().getResource("/view/LoginView.fxml"));
-			Stage stage = (Stage) cancelButton.getScene().getWindow();
-			stage.setScene(new Scene(loginRoot));
-			stage.setTitle("Login");
-
-			appLogger.info("Navigated back to login screen.");
-		} catch (Exception e) {
-			statusLabel.setText("Status: Error navigating to login: " + e.getMessage());
-			appLogger.error("Error navigating back to login", e);
-			e.printStackTrace();
 		}
 	}
 
@@ -370,8 +343,8 @@ public class EnrollmentController {
 					int faceCount = faceDetectionService.drawFaceRectangles(frame, faces);
 
 					if (faceCount != 1) {
-						// chore(), Harry: Change it to warning level log
-						System.out.println("Expected 1 face, but detected " + faceCount);
+						statusLabel.setText("More than 1 Face(s) Detected");
+						appLogger.warn("Expected 1 face, but got " + faceCount + " faces");
 					}
 
 					// Convert and show the frame to user

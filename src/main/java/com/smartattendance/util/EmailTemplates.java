@@ -4,7 +4,6 @@ package com.smartattendance.util;
  * Email template utility class
  * Provides pre-formatted email templates for various authentication flows
  *
- * chore(), Harry: Map back to HTML templates if got time
  */
 public class EmailTemplates {
 
@@ -15,6 +14,8 @@ public class EmailTemplates {
      * @param username The first name of the recipient
      * @param token    The verification token to include in email
      * @return HTML/Text body of the forgot password email
+     * 
+     * @author Thiha Swan Htet
      */
     public static String forgotPasswordEmail(String username, String token) {
         return String.format("""
@@ -64,7 +65,7 @@ public class EmailTemplates {
                    %s
                 ═══════════════════════════════════
 
-                This token will expire in 30 minutes.
+                This token will expire in 7 days.
 
                 Steps to verify:
                 1. Copy the token above

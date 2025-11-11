@@ -16,10 +16,12 @@ import com.smartattendance.model.entity.FaceData;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.log.ApplicationLogger;
+import com.smartattendance.util.security.log.AttendanceLogger;
 
 public class OpenFaceRecognizer extends Recognizer {
     private final FaceProcessingService faceProcessingService;
     private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+    private final AttendanceLogger attendanceLogger = AttendanceLogger.getInstance();
     private Net faceNet;
 
     // Model configuration
@@ -76,7 +78,7 @@ public class OpenFaceRecognizer extends Recognizer {
             faceNet.setPreferableBackend(Dnn.DNN_BACKEND_OPENCV);
             faceNet.setPreferableTarget(Dnn.DNN_TARGET_CPU);
 
-            System.out.println("OpenFace face recognition model initialized");
+            appLogger.info("OpenFace face recognition model initialized");
 
         } catch (Exception e) {
             System.err.println("ERROR: Failed to load OpenFace model");
@@ -103,7 +105,7 @@ public class OpenFaceRecognizer extends Recognizer {
         }
 
         appLogger.info("Training OpenFace recognizer for " + students.size() + " students");
-        System.out.println("Training OpenFace recognizer...");
+        appLogger.info("Training OpenFace recognizer...");
 
         int successCount = 0;
         int failureCount = 0;
@@ -112,7 +114,7 @@ public class OpenFaceRecognizer extends Recognizer {
             FaceData faceData = student.getFaceData();
 
             if (faceData == null || faceData.getImages().isEmpty()) {
-                System.out.println("Student " + student.getName() + " has no face data - skipping");
+                attendanceLogger.info("Student " + student.getName() + " has no face data - skipping");
                 failureCount++;
                 continue;
             }
@@ -149,7 +151,7 @@ public class OpenFaceRecognizer extends Recognizer {
                 }
 
                 if (embeddings.isEmpty()) {
-                    System.out.println("Failed to compute embeddings for " + student.getName());
+                    attendanceLogger.info("Failed to compute embeddings for " + student.getName());
                     failureCount++;
                     continue;
                 }
@@ -165,7 +167,7 @@ public class OpenFaceRecognizer extends Recognizer {
                     emb.release();
                 }
 
-                System.out.println("Trained " + student.getName() +
+                attendanceLogger.info("Trained " + student.getName() +
                         " (" + embeddings.size() + " images)");
                 successCount++;
 
@@ -176,7 +178,7 @@ public class OpenFaceRecognizer extends Recognizer {
             }
         }
 
-        appLogger.info("Training complete: " + successCount + " succeeded, " +
+        attendanceLogger.info("Training complete: " + successCount + " succeeded, " +
                 failureCount + " failed");
     }
 
@@ -259,17 +261,18 @@ public class OpenFaceRecognizer extends Recognizer {
                 double confidence = (bestSimilarity + 1.0) * 50.0;
 
                 if (confidence >= getConfidenceThreshold()) {
-                    appLogger.info("Recognized: " + bestMatch.getName() +
+                    attendanceLogger.info("Recognized: " + bestMatch.getName() +
                             " (confidence: " + String.format("%.2f%%", confidence) + ")");
-                    System.out.println("Recognized: " + bestMatch.getName() +
+                    attendanceLogger.info("Recognized: " + bestMatch.getName() +
                             " (confidence: " + String.format("%.2f%%", confidence) +
                             ", similarity: " + String.format("%.4f", bestSimilarity) + ")");
-                    return new RecognitionResult(bestMatch, confidence);
+
                 } else {
-                    System.out.println("Best match below threshold: " + bestMatch.getName() +
+                    attendanceLogger.info("Best match below threshold: " + bestMatch.getName() +
                             " (confidence: " + String.format("%.2f%%", confidence) +
                             ", similarity: " + String.format("%.4f", bestSimilarity) + ")");
                 }
+                return new RecognitionResult(bestMatch, confidence);
             }
 
             return new RecognitionResult();
