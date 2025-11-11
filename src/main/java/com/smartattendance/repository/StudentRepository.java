@@ -129,7 +129,7 @@ public class StudentRepository {
                     String userName = rs.getString("username");
                     String courseCode = rs.getString("course_code");
                     byte[] histogramBytes = rs.getBytes("avg_histogram");
-                    byte[] embeddingBytes = rs.getBytes("avg_embedding");
+                    String strEmbedding = rs.getString("avg_embedding");
 
                     FaceData faceData = new FaceData();
 
@@ -140,8 +140,8 @@ public class StudentRepository {
                     }
 
                     
-                    if (embeddingBytes != null && embeddingBytes.length > 0) {
-                        Mat embedding = OpenCVUtils.bytesToMatEmbedding(embeddingBytes);
+                    if (strEmbedding != null) {
+                        Mat embedding = OpenCVUtils.postgresVectorToMat(strEmbedding);
                         if (!embedding.empty()) {
                             faceData.setFaceEmbedding(embedding);
                         }
