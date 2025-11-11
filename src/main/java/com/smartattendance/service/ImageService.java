@@ -16,6 +16,7 @@ import com.smartattendance.model.entity.FaceData;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.repository.ImageRepository;
 import com.smartattendance.service.recognition.HistogramRecognizer;
+import com.smartattendance.service.recognition.OpenFaceRecognizer;
 import com.smartattendance.util.OpenCVUtils;
 import com.smartattendance.util.security.log.ApplicationLogger;
 import com.smartattendance.util.security.log.AttendanceLogger;
@@ -35,6 +36,7 @@ public class ImageService {
     private static final String CAPTURE_DIR = "captured_faces";
     private final ImageRepository imageRepository;
     private final HistogramRecognizer histogramRecognizer;
+    private final OpenFaceRecognizer openFaceRecognizer;
     private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
     private final AttendanceLogger attendanceLogger = AttendanceLogger.getInstance();
 
@@ -45,6 +47,7 @@ public class ImageService {
     public ImageService(FaceProcessingService faceProcessingService) {
         this.imageRepository = new ImageRepository();
         this.histogramRecognizer = new HistogramRecognizer(faceProcessingService);
+        this.openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
     }
 
     /**
@@ -115,15 +118,19 @@ public class ImageService {
 
             student.setFaceData(faceData);
 
-            // Train using HistogramRecognizer
-            attendanceLogger.info("Computing Average Histogram");
             List<Student> studentList = new ArrayList<>();
             studentList.add(student);
 
+            // Train using HistogramRecognizer
+            attendanceLogger.info("Computing Average Histogram");
             histogramRecognizer.train(studentList);
+            // Train using Embedding
+            attendanceLogger.info("Computing Average Embedding");
+            openFaceRecognizer.train(studentList);
 
             // Get the trained average histogram
             Mat averageHistogram = student.getFaceData().getHistogram();
+            Mat averageEmbedding = student.getFaceData().getFaceEmbedding();
 
             if (averageHistogram == null || averageHistogram.empty()) {
                 attendanceLogger
@@ -133,22 +140,32 @@ public class ImageService {
                 return false;
             }
 
-            attendanceLogger.info("Average histogram computed successfully");
-
-            // Persist to database
-            attendanceLogger.info("Persisting average histogram to database");
-            byte[] histogramBytes = OpenCVUtils.matHistogramToBytes(averageHistogram);
-
-            boolean persistSuccess = imageRepository.insertFaceData(studentId, histogramBytes);
-
-            if (!persistSuccess) {
-                attendanceLogger.error("Failed to persist histogram to database");
+            if (averageEmbedding == null || averageEmbedding.empty()) {
+                attendanceLogger
+                        .error("Failed to compute average embedding for student " + studentId);
                 // Cleanup on failure
                 cleanupCapturedImages(studentId);
                 return false;
             }
 
-            attendanceLogger.info("Histogram Persisted to Database");
+            attendanceLogger.info("Average Histogram Computed Successfully");
+            attendanceLogger.info("Average Embedding Computed Successfully");
+
+            // Persist to database
+            attendanceLogger.info("Persisting Average Histogram and Embedding to Database");
+            byte[] histogramBytes = OpenCVUtils.matHistogramToBytes(averageHistogram);
+            String embeddingString = OpenCVUtils.matToPostgresVector(averageEmbedding);
+
+            boolean persistSuccess = imageRepository.insertFaceData(studentId, histogramBytes, embeddingString);
+
+            if (!persistSuccess) {
+                attendanceLogger.error("Failed to Persist Histogram and Embedding to Database");
+                // Cleanup on failure
+                cleanupCapturedImages(studentId);
+                return false;
+            }
+
+            attendanceLogger.info("Histogram and Embedding Persisted to Database");
 
             // Cleanup captured images
             appLogger.info("Cleaning Up Captured Images");

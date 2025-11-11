@@ -178,7 +178,6 @@ public class OpenFaceRecognizer extends Recognizer {
 
         appLogger.info("Training complete: " + successCount + " succeeded, " +
                 failureCount + " failed");
-        System.out.println("Training complete: " + successCount + " students enrolled successfully");
     }
 
     @Override

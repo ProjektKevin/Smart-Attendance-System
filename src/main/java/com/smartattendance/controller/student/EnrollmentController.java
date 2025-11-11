@@ -63,7 +63,7 @@ public class EnrollmentController {
 	// Capture settings
 	private static final int CAPTURE_INTERVAL_MS = 1000; // 1 second
 	private AtomicInteger captureCount = new AtomicInteger(0);
-	private static final int MAX_CAPTURES = 10; // Maximum 10 face images per enrollment
+	private static final int MAX_CAPTURES = 20;
 
 	// Dependencies
 	private final AuthSession session = ApplicationContext.getAuthSession();

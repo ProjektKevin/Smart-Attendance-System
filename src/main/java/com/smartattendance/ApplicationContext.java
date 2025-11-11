@@ -146,11 +146,9 @@ public final class ApplicationContext {
             openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
 
         } catch (IllegalStateException e) {
-            System.err.println("OpenFace unavailable: " + e.getMessage());
+            appLogger.error("OpenFace Unavailable", e);
         } catch (Exception e) {
-            // chore(), Harry: Change back to logger with a different log level
-            System.out.println("Error loading opencv: " + e.getMessage());
-            // chore(), Harry: Add custom throw error or built in error
+            appLogger.error("Error Loading OpenCV Services", e);
         }
     }
 
