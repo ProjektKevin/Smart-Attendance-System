@@ -1,16 +1,26 @@
 package com.smartattendance.controller;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+
+import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AuthSession;
 
 public class RootController {
     @FXML
     private BorderPane root;
     @FXML
     private ToggleButton themeToggle;
+    @FXML
+    private Button logoutButton;
 
     // Admin tabs (may be null on student view)
     @FXML
@@ -82,5 +92,30 @@ public class RootController {
 
     private static String stripVS16(String s) {
         return (s == null) ? "" : s.replace(VS16, "");
+    }
+
+    /**
+     * Handle logout button click.
+     * Clears the session and navigates back to login page.
+     */
+    @FXML
+    private void handleLogout() {
+        try {
+            // Get the auth session and clear it
+            AuthSession session = ApplicationContext.getAuthSession();
+            session.logout();
+
+            // Load the login view
+            Parent loginUI = FXMLLoader.load(getClass().getResource("/view/LoginView.fxml"));
+
+            // Get the current stage and update the scene
+            Stage stage = (Stage) logoutButton.getScene().getWindow();
+            stage.setScene(new Scene(loginUI));
+            stage.setTitle("Smart Attendance System - Login");
+            stage.show();
+        } catch (Exception e) {
+            System.err.println("Error during logout: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

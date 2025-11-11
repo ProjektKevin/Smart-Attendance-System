@@ -132,12 +132,12 @@ public class SessionController {
         }
 
         // Refresh table and reload data from database periodically
-        Timeline uiRefresher = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
-            loadSessionsFromDatabase(); // Reloads from DB
-            sessionTable.refresh(); // Updates the UI
-        }));
-        uiRefresher.setCycleCount(Timeline.INDEFINITE);
-        uiRefresher.play();
+        // Timeline uiRefresher = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
+        //     loadSessionsFromDatabase(); // Reloads from DB
+        //     sessionTable.refresh(); // Updates the UI
+        // }));
+        // uiRefresher.setCycleCount(Timeline.INDEFINITE);
+        // uiRefresher.play();
     }
 
     public AttendanceController getAttendanceController() {

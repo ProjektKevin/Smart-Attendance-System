@@ -125,7 +125,7 @@ public class StudentListController {
 
     private void onViewProfile(UserListDTO studentDto) {
         // Fetch full student profile data for the dialog
-        StudentProfileDTO profileDto = userService.getUserProfileDTO(studentDto.getId());
+        StudentProfileDTO profileDto = userService.getStudentProfileDTO(studentDto.getId());
 
         // Open student profile dialog with DTO
         StudentProfileDialog profileDialog = new StudentProfileDialog(profileDto);
