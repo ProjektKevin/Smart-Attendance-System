@@ -103,8 +103,6 @@ public class RecognitionController {
         statusLabel.setText("Status: Loading...");
         cameraStatusLabel.setText("Camera: Disconnected");
         modelStatusLabel.setText("Model: Not Loaded");
-
-        checkSessionOnLoad();
     }
 
     @FXML
@@ -511,23 +509,4 @@ public class RecognitionController {
         }).start();
     }
 
-    private void checkSessionOnLoad() {
-        if (!ApplicationContext.getSessionService().isSessionOpen()) {
-            // Disable UI elements
-            if (startButton != null) {
-                startButton.setDisable(true);
-            }
-            if (captureButton != null) {
-                captureButton.setDisable(true);
-            }
-
-            // Show message in status label
-            if (statusLabel != null) {
-                statusLabel.setText("Status: No active session - cannot start recognition");
-                statusLabel.setStyle("-fx-text-fill: red;");
-            }
-
-            System.out.println("⚠️ Recognition view loaded but no session is active");
-        }
-    }
 }
