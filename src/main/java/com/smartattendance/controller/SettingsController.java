@@ -4,9 +4,10 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.config.Config;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 
 public class SettingsController {
@@ -17,7 +18,10 @@ public class SettingsController {
   private ChoiceBox<String> algorithmChoiceBox;
 
   @FXML
-  private Label statusLabel;
+  private Label statusLabel, imageAmountLabel;
+
+  @FXML
+  private Slider imageAmountSlider;
 
   @FXML
   public void initialize() {
@@ -27,12 +31,33 @@ public class SettingsController {
     cooldownField.setText(String.valueOf(Config.get("cooldown.seconds")));
     dbPathField.setText(String.valueOf(Config.get("database.path")));
     algorithmChoiceBox.getItems().addAll("HISTOGRAM", "OPENFACE");
+
+    String imageAmountStr = Config.get("enrollment.image.amount");
+    int imageAmount = (imageAmountStr != null) ? Integer.parseInt(imageAmountStr) : 20;
+
+    imageAmountSlider.setValue(imageAmount);
+    imageAmountLabel.setText(String.valueOf(imageAmount));
+
+    imageAmountSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+      int val = newVal.intValue();
+      imageAmountLabel.setText(String.valueOf(val));
+    });
+
     String currentAlgorithm = Config.get("recognition.algorithm");
     if (currentAlgorithm != null) {
       algorithmChoiceBox.setValue(currentAlgorithm);
     } else {
       algorithmChoiceBox.setValue("HISTOGRAM");
     }
+
+    setupStatusClear(cameraIndexField);
+    setupStatusClear(highThresholdField);
+    setupStatusClear(lowThresholdField);
+    setupStatusClear(cooldownField);
+    setupStatusClear(dbPathField);
+    setupStatusClear(algorithmChoiceBox);
+    setupStatusClear(imageAmountSlider);
+
   }
 
   @FXML
@@ -42,6 +67,7 @@ public class SettingsController {
       double highThreshold = Double.parseDouble(highThresholdField.getText());
       double lowThreshold = Double.parseDouble(lowThresholdField.getText());
       int cooldown = Integer.parseInt(cooldownField.getText());
+      int imageAmount = (int) imageAmountSlider.getValue();
 
       if (highThreshold < 0 || highThreshold > 100) {
         highThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
@@ -73,12 +99,23 @@ public class SettingsController {
         return;
       }
 
+      if (imageAmount < 10 || imageAmount > 25) {
+        imageAmountSlider.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+        statusLabel
+            .setText("Error: Enrollment image amount must be between 10 and 25 (You entered: " + imageAmount + ")");
+        statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+        return;
+      } else {
+        imageAmountSlider.setStyle(""); // reset style
+      }
+
       // Save settings to config (except algorithm - handled by switchAlgorithm)
       Config.set("camera.index", cameraIndexField.getText());
       Config.set("recognition.high.threshold", String.valueOf(highThreshold));
       Config.set("recognition.low.threshold", String.valueOf(lowThreshold));
-      Config.set("cooldown.seconds", String.valueOf(cooldown)); 
+      Config.set("cooldown.seconds", String.valueOf(cooldown));
       Config.set("database.path", dbPathField.getText());
+      Config.set("enrollment.image.amount", String.valueOf(imageAmount));
 
       // Update threshold dynamically
       ApplicationContext.getHistogramRecognizer().setConfidenceThreshold(highThreshold);
@@ -96,7 +133,7 @@ public class SettingsController {
       lowThresholdField.setStyle("-fx-border-color: green; -fx-border-width: 2px;");
       cooldownField.setStyle("-fx-border-color: green; -fx-border-width: 2px;");
 
-      statusLabel.setText("✅ Settings saved! Algorithm: " + selectedAlgorithm +
+      statusLabel.setText("New Settings saved! Algorithm: " + selectedAlgorithm +
           " | High: " + highThreshold + "% | Low: " + lowThreshold + "%");
       statusLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
     } catch (NumberFormatException e) {
@@ -116,4 +153,20 @@ public class SettingsController {
       statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
     }
   }
+
+  private void setupStatusClear(Control control) {
+    Runnable clearStatus = () -> statusLabel.setText("");
+
+    if (control instanceof TextField tf) {
+      tf.setOnMouseClicked(e -> clearStatus.run());
+      tf.setOnKeyTyped(e -> clearStatus.run());
+    } else if (control instanceof ChoiceBox<?> cb) {
+      cb.setOnMouseClicked(e -> clearStatus.run());
+      cb.setOnAction(e -> clearStatus.run());
+    } else if (control instanceof Slider s) {
+      s.setOnMousePressed(e -> clearStatus.run());
+      s.valueProperty().addListener((obs, oldVal, newVal) -> clearStatus.run());
+    }
+  }
+
 }

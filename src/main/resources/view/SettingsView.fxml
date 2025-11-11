@@ -26,11 +26,19 @@
             <Label text="Database Path:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
             <TextField fx:id="dbPathField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
-            <Label fx:id="statusLabel" GridPane.columnIndex="0" GridPane.rowIndex="6"
+            <Label text="Enrollment Image Amount:" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+            <Slider fx:id="imageAmountSlider" GridPane.columnIndex="1" GridPane.rowIndex="6"
+                min="10" max="25" blockIncrement="1" majorTickUnit="1" minorTickCount="0"
+                showTickLabels="true" showTickMarks="true" />
+            <Label fx:id="imageAmountLabel" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+
+
+            <Label fx:id="statusLabel" GridPane.columnIndex="0" GridPane.rowIndex="8"
                 GridPane.columnSpan="2"
                 style="-fx-text-fill: red; -fx-font-weight: bold;" />
 
-            <Button text="Save" GridPane.columnIndex="1" GridPane.rowIndex="6"
+            <!-- Save Button -->
+            <Button text="Save" GridPane.columnIndex="1" GridPane.rowIndex="9"
                 onAction="#onSaveSettings" />
 
         </GridPane>

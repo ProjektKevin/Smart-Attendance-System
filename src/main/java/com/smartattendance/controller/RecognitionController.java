@@ -108,7 +108,7 @@ public class RecognitionController {
         System.out.println("Loading done!");
 
         // Check parametes
-        
+
 
         // Safety Camera release
         if (this.cameraActive) {
