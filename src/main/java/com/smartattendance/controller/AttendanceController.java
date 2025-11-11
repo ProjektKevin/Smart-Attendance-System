@@ -60,6 +60,8 @@ public class AttendanceController implements AttendanceObserver {
     @FXML
     private Label lblSessionTitle;
     @FXML
+    private Label lblAttendanceSummary;
+    @FXML
     private Button createButton;
     @FXML
     private Button deleteButton;
@@ -563,6 +565,7 @@ public class AttendanceController implements AttendanceObserver {
             List<AttendanceRecord> records = service.findBySessionId(currentSession.getSessionId());
             attendanceList.setAll(records);
             attendanceTable.setItems(attendanceList);
+            updateAttendanceSummary();
             initSelectionMap();
             updateButtonStates();
 
@@ -576,6 +579,25 @@ public class AttendanceController implements AttendanceObserver {
             }
         }
     }
+
+    private void updateAttendanceSummary() {
+        if (attendanceTable.getItems() == null) {
+            return;
+        }
+
+        long total = attendanceTable.getItems().size();
+        long present = attendanceTable.getItems().stream()
+                .filter(r -> r.getStatus() == AttendanceStatus.PRESENT)
+                .count();
+        long late = attendanceTable.getItems().stream()
+                .filter(r -> r.getStatus() == AttendanceStatus.LATE)
+                .count();
+
+        lblAttendanceSummary.setText(
+                String.format("Present: %d | Late: %d | Total: %d", present, late, total)
+        );
+    }
+
 
     @FXML
     private void onCreateRecord() {
