@@ -1,6 +1,7 @@
 package com.smartattendance.controller;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -11,13 +12,12 @@ import java.util.stream.Collectors;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Session;
-import com.smartattendance.repository.SessionRepository;
-import com.smartattendance.service.AttendanceService;
-import com.smartattendance.service.AutoAttendanceMarker;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
 import com.smartattendance.util.ControllerRegistry;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,10 +33,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class SessionController {
 
@@ -63,6 +66,10 @@ public class SessionController {
     @FXML
     private TableColumn<Session, String> colStatus;
     @FXML
+    private TableColumn<Session, Boolean> colAutoStart;
+    @FXML
+    private TableColumn<Session, Boolean> colAutoStop;
+    @FXML
     private TableColumn<Session, Void> colViewMore;
     @FXML
     private Button deleteButton;
@@ -82,8 +89,6 @@ public class SessionController {
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
     // F_MA: added by felicia handling marking attendance
     private AttendanceController attendanceController; // store reference
-    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
-    private final SessionRepository sessionRepository = new SessionRepository();
 
     @FXML
     public void initialize() {
@@ -102,9 +107,17 @@ public class SessionController {
         colLoc.setCellValueFactory(new PropertyValueFactory<>("location"));
         colLate.setCellValueFactory(new PropertyValueFactory<>("lateThresholdMinutes"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        colAutoStart.setCellValueFactory(new PropertyValueFactory<>("autoStart"));
+        colAutoStop.setCellValueFactory(new PropertyValueFactory<>("autoStop"));
 
         // Setup checkbox column
         setupCheckBoxColumn();
+
+        // Setup auto start column
+        setupAutoStartColumn();
+
+        // Setup auto stop column
+        setupAutoStopColumn();
 
         // Setup view more button
         setUpViewMoreButton();
@@ -127,13 +140,19 @@ public class SessionController {
             });
         }
 
-        // Refresh table and reload data from database periodically
-        // Timeline uiRefresher = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
-        //     loadSessionsFromDatabase(); // Reloads from DB
-        //     sessionTable.refresh(); // Updates the UI
-        // }));
-        // uiRefresher.setCycleCount(Timeline.INDEFINITE);
-        // uiRefresher.play();
+        // Auto session processor - runs every 30 seconds
+        Timeline autoSessionProcessor = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
+            // System.out.println("SessionController: Auto-session processor triggered (30-second interval)");
+
+            // Uses decorator pattern rules
+            ss.processAutoSessions();
+
+            // Refresh the table to show any status changes
+            loadSessionsFromDatabase();
+        }));
+
+        autoSessionProcessor.setCycleCount(Timeline.INDEFINITE);
+        autoSessionProcessor.play();
     }
 
     public AttendanceController getAttendanceController() {
@@ -152,24 +171,24 @@ public class SessionController {
         switch (type.toLowerCase()) {
             case "success":
                 sessionsInfo
-                        .setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
-                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                        .setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; " +
+                                "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "error":
                 sessionsInfo
-                        .setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
-                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                        .setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; " +
+                                "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "warning":
                 sessionsInfo
-                        .setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
-                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                        .setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; " +
+                                "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "normal":
             default:
                 sessionsInfo
-                        .setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; "
-                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                        .setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; " +
+                                "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
         }
     }
@@ -268,42 +287,6 @@ public class SessionController {
     private void loadSessionsFromDatabase() {
         try {
             List<Session> sessions = ss.getAllSessions();
-            boolean statusChanged = false;
-
-            // Update status of sessions based on current time (Automate opening and closing
-            // of sessions)
-            for (Session s : sessions) {
-                String currentStatus = s.getStatus();
-                String updatedStatus = s.determineStatus(s.getSessionDate(), s.getStartTime(), s.getEndTime());
-
-                // If status needs to be updated, update in database
-                if (!currentStatus.equals(updatedStatus)) {
-                    s.setStatus(updatedStatus);
-                    ss.updateSessionStatus(s);
-                    statusChanged = true;
-
-                    if ("Closed".equalsIgnoreCase(updatedStatus)) {
-                        try {
-                            AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);
-                            System.out
-                                    .println("Pending records for session " + s.getSessionId() + " updated to Absent.");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            showError("Failed to mark pending attendance for session " + s.getSessionId());
-                        }
-                    }
-                } 
-                
-                if ("Open".equalsIgnoreCase(updatedStatus)) {
-                    // store session as long as it is "Open"
-                    ApplicationContext.getAuthSession().setActiveSessionId(s.getSessionId());
-                }
-            }
-
-            // Reload from database to get updated status (if necessary)
-            if (statusChanged) {
-                sessions = ss.getAllSessions();
-            }
 
             // Sort sessions by sessionId in ascending order
             sessions.sort(Comparator.comparing(Session::getSessionId));
@@ -529,8 +512,8 @@ public class SessionController {
         }
 
         // Check if all sessions are selected and none are open
-        boolean shouldDeleteAll = selectedSessions.size() == sessionList.size()
-                && selectedSessions.stream().noneMatch(s -> "Open".equals(s.getStatus()));
+        boolean shouldDeleteAll = selectedSessions.size() == sessionList.size() &&
+                selectedSessions.stream().noneMatch(s -> "Open".equals(s.getStatus()));
 
         if (shouldDeleteAll) {
             // Use deleteAll when all sessions are selected
@@ -591,20 +574,168 @@ public class SessionController {
             }
         }
     }
+
+    private void setupAutoStartColumn() {
+        // System.out.println("SessionController: Setting up Auto Start column");
+        colAutoStart.setCellFactory(column -> new TableCell<Session, Boolean>() {
+            private final ToggleButton toggleButton = new ToggleButton();
+            private boolean initializing = true;
+
+            {
+                toggleButton.setPrefWidth(60);
+                toggleButton.setPrefHeight(25);
+
+                toggleButton.setOnAction(event -> {
+                    if (!initializing) {
+                        Session session = getTableView().getItems().get(getIndex());
+                        if (session != null) {
+                            boolean newAutoStart = toggleButton.isSelected();
+                            // System.out.println("Auto Start button CLICKED for session " + session.getSessionId());
+
+                            // Update the setting (no validation needed - button is disabled if not allowed)
+                            session.setAutoStart(newAutoStart);
+                            ss.updateAutoSettings(session.getSessionId(), newAutoStart, session.isAutoStop());
+
+                            showSuccess("Auto Start " + (newAutoStart ? "enabled" : "disabled") + " for session "
+                                    + session.getSessionId());
+
+                            sessionTable.refresh();
+                        }
+                    }
+                });
+            }
+
+            private void updateButtonAppearance() {
+                if (toggleButton.isSelected()) {
+                    toggleButton.setText("ON");
+                    toggleButton
+                            .setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+                } else {
+                    toggleButton.setText("OFF");
+                    toggleButton
+                            .setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;");
+                }
+            }
+
+            @Override
+            protected void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                } else {
+                    Session session = getTableRow().getItem();
+
+                    initializing = true;
+
+                    // Auto-start logic:
+                    // - NEVER allowed for Closed sessions
+                    // - Only allowed for Pending sessions that haven't ended
+                    boolean canHaveAutoStart = ss.canSessionHaveAutoStart(session);
+
+                    // If auto-start is enabled but no longer allowed, disable it
+                    if (!canHaveAutoStart && session.isAutoStart()) {
+                        // System.out.println(
+                        //         "SessionController: Auto-start was enabled but is no longer allowed - disabling");
+                        session.setAutoStart(false);
+                        ss.updateAutoSettings(session.getSessionId(), false, session.isAutoStop());
+                    }
+
+                    toggleButton.setSelected(session.isAutoStart());
+                    toggleButton.setDisable(!canHaveAutoStart);
+
+                    updateButtonAppearance();
+                    initializing = false;
+
+                    setGraphic(toggleButton);
+                }
+            }
+        });
+    }
+
+    private void setupAutoStopColumn() {
+        System.out.println("SessionController: Setting up Auto Stop column");
+        colAutoStop.setCellFactory(column -> new TableCell<Session, Boolean>() {
+            private final ToggleButton toggleButton = new ToggleButton();
+            private boolean initializing = true;
+
+            {
+                toggleButton.setPrefWidth(60);
+                toggleButton.setPrefHeight(25);
+
+                toggleButton.setOnAction(event -> {
+                    if (!initializing) {
+                        Session session = getTableView().getItems().get(getIndex());
+                        if (session != null) {
+                            boolean newAutoStop = toggleButton.isSelected();
+                            // System.out.println("Auto Stop button CLICKED for session " + session.getSessionId());
+
+                            // Update the setting
+                            session.setAutoStop(newAutoStop);
+                            ss.updateAutoSettings(session.getSessionId(), session.isAutoStart(), newAutoStop);
+
+                            showSuccess("Auto Stop " + (newAutoStop ? "enabled" : "disabled") + " for session "
+                                    + session.getSessionId());
+
+                            sessionTable.refresh();
+                        }
+                    }
+                });
+            }
+
+            private void updateButtonAppearance() {
+                if (toggleButton.isSelected()) {
+                    toggleButton.setText("ON");
+                    toggleButton
+                            .setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;");
+                } else {
+                    toggleButton.setText("OFF");
+                    toggleButton
+                            .setStyle("-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;");
+                }
+            }
+
+            @Override
+            protected void updateItem(Boolean item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                } else {
+                    Session session = getTableRow().getItem();
+
+                    initializing = true;
+
+                    // Auto-stop logic:
+                    // - NEVER allowed for Closed sessions
+                    // - Allowed for Pending/Open sessions (even if ended - to allow closing)
+                    boolean canHaveAutoStop = ss.canSessionHaveAutoStop(session);
+
+                    // If auto-stop is enabled but no longer allowed, disable it
+                    if (!canHaveAutoStop && session.isAutoStop()) {
+                        // System.out.println(
+                        //         "SessionController: Auto-stop was enabled but is no longer allowed - disabling");
+                        session.setAutoStop(false);
+                        ss.updateAutoSettings(session.getSessionId(), session.isAutoStart(), false);
+                    }
+
+                    toggleButton.setSelected(session.isAutoStop());
+                    toggleButton.setDisable(!canHaveAutoStop);
+
+                    updateButtonAppearance();
+                    initializing = false;
+
+                    setGraphic(toggleButton);
+                }
+            }
+        });
+    }
 }
 
-// Cannot remove the selection effect? Should I also remove the automation of
-// opening/closing of sessions?
+// Cannot remove the selection effect?
 // implement edit session function?
 // ensure view for each type of user (e.g. admin, ta, student, prof) is
 // different
 // cannot create a session from 23:00 to 00:00?
-// - use decorator for auto-session policies (automating starting and stopping
-// processes)
-// - extra feature: add a auto-create and auto-start and auto-end one of the
-// session?
-// - cannot start more than one sessions automatically (only starts the session
-// created earlier if there are more than 1 session with around the same start
-// time and end time)
-// - Both columns have buttons to toggle on and off (can only toggle one session
-// to be auto-started but auto-close multiple sessions)
+// - if late threshold is not filled in, use deefault threshold in config.properties
+// - late threshold cannot be more than duration of session

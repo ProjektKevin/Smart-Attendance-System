@@ -40,7 +40,9 @@ public class SessionRepository {
                     sqlEndTime != null ? sqlEndTime.toLocalDateTime().toLocalTime() : null,
                     rs.getString("location"),
                     rs.getInt("late_threshold"),
-                    rs.getString("status")
+                    rs.getString("status"),
+                    rs.getBoolean("auto_start"),
+                    rs.getBoolean("auto_stop")
                 ));
             }
 
@@ -72,7 +74,9 @@ public class SessionRepository {
                             sqlEndTime != null ? sqlEndTime.toLocalDateTime().toLocalTime() : null,
                             rs.getString("location"),
                             rs.getInt("late_threshold"),
-                            rs.getString("status")
+                            rs.getString("status"),
+                            rs.getBoolean("auto_start"),
+                            rs.getBoolean("auto_stop")
                     );
                 }
             }
@@ -83,7 +87,7 @@ public class SessionRepository {
         return null;
     }
 
-    // Check if there is already a session opened
+    // Check if there is already a session opened (should be either 1 or 0)
     public boolean isSessionOpen() {
         String sql = "SELECT COUNT(*) FROM sessions WHERE status = 'Open';";
         int openSessionsCount = 0;
@@ -96,8 +100,8 @@ public class SessionRepository {
                 openSessionsCount = rs.getInt(1);
             }
             
-            // Return true if there are open sessions (count != 0), false if there are no open sessions
-            return openSessionsCount != 0;
+            // Return true if there are open sessions (count > 0), false if there are no open sessions
+            return openSessionsCount > 0;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -201,6 +205,115 @@ public class SessionRepository {
             
             ps.setString(1, status);
             ps.setInt(2, id);
+
+            ps.executeUpdate();
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    // Check if there is already a session with auto_start (either 0 or 1)
+    public boolean hasAutoStartSession() {
+        String sql = "SELECT COUNT(*) FROM sessions WHERE auto_start = TRUE;";
+        int sessionsCount = 0;
+
+        try (Connection conn = DatabaseUtil.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                sessionsCount = rs.getInt(1);
+            }
+            
+            // Return true if there are auto_start sessions (count > 0), false if there are none
+            return sessionsCount > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Check if there are other sessions with auto_start = TRUE excluding the given session
+    public boolean hasOtherAutoStartSession(int excludeSessionId) {
+        String sql = "SELECT COUNT(*) FROM sessions WHERE auto_start = TRUE AND session_id != ?;";
+        int sessionsCount = 0;
+
+        try (Connection conn = DatabaseUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, excludeSessionId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                sessionsCount = rs.getInt(1);
+            }
+            
+            // System.out.println("SessionRepository: Found " + sessionsCount + " other auto-start sessions excluding session " + excludeSessionId);
+            return sessionsCount > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Check if there is already a session with auto_stop (either 0 or 1)
+    public boolean hasAutoStopSession() {
+        String sql = "SELECT COUNT(*) FROM sessions WHERE auto_stop = TRUE;";
+        int sessionsCount = 0;
+
+        try (Connection conn = DatabaseUtil.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                sessionsCount = rs.getInt(1);
+            }
+            
+            // Return true if there are auto_stop sessions (count > 0), false if there are none
+            return sessionsCount > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Check if there are other sessions with auto_start = TRUE excluding the given session
+    public boolean hasOtherAutoStopSession(int excludeSessionId) {
+        String sql = "SELECT COUNT(*) FROM sessions WHERE auto_stop = TRUE AND session_id != ?;";
+        int sessionsCount = 0;
+
+        try (Connection conn = DatabaseUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, excludeSessionId);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                sessionsCount = rs.getInt(1);
+            }
+            
+            // System.out.println("SessionRepository: Found " + sessionsCount + " other auto-stop sessions excluding session " + excludeSessionId);
+            return sessionsCount > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Update settings of auto_start and auto_stop
+    public void updateAutoSettings(int sessionId, boolean autoStart, boolean autoStop){
+        String sql = "UPDATE sessions SET auto_start = ?, auto_stop = ? WHERE session_id = ?";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)){
+            
+            ps.setBoolean(1, autoStart);
+            ps.setBoolean(2, autoStop);
+            ps.setInt(3, sessionId);
 
             ps.executeUpdate();
         } catch (SQLException e){
