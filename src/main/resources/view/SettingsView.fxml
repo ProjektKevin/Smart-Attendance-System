@@ -14,11 +14,11 @@
             <ChoiceBox fx:id="algorithmChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1"
                 prefWidth="200.0" />
 
-            <Label text="Recognition Threshold:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-            <TextField fx:id="thresholdField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            <Label text="High Recognition Threshold:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+            <TextField fx:id="highThresholdField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
-            <!-- <Label text="Late Threshold (min):" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-            <TextField fx:id="lateField" GridPane.columnIndex="1" GridPane.rowIndex="3" /> -->
+            <Label text="Low Recognition Threshold:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+            <TextField fx:id="lowThresholdField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
             <Label text="Cooldown Time (sec):" GridPane.columnIndex="0" GridPane.rowIndex="4" />
             <TextField fx:id="cooldownField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
