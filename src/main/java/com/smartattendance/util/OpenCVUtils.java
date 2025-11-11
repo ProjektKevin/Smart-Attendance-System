@@ -139,75 +139,12 @@ public final class OpenCVUtils {
 		}
 	}
 
-	public static byte[] matEmbeddingToBytes(Mat embedding) {
-		if (embedding == null || embedding.empty()) {
-			return null;
-		}
-
-		try {
-			int rows = embedding.rows();
-			int cols = embedding.cols();
-			int totalElements = rows * cols;
-
-			ByteBuffer buffer = ByteBuffer.allocate(totalElements * 8);
-
-			// Handle both CV_32F and CV_64F types
-			int matType = embedding.type();
-			if (matType == CvType.CV_32F) {
-				// Extract as float, convert to double
-				float[] floatData = new float[totalElements];
-				embedding.get(0, 0, floatData);
-				for (float value : floatData) {
-					buffer.putDouble((double) value);
-				}
-			} else {
-				// Extract as double directly (CV_64F or other types)
-				double[] data = new double[totalElements];
-				embedding.get(0, 0, data);
-				for (double value : data) {
-					buffer.putDouble(value);
-				}
-			}
-
-			return buffer.array();
-
-		} catch (Exception e) {
-			System.err.println("Error converting embedding to bytes: " + e.getMessage());
-			return null;
-		}
-	}
-
-	public static Mat bytesToMatEmbedding(byte[] bytes) {
-		if (bytes == null || bytes.length == 0) {
-			return new Mat();
-		}
-
-		try {
-			int numElements = bytes.length / 8;
-
-			Mat embedding = new Mat(numElements, 1, CvType.CV_64F);
-
-			ByteBuffer buffer = ByteBuffer.wrap(bytes);
-			double[] data = new double[numElements];
-
-			for (int i = 0; i < numElements; i++) {
-				data[i] = buffer.getDouble();
-			}
-
-			embedding.put(0, 0, data);
-			return embedding;
-
-		} catch (Exception e) {
-			System.err.println("Error converting bytes to embedding: " + e.getMessage());
-			return new Mat();
-		}
-	}
-
+	// --------------------------------------------------------
 	/**
 	 * Convert OpenCV Mat (128-dimensional embedding) to double array
 	 * Handles both CV_32F (float) and CV_64F (double) Mat types
 	 */
-	public static double[] matToDoubleArray(Mat mat) {
+	public static float[] matToFloatArray(Mat mat) {
 		if (mat == null || mat.empty()) {
 			throw new IllegalArgumentException("Mat cannot be null or empty");
 		}
@@ -219,27 +156,27 @@ public final class OpenCVUtils {
 		}
 
 		Mat flatMat = mat.reshape(0, 1); // flatten to 1x128
-		double[] data = new double[128];
+		float[] data = new float[128];
 
 		// Check Mat type and handle accordingly
 		int matType = flatMat.type();
 
 		if (matType == CvType.CV_32F) {
-			// If Mat is float (CV_32F = 5), extract as float first, then convert to double
-			float[] floatData = new float[128];
-			flatMat.get(0, 0, floatData);
-			for (int i = 0; i < 128; i++) {
-				data[i] = (double) floatData[i];
-			}
-		} else if (matType == CvType.CV_64F) {
-			// If Mat is double (CV_64F = 6), extract directly
+			// If Mat is float (CV_32F = 5), extract directly
 			flatMat.get(0, 0, data);
+		} else if (matType == CvType.CV_64F) {
+			// If Mat is double (CV_64F = 6), extract as double then convert to float
+			double[] doubleData = new double[128];
+			flatMat.get(0, 0, doubleData);
+			for (int i = 0; i < 128; i++) {
+				data[i] = (float) doubleData[i];
+			}
 		} else {
-			// For other types, convert to CV_64F first
-			Mat doubleMat = new Mat();
-			flatMat.convertTo(doubleMat, CvType.CV_64F);
-			doubleMat.get(0, 0, data);
-			doubleMat.release();
+			// For other types, convert to CV_32F first
+			Mat floatMat = new Mat();
+			flatMat.convertTo(floatMat, CvType.CV_32F);
+			floatMat.get(0, 0, data);
+			floatMat.release();
 		}
 
 		return data;
@@ -248,17 +185,17 @@ public final class OpenCVUtils {
 	/**
 	 * Convert double array to PostgreSQL pgvector string "[v1,v2,...,v128]"
 	 */
-	public static String doubleArrayToPostgresVector(double[] doubleArray) {
-		if (doubleArray == null || doubleArray.length != 128) {
+	public static String floatArrayToPostgresVector(float[] floatArray) {
+		if (floatArray == null || floatArray.length != 128) {
 			throw new IllegalArgumentException(
-					"Double array must contain exactly 128 elements. Got: " +
-							(doubleArray == null ? "null" : doubleArray.length));
+					"Float array must contain exactly 128 elements. Got: " +
+							(floatArray == null ? "null" : floatArray.length));
 		}
 
 		StringBuilder vector = new StringBuilder("[");
-		for (int i = 0; i < doubleArray.length; i++) {
-			vector.append(String.format("%.15f", doubleArray[i])); // high precision
-			if (i < doubleArray.length - 1) {
+		for (int i = 0; i < floatArray.length; i++) {
+			vector.append(floatArray[i]);
+			if (i < floatArray.length - 1) {
 				vector.append(",");
 			}
 		}
@@ -270,14 +207,14 @@ public final class OpenCVUtils {
 	 * Convert OpenCV Mat to PostgreSQL pgvector string in one step
 	 */
 	public static String matToPostgresVector(Mat mat) {
-		double[] data = matToDoubleArray(mat);
-		return doubleArrayToPostgresVector(data);
+		float[] data = matToFloatArray(mat);
+		return floatArrayToPostgresVector(data);
 	}
 
 	/**
 	 * Convert PostgreSQL pgvector string "[v1,v2,...,v128]" to double array
 	 */
-	public static double[] postgresVectorToDoubleArray(String vectorString) {
+	public static float[] postgresVectorToFloatArray(String vectorString) {
 		if (vectorString == null || vectorString.isEmpty()) {
 			throw new IllegalArgumentException("Vector string cannot be null or empty");
 		}
@@ -288,9 +225,9 @@ public final class OpenCVUtils {
 			throw new IllegalArgumentException("Expected 128 elements, got: " + parts.length);
 		}
 
-		double[] data = new double[128];
+		float[] data = new float[128];
 		for (int i = 0; i < 128; i++) {
-			data[i] = Double.parseDouble(parts[i].trim());
+			data[i] = Float.parseFloat(parts[i].trim());
 		}
 		return data;
 	}
@@ -299,8 +236,8 @@ public final class OpenCVUtils {
 	 * Convert PostgreSQL pgvector string "[v1,v2,...,v128]" back to OpenCV Mat
 	 */
 	public static Mat postgresVectorToMat(String vectorString) {
-		double[] data = postgresVectorToDoubleArray(vectorString);
-		Mat mat = new Mat(1, 128, CvType.CV_64F); // store as double
+		float[] data = postgresVectorToFloatArray(vectorString);
+		Mat mat = new Mat(1, 128, CvType.CV_32F); // store as float
 		mat.put(0, 0, data);
 		return mat;
 	}

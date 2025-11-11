@@ -115,7 +115,7 @@ public class FaceRecognitionService {
 
     if (algorithmName.equalsIgnoreCase("OPENFACE")) {
       if (ApplicationContext.getOpenFaceRecognizer() == null) {
-        System.err.println("⚠️ OpenFace not available. Falling back to HISTOGRAM");
+        System.err.println("OpenFace not available. Falling back to HISTOGRAM");
         this.recognizer = ApplicationContext.getHistogramRecognizer();
         algorithmName = "HISTOGRAM";
         Config.set("recognition.algorithm", algorithmName);

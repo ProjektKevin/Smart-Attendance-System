@@ -140,12 +140,12 @@ public class StudentRepository {
                     }
 
                     
-                    // if (strEmbedding != null) {
-                    //     Mat embedding = OpenCVUtils.postgresVectorToMat(strEmbedding);
-                    //     if (!embedding.empty()) {
-                    //         faceData.setFaceEmbedding(embedding);
-                    //     }
-                    // }
+                    if (strEmbedding != null) {
+                        Mat embedding = OpenCVUtils.postgresVectorToMat(strEmbedding);
+                        if (!embedding.empty()) {
+                            faceData.setFaceEmbedding(embedding);
+                        }
+                    }
 
                     student.setFaceData(faceData);
                     students.add(student);
