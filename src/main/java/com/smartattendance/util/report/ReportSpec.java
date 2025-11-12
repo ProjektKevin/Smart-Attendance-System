@@ -56,7 +56,7 @@ public class ReportSpec {
         return includeNote;
     }
 
-    // ===== setters (your controller or service may already be using these) =====
+    // ===== setters =====
     public void setIncludeDateTime(boolean includeDateTime) {
         this.includeDateTime = includeDateTime;
     }

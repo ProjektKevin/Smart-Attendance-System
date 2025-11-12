@@ -59,9 +59,6 @@ public class StudentAttendanceService {
                     ? rec.markedAt.toString().replace('T', ' ')
                     : "";
 
-            // placeholder, unless your DTO has method
-            // String method = "-";
-
             rows.add(new StudentAttendanceRow(date, course, status, method, markedAtStr));
         }
 

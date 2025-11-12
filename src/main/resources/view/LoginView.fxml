@@ -35,13 +35,13 @@
                    style="-fx-font-size: 11px; -fx-text-fill: #d32f2f;"/>
         </VBox>
 
-        <!-- Password (admin password OR 'student123' for student flow) -->
+        <!-- Password -->
         <Label text="_Password:" mnemonicParsing="true"
                styleClass="form-label"
                GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <VBox GridPane.rowIndex="2" GridPane.columnIndex="1" spacing="2" GridPane.hgrow="ALWAYS">
             <PasswordField fx:id="passwordField"
-                           promptText="admin123 or student123"
+                           promptText="Enter your password"
                            styleClass="input"
                            GridPane.hgrow="ALWAYS"/>
             <Label fx:id="passwordError" text=""
