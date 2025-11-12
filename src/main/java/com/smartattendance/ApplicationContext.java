@@ -21,6 +21,13 @@ import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.log.ApplicationLogger;
 
+/**
+ * Main Application Context where all services are initialised and loaded
+ * The created instances are reused across the project avoid extra memo leak or
+ * usage
+ * 
+ * Skeleton by @author Thiha Swan Htet
+ */
 public final class ApplicationContext {
 
     private static boolean initialized = false;
@@ -60,12 +67,14 @@ public final class ApplicationContext {
      */
     public static void initialize() {
         if (initialized) {
-            throw new IllegalStateException("ApplicationContext already initialized");
+            throw new IllegalStateException("ApplicationContext Already Initialized");
         }
 
         // Set session
         session = new AuthSession();
+        appLogger.info("Auth Session Initialized.");
         sessionService = new SessionService();
+        appLogger.info("Session Service Initialized.");
 
         // Load Opencv
         loadOpenCV();
@@ -77,12 +86,23 @@ public final class ApplicationContext {
 
         // Initialize services
         authService = new AuthService();
+        appLogger.info("Auth Service Initialized.");
+
         userService = new UserService();
+        appLogger.info("User Service Initialized.");
+
         studentService = new StudentService();
+        appLogger.info("Student Service Initialized.");
+
         profileService = new ProfileService();
+        appLogger.info("Profile Service Initialized.");
+
         courseService = new CourseService();
+        appLogger.info("Course Service Initialized.");
+
         // F_MA: added by felicia handling marking attendance
         attendanceService = new AttendanceService();
+        appLogger.info("Attendance Service Initialized.");
 
         initialized = true;
 
@@ -106,7 +126,7 @@ public final class ApplicationContext {
             nu.pattern.OpenCV.loadLocally();
             appLogger.info("OpenCV Loaded Successfully.");
         } catch (Exception e) {
-            appLogger.error("Error loading opencv", e);
+            appLogger.error("Error Loading OpenCV", e);
         }
     }
 
@@ -125,28 +145,28 @@ public final class ApplicationContext {
 
             // Initialize face image processing
             faceProcessingService = new FaceProcessingService(faceDetectionService);
-            appLogger.info("Image processing service initialized");
+            appLogger.info("Image Processing Service Initialized");
 
             // Initialize both recognizer models
             histogramRecognizer = new HistogramRecognizer(faceProcessingService, highThreshold);
-            appLogger.info("Histogram recognizer initialized");
+            appLogger.info("Histogram Recognizer Initialized");
 
             openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService, highThreshold);
-            appLogger.info("OpenFace recognizer initialized");
+            appLogger.info("OpenFace Recognizer Initialized");
 
             // Initialize face recognition
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
-            appLogger.info("Face recognition service initialized");
+            appLogger.info("Face Recognition Service Initialized");
             if (!openFaceRecognizer.isModelLoaded()) {
-                appLogger.warn("OpenFace model failed to load! Recognition will not work.");
-                System.err.println("WARNING: OpenFace model not loaded. Check model file path.");
-                throw new IllegalStateException("OpenFace model required but failed to load");
+                appLogger.warn("OpenFace Model Failed to Load! Recognition Will Not Work.");
+                System.err.println("WARNING: OpenFace Model Not Loaded. Check Model File Path.");
+                throw new IllegalStateException("OpenFace Model Required But Failed to Load");
             }
-            appLogger.info("Face recognition service initialized");
+            appLogger.info("Face Recognition Service Initialized");
 
             // Initialize Image Service
             imageService = new ImageService(faceProcessingService);
-            appLogger.info("Image service initialized");
+            appLogger.info("Image Service Initialized");
 
             openFaceRecognizer = new OpenFaceRecognizer(faceProcessingService);
 
@@ -362,9 +382,7 @@ public final class ApplicationContext {
 
         // Release camera resources
         CameraUtils.getInstance().releaseCamera();
-
-        // chore(), Harry: Add cleanup logic here (close database connections, release
-        // resources, etc.)
+        // Log out the user
         session.logout();
         initialized = false;
     }

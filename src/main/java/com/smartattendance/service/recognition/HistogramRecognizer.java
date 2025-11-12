@@ -112,7 +112,9 @@ public class HistogramRecognizer extends Recognizer {
         // Convert correlation score to percentage (correlation is -1 to 1)
         double confidence = (bestScore + 1.0) * 50.0;
 
-        System.out.println("Best match: " + bestMatch.getName());
+        System.out.println("Best match: " + bestMatch.getName() +
+            " with confidence: " + String.format("%.1f%%", confidence));
+            
         return new RecognitionResult(bestMatch, confidence);
       }
 
@@ -179,7 +181,8 @@ public class HistogramRecognizer extends Recognizer {
       for (Mat rawImage : rawFaceImages) {
         // Preprocess each face image
         Rect fullRect = new Rect(0, 0, rawImage.cols(), rawImage.rows());
-        Mat preprocessedFace = faceProcessingService.preprocessFace(rawImage, fullRect, DEFAULT_FACE_WIDTH, DEFAULT_FACE_HEIGHT);
+        Mat preprocessedFace = faceProcessingService.preprocessFace(rawImage, fullRect, DEFAULT_FACE_WIDTH,
+            DEFAULT_FACE_HEIGHT);
 
         // Compute histogram
         Mat hist = computeHistogram(preprocessedFace);

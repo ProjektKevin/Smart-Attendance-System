@@ -3,6 +3,8 @@ package com.smartattendance.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -34,6 +36,8 @@ import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
+// F_MA: modified by felicia handling marking attendance ##for testing
+import com.smartattendance.service.RecognitionServiceTest;
 
 public class RecognitionController {
     @FXML
@@ -79,7 +83,9 @@ public class RecognitionController {
 
     // Recognition cooldown to avoid spam
     private long lastRecognitionTime = 0;
+    private long lastAlertTime = 0;
     private static final long RECOGNITION_COOLDOWN_MS = 3000; // 3 seconds
+    private static final long ALERT_COOLDOWN_MS = 5000; // 5 seconds
 
     // Time formatter for logs
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -87,7 +93,10 @@ public class RecognitionController {
     // Loading state
     private boolean studentsLoaded = false;
 
-    private static final double UNKNOWN_THRESHOLD = 30.0;
+    private static final double LOW_CONFIDENCE_THRESHOLD = 30.0;
+
+    // F_MA: modified by felicia handling marking attendance ##for testing
+    private RecognitionServiceTest testService;
 
     // =======================================================================
     @FXML
@@ -109,11 +118,11 @@ public class RecognitionController {
 
         // Check parametes
 
-
         // Safety Camera release
         if (this.cameraActive) {
             this.stopAcquisition();
-            this.cameraUtils.releaseCamera();;
+            this.cameraUtils.releaseCamera();
+
         }
 
         if (!this.cameraActive) {
@@ -297,7 +306,7 @@ public class RecognitionController {
                 // Log attendance if cooldown period has passed
                 if (currentTime - lastRecognitionTime > RECOGNITION_COOLDOWN_MS) {
                     // Handle based on confidence
-                    if (confidence >= UNKNOWN_THRESHOLD) {
+                    if (confidence >= LOW_CONFIDENCE_THRESHOLD) {
                         // Recognized face (confidence >= 30%)
                         logAttendance(student, confidence);
                     } else {
@@ -322,13 +331,6 @@ public class RecognitionController {
             return;
         }
 
-        // Get full session object
-        Session session = ApplicationContext.getSessionService().findById(sessionId);
-        if (session == null) {
-            System.out.println("Session not found - cannot mark attendance");
-            return;
-        }
-
         int studentId = student.getStudentId();
         String studentName = student.getName();
 
@@ -343,24 +345,6 @@ public class RecognitionController {
                 timestamp, studentName, studentId, confidence);
 
         final int uniqueCount = recognizedStudentIds.size();
-
-        try {
-            AttendanceRecord record = new AttendanceRecord(
-                    student,
-                    session,
-                    AttendanceStatus.PRESENT, // For now, always mark as PRESENT
-                    confidence,
-                    MarkMethod.AUTO,
-                    LocalDateTime.now());
-
-            // Pass to attendance service
-            System.out.println("calling mark attendance now");
-            ApplicationContext.getAttendanceService().markAttendance(record);
-
-            System.out.println("Attendance record created for: " + studentName);
-        } catch (Exception e) {
-            System.err.println("Error creating attendance record: " + e.getMessage());
-        }
 
         // Update UI
         Platform.runLater(() -> {
@@ -382,6 +366,40 @@ public class RecognitionController {
         } else {
             System.out.println("STUDENT RE-DETECTED: " + logEntry);
         }
+
+        try {
+        // Check if the student is marked present or not (if present, leave)
+        if (ApplicationContext.getAttendanceService().isAlreadyMarked(studentId,
+        sessionId)) {
+        System.out.println("=====================================================");
+        System.out.println("Attendance already marked for: " + studentName + "\n\n");
+        return;
+        }
+
+        // Get full session object
+        Session session = ApplicationContext.getSessionService().findById(sessionId);
+        if (session == null) {
+        System.out.println("Session not found - cannot mark attendance");
+        return;
+        }
+
+        AttendanceRecord record = new AttendanceRecord(
+        student,
+        session,
+        AttendanceStatus.PRESENT, // For now, always mark as PRESENT
+        confidence,
+        MarkMethod.AUTO,
+        LocalDateTime.now());
+
+        // Pass to attendance service
+        System.out.println("calling mark attendance now");
+        ApplicationContext.getAttendanceService().markAttendance(record);
+
+        System.out.println("Attendance record created for: " + studentName);
+        } catch (Exception e) {
+        System.err.println("Error creating attendance record: " + e.getMessage());
+        }
+
     }
 
     private void logUnknownFace(double confidence) {
@@ -400,6 +418,19 @@ public class RecognitionController {
 
             if (recognitionListView.getItems().size() > 50) {
                 recognitionListView.getItems().remove(50);
+            }
+
+            // // Show that the person is unrecognized
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastAlertTime > ALERT_COOLDOWN_MS) {
+                Alert alert = new Alert(AlertType.WARNING);
+                alert.setTitle("Unknown Face Detected");
+                alert.setHeaderText("Unrecognized Person");
+                alert.setContentText(String.format(
+                        "An unknown face was detected with %.1f%% confidence.\n\nThis person is not enrolled in the system.",
+                        confidence));
+                alert.show();
+                lastAlertTime = currentTime;
             }
         });
 
@@ -445,17 +476,6 @@ public class RecognitionController {
                 Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
                 System.out.println("Active session ID: " + sessionId);
 
-                // Get full session object from DB
-                Session activeSession = ApplicationContext.getSessionService().findById(sessionId);
-                if (activeSession == null) {
-                    System.out.println("Session not found in database");
-                    Platform.runLater(() -> {
-                        modelStatusLabel.setText("Model: Session Not Found");
-                        statusLabel.setText("Status: Invalid session");
-                    });
-                    return;
-                }
-
                 // Load students from database
                 int studentCount = faceRecognitionService.loadEnrolledStudentsBySessionId(sessionId);
 
@@ -493,4 +513,5 @@ public class RecognitionController {
             }
         }).start();
     }
+
 }

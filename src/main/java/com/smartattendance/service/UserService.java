@@ -94,6 +94,10 @@ public class UserService {
         User user = getUserById(userId);
         Profile profile = profileRepository.getProfileById(userId);
 
+        if (user == null || profile == null) {
+            return null;
+        }
+
         List<Course> enrolledCourses = courseRepository.getCoursesByStudentId(userId);
 
         return new StudentProfileDTO(user, profile, enrolledCourses);
@@ -108,6 +112,10 @@ public class UserService {
     public UserProfileDTO getUserProfileDTO(Integer userId) {
         User user = getUserById(userId);
         Profile profile = profileRepository.getProfileById(userId);
+
+        if (user == null || profile == null) {
+            return null;
+        }
 
         return new UserProfileDTO(user, profile);
     }

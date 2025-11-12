@@ -8,6 +8,16 @@
        spacing="16"
        style="-fx-padding: 16;">
 
+       <!-- State: No Profile Setup -->
+       <VBox fx:id="noProfileContainer" spacing="12" alignment="CENTER">
+              <Label text="You have yet to set up a profile"
+                     style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+              <Label text="Complete your profile"
+                     style="-fx-font-size: 12px; -fx-text-fill: #666666;" />
+              <Button text="Create Profile" onAction="#onCreateProfile"
+                     style="-fx-font-size: 14px; -fx-padding: 10px 30px;" />
+       </VBox>
+
        <!-- State: Profile Exists -->
        <VBox fx:id="profileContainer" spacing="12" visible="false" managed="false">
               <!-- Profile Information Card -->
@@ -62,19 +72,6 @@
                      </GridPane>
               </VBox>
 
-              <!-- Enrolled Courses Section (Only for Students) -->
-              <VBox fx:id="coursesContainer" spacing="12"
-                     style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-padding: 12;"
-                     visible="false" managed="false">
-                     <Label text="Enrolled Courses"
-                            style="-fx-font-size: 14px; -fx-font-weight: bold;" />
-                     <Label fx:id="courseCountLabel" text="Total: 0 course(s)"
-                            style="-fx-font-size: 12px; -fx-text-fill: #666666;" />
-                     <FlowPane fx:id="coursesFlowPane" hgap="8" vgap="8" />
-                     <Label fx:id="noCourseLabel" text="Not enrolled in any courses"
-                            style="-fx-font-size: 11px; -fx-text-fill: #999999; -fx-font-style: italic;" />
-              </VBox>
-
               <!-- Action Buttons -->
               <HBox spacing="10" alignment="CENTER_LEFT">
                      <!-- View Mode Buttons -->
@@ -92,6 +89,20 @@
                             onAction="#onCancelEdit"
                             visible="false" managed="false" />
               </HBox>
+       </VBox>
+
+
+       <!-- Enrolled Courses Section (Only for Students) -->
+       <VBox fx:id="coursesContainer" spacing="12"
+              style="-fx-border-color: #e0e0e0; -fx-border-radius: 5; -fx-padding: 12;"
+              visible="false" managed="false">
+              <Label text="Enrolled Courses"
+                     style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+              <Label fx:id="courseCountLabel" text="Total: 0 course(s)"
+                     style="-fx-font-size: 12px; -fx-text-fill: #666666;" />
+              <FlowPane fx:id="coursesFlowPane" hgap="8" vgap="8" />
+              <Label fx:id="noCourseLabel" text="Not enrolled in any courses"
+                     style="-fx-font-size: 11px; -fx-text-fill: #999999; -fx-font-style: italic;" />
        </VBox>
 
        <!-- Separator -->
