@@ -548,7 +548,7 @@ public class RecognitionController implements AttendanceObserver {
             Platform.runLater(() -> {
                 toast.setMaxWidth(Double.MAX_VALUE);
                 toast.setPrefWidth(toastPane.getWidth());
-                toast.setAlignment(Pos.CENTER);
+                toast.setAlignment(Pos.CENTER_LEFT);
                 toast.setLayoutX(0);
                 toast.setLayoutY(10);
             });
