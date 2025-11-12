@@ -5,7 +5,9 @@
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.smartattendance.controller.ReportController"
       spacing="10"
-      style="-fx-padding: 10;">
+      style="-fx-padding: 10;"
+      styleClass="reports-page"
+      stylesheets ="@styles/reportView.css">
 
     <!-- Filters -->
     <TitledPane text="Filters" expanded="true">
