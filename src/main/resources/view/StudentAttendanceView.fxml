@@ -6,7 +6,9 @@
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.smartattendance.controller.student.StudentAttendanceController"
       spacing="12"
-      style="-fx-padding: 12;">
+      style="-fx-padding: 12;"
+      styleClass="student-attendance"
+      stylesheets="@/view/styles/student-attendance.css">
 
     <!-- FILTER BAR -->
     <HBox spacing="10" alignment="CENTER_LEFT">
