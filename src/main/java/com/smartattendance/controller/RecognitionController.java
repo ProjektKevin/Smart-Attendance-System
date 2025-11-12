@@ -96,7 +96,7 @@ public class RecognitionController implements AttendanceObserver {
     // Recognition cooldown to avoid spam
     private long lastRecognitionTime = 0;
     private long lastAlertTime = 0;
-    private static final long RECOGNITION_COOLDOWN_MS = 3000; // 3 seconds
+    private static final long RECOGNITION_COOLDOWN_MS = 10000; // 10 seconds
     private static final long ALERT_COOLDOWN_MS = 5000; // 5 seconds
 
     // Time formatter for logs

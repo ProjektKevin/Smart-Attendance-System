@@ -265,6 +265,7 @@ public class SessionService {
                 System.out.println("SessionService: AUTO-STARTING session " + session.getSessionId());
                 session.open();
                 updateSessionStatus(session);
+                
             }
 
             // Auto stop logic - ONLY for sessions with auto_stop = TRUE
