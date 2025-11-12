@@ -11,7 +11,7 @@ import java.util.List;
 
 import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
-import com.smartattendance.controller.LiveRecognitionController;
+import com.smartattendance.controller.RecognitionController;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
@@ -120,8 +120,8 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 for (AttendanceObserver o : observers) {
                     // notify the recognitionService that the attendance of a particular student is marked
                     // o.onAttendanceMarked(record, message);
-                    if (o instanceof LiveRecognitionController) {
-                        ((LiveRecognitionController) o).onAttendanceMarked(record, message);
+                    if (o instanceof RecognitionController) {
+                        ((RecognitionController) o).onAttendanceMarked(record, message);
                     }
                     if (o instanceof AttendanceController) {
                         // refresh the attendancceRecords page
@@ -140,8 +140,8 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                     for (AttendanceObserver o : observers) {
                         // notify the recognitionService that the attendance of a particular student is marked
                         // o.onAttendanceMarked(message, record);
-                        if (o instanceof LiveRecognitionController) {
-                            ((LiveRecognitionController) o).onAttendanceMarked(record, message);
+                        if (o instanceof RecognitionController) {
+                            ((RecognitionController) o).onAttendanceMarked(record, message);
                         }
                         if (o instanceof AttendanceController) {
                             // refresh the attendancceRecords page
@@ -157,8 +157,8 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                         // if (o instanceof AttendanceController) {
                         //     // refresh the attendancceRecords page
                         //     ((AttendanceController) o).loadAttendanceRecords();
-                        if (o instanceof LiveRecognitionController) {
-                            ((LiveRecognitionController) o).onAttendanceSkipped(record, "Cooldown active for " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + ", skipping re-mark.");
+                        if (o instanceof RecognitionController) {
+                            ((RecognitionController) o).onAttendanceSkipped(record, "Cooldown active for " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + ", skipping re-mark.");
                         }
                     }
                 }
@@ -167,8 +167,8 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 // onAttendanceSkipped(record, "Skipping: already marked as " + existingRecord.getStatus())
                 for (AttendanceObserver o : observers) {
                     // notify the recognitionService that the attendance of a particular student is not remarked
-                    if (o instanceof LiveRecognitionController) {
-                        ((LiveRecognitionController) o).onAttendanceSkipped(record, "Skipping " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + ": already marked as " + existingRecord.getStatus());
+                    if (o instanceof RecognitionController) {
+                        ((RecognitionController) o).onAttendanceSkipped(record, "Skipping " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + ": already marked as " + existingRecord.getStatus());
                     }
                 }
             }
