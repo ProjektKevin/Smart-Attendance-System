@@ -3,6 +3,7 @@ package com.smartattendance.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -10,6 +11,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
@@ -24,6 +27,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -31,6 +35,9 @@ import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.enums.AttendanceStatus;
 import com.smartattendance.model.enums.MarkMethod;
+import com.smartattendance.model.enums.ToastType;
+import com.smartattendance.service.AttendanceObserver;
+import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.recognition.RecognitionResult;
@@ -39,7 +46,7 @@ import com.smartattendance.util.OpenCVUtils;
 // F_MA: modified by felicia handling marking attendance ##for testing
 import com.smartattendance.service.RecognitionServiceTest;
 
-public class RecognitionController {
+public class RecognitionController implements AttendanceObserver {
     @FXML
     private ImageView videoFeed;
     @FXML
@@ -64,12 +71,17 @@ public class RecognitionController {
     private Label uniqueStudentsLabel;
     @FXML
     private Label fpsLabel;
+    // F_MA: added by felicia handling marking attendance
+    @FXML
+    private Pane toastPane;
     @FXML
     private ListView<String> recognitionListView;
     // =======================================================================
     private FaceDetectionService faceDetectionService;
     private FaceRecognitionService faceRecognitionService;
     private final CameraUtils cameraUtils = ApplicationContext.getCameraUtils();
+    // F_MA: added by felicia handling marking attendance
+    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
 
     // OpenCV objects
     private boolean cameraActive = false;
@@ -101,6 +113,8 @@ public class RecognitionController {
     // =======================================================================
     @FXML
     public void initialize() {
+        // Add this controller to Attendance Service's observer
+        attendanceService.addObserver(this);
         // Get services from ApplicationContext
         faceDetectionService = ApplicationContext.getFaceDetectionService();
         faceRecognitionService = ApplicationContext.getFaceRecognitionService();
@@ -367,39 +381,32 @@ public class RecognitionController {
             System.out.println("STUDENT RE-DETECTED: " + logEntry);
         }
 
-        try {
-        // Check if the student is marked present or not (if present, leave)
-        if (ApplicationContext.getAttendanceService().isAlreadyMarked(studentId,
-        sessionId)) {
-        System.out.println("=====================================================");
-        System.out.println("Attendance already marked for: " + studentName + "\n\n");
-        return;
-        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Get full session object
+                Session session = ApplicationContext.getSessionService().findById(sessionId);
+                if (session == null) {
+                    System.out.println("Session not found - cannot mark attendance");
+                    return;
+                }
 
-        // Get full session object
-        Session session = ApplicationContext.getSessionService().findById(sessionId);
-        if (session == null) {
-        System.out.println("Session not found - cannot mark attendance");
-        return;
-        }
+                AttendanceRecord record = new AttendanceRecord(
+                        student,
+                        session,
+                        AttendanceStatus.PRESENT, // For now, always mark as PRESENT
+                        confidence,
+                        MarkMethod.AUTO,
+                        LocalDateTime.now());
 
-        AttendanceRecord record = new AttendanceRecord(
-        student,
-        session,
-        AttendanceStatus.PRESENT, // For now, always mark as PRESENT
-        confidence,
-        MarkMethod.AUTO,
-        LocalDateTime.now());
+                // Pass to attendance service
+                System.out.println("calling mark attendance now");
+                ApplicationContext.getAttendanceService().markAttendance(record);
 
-        // Pass to attendance service
-        System.out.println("calling mark attendance now");
-        ApplicationContext.getAttendanceService().markAttendance(record);
-
-        System.out.println("Attendance record created for: " + studentName);
-        } catch (Exception e) {
-        System.err.println("Error creating attendance record: " + e.getMessage());
-        }
-
+                System.out.println("Attendance record created for: " + studentName);
+            } catch (Exception e) {
+                System.err.println("Error creating attendance record: " + e.getMessage());
+            }
+        });
     }
 
     private void logUnknownFace(double confidence) {
@@ -512,6 +519,112 @@ public class RecognitionController {
                 });
             }
         }).start();
+    }
+
+    public void showToast(String message, ToastType type) {
+        Platform.runLater(() -> {
+            // Create a label for the toast
+            Label toast = new Label(message);
+            toast.setStyle("-fx-text-fill: white; -fx-padding: 10px; -fx-background-radius: 5; -fx-font-weight: bold;");
+
+            // Set background color based on type
+            switch (type) {
+                case SUCCESS ->
+                    // toast.setStyle(toast.getStyle() + "-fx-background-color: #4BB543;"); // Green
+                    toast.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
+                            + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                case ERROR ->
+                    // toast.setStyle(toast.getStyle() + "-fx-background-color: #E74C3C;"); // Red
+                    toast.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
+                            + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                case WARNING ->
+                    // toast.setStyle(toast.getStyle() + "-fx-background-color: #F1C40F;
+                    // -fx-text-fill: black;"); // Yellow
+                    toast.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
+                            + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+            }
+
+            // Position at top-center of the toastPane
+            Platform.runLater(() -> {
+                toast.setMaxWidth(Double.MAX_VALUE);
+                toast.setPrefWidth(toastPane.getWidth());
+                toast.setAlignment(Pos.CENTER);
+                toast.setLayoutX(0);
+                toast.setLayoutY(10);
+            });
+
+            // toast.setLayoutX((toastPane.getWidth() - toast.getWidth()) / 2);
+            // toast.setLayoutY(10);
+            // Platform.runLater(() -> {
+            // toast.setLayoutX((toastPane.getWidth() - toast.getWidth()) / 2);
+            // toast.setLayoutY(10);
+            // });
+            toastPane.getChildren().add(toast);
+
+            // Animate fade out after 2 seconds
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ignored) {
+                }
+                Platform.runLater(() -> toastPane.getChildren().remove(toast));
+            }).start();
+
+            // toast.setOpacity(0);
+            // // Add toast to the root (cameraView's parent)
+            // StackPane root = (StackPane) cameraView.getParent();
+            // root.getChildren().add(toast);
+            // // Position at the top center
+            // toast.setTranslateY(-cameraView.getFitHeight() / 2 + 30);
+            // // Fade in
+            // FadeTransition fadeIn = new FadeTransition(Duration.millis(300), toast);
+            // fadeIn.setFromValue(0);
+            // fadeIn.setToValue(1);
+            // // Fade out after delay
+            // FadeTransition fadeOut = new FadeTransition(Duration.millis(300), toast);
+            // fadeOut.setFromValue(1);
+            // fadeOut.setToValue(0);
+            // fadeOut.setDelay(Duration.seconds(2));
+            // fadeIn.play();
+            // fadeIn.setOnFinished(e -> fadeOut.play());
+            // fadeOut.setOnFinished(e -> root.getChildren().remove(toast));
+        });
+    }
+
+    @Override
+    public void onAttendanceMarked(AttendanceRecord r, String message) {
+        // Platform.runLater(() -> statusLabel.setText("Marked: " +
+        // r.getStudent().getName() + " (" + r.getStatus() + ")"));
+        // Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        // alert.setTitle("Confirm Delete All");
+        // alert.setHeaderText("Delete ALL Sessions");
+        // alert.setContentText("WARNING: This will permanently delete ALL " +
+        // sessionList.size() + " sessions!\n\n" +
+        // "This action cannot be undone. Are you absolutely sure?");
+
+        // showToast("Marked: " + r.getStudent().getName() + " (" + r.getStatus() + ")",
+        // ToastType.SUCCESS);
+        showToast(message, ToastType.SUCCESS);
+    }
+
+    // F_MA: modified by felicia handling marking attendance ##
+    @Override
+    public void onAttendanceAutoUpdated() {
+        // return;
+    }
+
+    // F_MA: modified by felicia handling marking attendance
+    public void onAttendanceNotMarked(AttendanceRecord r) {
+        // Platform.runLater(() -> statusLabel.setText("Error marking attendance for " +
+        // r.getStudent().getName() + ". Please try again."));
+        showToast("Error marking attendance for " + r.getStudent().getName() + " (Student Id: "
+                + r.getStudent().getStudentId() + ")", ToastType.ERROR);
+    }
+
+    public void onAttendanceSkipped(AttendanceRecord r, String message) {
+        // Platform.runLater(() -> statusLabel.setText("Error marking attendance for " +
+        // r.getStudent().getName() + ". Please try again."));
+        showToast(message, ToastType.WARNING);
     }
 
 }

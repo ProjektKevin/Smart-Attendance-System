@@ -1,9 +1,9 @@
 package com.smartattendance.controller;
 
 import com.smartattendance.model.entity.AttendanceRecord;
+import com.smartattendance.model.enums.ToastType;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.RecognitionService;
-import com.smartattendance.model.enums.ToastType;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -26,6 +26,7 @@ public class LiveRecognitionController implements AttendanceObserver {
     // @FXML
     // private Label alertLabel;
     private final RecognitionService recognitionService = new RecognitionService();
+    
 
     @FXML
     private void initialize() {

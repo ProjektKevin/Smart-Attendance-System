@@ -3,6 +3,7 @@ package com.smartattendance.controller;
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.SessionService;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -38,13 +39,14 @@ public class RootController {
     @FXML
     private RecognitionController recognitionViewController;
 
-
     // Student tabs (may be null on admin view)
     @FXML
     private Tab tabAttendance, tabProfile;
 
     private Label moonGlyph;
     private Label sunGlyph;
+
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     private static final String VS16 = "\uFE0F";
 
@@ -83,6 +85,28 @@ public class RootController {
         // "\uD83D\uDCC5"); // 🗓
 
         initializeTabBlocking(); // for recognition tab
+
+        // Setup tab selection listeners for controllers that need to refresh data
+        setupTabRefreshListeners();
+    }
+
+    /**
+     * Setup listeners for tabs that have controllers implementing TabRefreshable.
+     * When a tab is selected, it calls the refresh() method on the registered
+     * controller.
+     */
+    private void setupTabRefreshListeners() {
+        ControllerRegistry registry = ControllerRegistry.getInstance();
+
+        // Setup listener for Students tab
+        if (tabStudents != null) {
+            tabStudents.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal) { // When tab becomes selected
+                    registry.refresh("studentList");
+                    appLogger.info("StudentList tab selected - data refreshed");
+                }
+            });
+        }
     }
 
     @FXML
