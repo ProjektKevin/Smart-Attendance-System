@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
@@ -265,6 +266,7 @@ public class SessionService {
                 System.out.println("SessionService: AUTO-STARTING session " + session.getSessionId());
                 session.open();
                 updateSessionStatus(session);
+                ApplicationContext.getAuthSession().setActiveSessionId(session.getSessionId());
             }
 
             // Auto stop logic - ONLY for sessions with auto_stop = TRUE
