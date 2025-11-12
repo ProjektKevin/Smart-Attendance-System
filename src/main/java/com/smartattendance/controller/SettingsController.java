@@ -129,12 +129,8 @@ public class SettingsController {
 
       // Show sucessfull
       System.out.println("Settings saved successfully");
-      highThresholdField.setStyle("-fx-border-color: green; -fx-border-width: 2px;");
-      lowThresholdField.setStyle("-fx-border-color: green; -fx-border-width: 2px;");
-      cooldownField.setStyle("-fx-border-color: green; -fx-border-width: 2px;");
 
-      statusLabel.setText("New Settings saved! Algorithm: " + selectedAlgorithm +
-          " | High: " + highThreshold + "% | Low: " + lowThreshold + "%");
+      statusLabel.setText("New Settings saved! ");
       statusLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
     } catch (NumberFormatException e) {
       // Handle invalid number format
