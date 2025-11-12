@@ -43,6 +43,8 @@ import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
+// F_MA: modified by felicia handling marking attendance ##for testing
+import com.smartattendance.service.RecognitionServiceTest;
 
 public class RecognitionController implements AttendanceObserver {
     @FXML
@@ -104,6 +106,9 @@ public class RecognitionController implements AttendanceObserver {
     private boolean studentsLoaded = false;
 
     private static final double LOW_CONFIDENCE_THRESHOLD = 30.0;
+
+    // F_MA: modified by felicia handling marking attendance ##for testing
+    private RecognitionServiceTest testService;
 
     // =======================================================================
     @FXML

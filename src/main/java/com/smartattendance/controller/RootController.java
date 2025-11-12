@@ -1,5 +1,10 @@
 package com.smartattendance.controller;
 
+import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AuthSession;
+import com.smartattendance.service.SessionService;
+import com.smartattendance.util.security.log.ApplicationLogger;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,10 +21,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-import com.smartattendance.ApplicationContext;
-import com.smartattendance.model.entity.AuthSession;
-import com.smartattendance.service.SessionService;
-
 public class RootController {
     @FXML
     private BorderPane root;
@@ -33,15 +34,19 @@ public class RootController {
     // Admin tabs (may be null on student view)
     @FXML
     private Tab tabDashboard, tabStudents, tabEnrollments, tabSessions, tabLive, tabReports, tabSettings;
-    // <!-- F_MA: modified by felicia handling marking attendance ##for testing-->
+    // F_MA: modified by felicia handling marking attendance ##for testing
+    private Tab tabRecognition;
     @FXML
-    private Tab tabTestAutoMark;
+    private RecognitionController recognitionViewController;
+
     // Student tabs (may be null on admin view)
     @FXML
     private Tab tabAttendance, tabProfile;
 
     private Label moonGlyph;
     private Label sunGlyph;
+
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     private static final String VS16 = "\uFE0F";
 
@@ -66,8 +71,8 @@ public class RootController {
         safeSetTabIcon(tabStudents, "\uD83D\uDC65"); // 👥
         safeSetTabIcon(tabSessions, "\uD83D\uDD53"); // 🕓 (your original)
         safeSetTabIcon(tabLive, "\uD83C\uDFA5"); // 🎥
-        // <!-- F_MA: modified by felicia handling marking attendance ##for testing-->
-        safeSetTabIcon(tabTestAutoMark, "\uD83C\uDFA5"); // 🎥
+        // F_MA: modified by felicia handling marking attendance ##for testing
+        safeSetTabIcon(tabRecognition, "\uD83C\uDFA5");
         safeSetTabIcon(tabReports, "\uD83D\uDCCA"); // 📊
         safeSetTabIcon(tabSettings, "\u2699"); // ⚙
         safeSetTabIcon(tabProfile, "\uD83D\uDC64");
@@ -80,6 +85,28 @@ public class RootController {
         // "\uD83D\uDCC5"); // 🗓
 
         initializeTabBlocking(); // for recognition tab
+
+        // Setup tab selection listeners for controllers that need to refresh data
+        setupTabRefreshListeners();
+    }
+
+    /**
+     * Setup listeners for tabs that have controllers implementing TabRefreshable.
+     * When a tab is selected, it calls the refresh() method on the registered
+     * controller.
+     */
+    private void setupTabRefreshListeners() {
+        ControllerRegistry registry = ControllerRegistry.getInstance();
+
+        // Setup listener for Students tab
+        if (tabStudents != null) {
+            tabStudents.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal) { // When tab becomes selected
+                    registry.refresh("studentList");
+                    appLogger.info("StudentList tab selected - data refreshed");
+                }
+            });
+        }
     }
 
     @FXML

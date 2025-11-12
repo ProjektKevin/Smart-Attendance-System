@@ -50,12 +50,17 @@ public class StudentAttendanceService {
                             ? capitalize(rec.status)
                             : "Pending";
 
+            String method =
+                    (rec.method != null && !rec.method.isBlank())
+                            ? capitalize(rec.method)
+                            : "Unknown";
+
             String markedAtStr = (rec.markedAt != null)
                     ? rec.markedAt.toString().replace('T', ' ')
                     : "";
 
             // placeholder, unless your DTO has method
-            String method = "-";
+            // String method = "-";
 
             rows.add(new StudentAttendanceRow(date, course, status, method, markedAtStr));
         }

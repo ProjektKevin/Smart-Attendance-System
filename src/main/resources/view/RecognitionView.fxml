@@ -31,6 +31,15 @@
         </Label>
         <Pane fx:id="toastPane" pickOnBounds="false" style="-fx-background-color: transparent;" />
       </VBox>
+
+      <!-- F_MA: modified by felicia handling marking attendance ##for testing -->
+      <!-- <HBox spacing="10" alignment="CENTER">
+        <Button text="Test: High Confidence" onAction="#onTestHighConfidence"/>
+        <Button text="Test: Low Confidence" onAction="#onTestLowConfidence"/>
+        <Button text="Test: Within Cooldown" onAction="#onTestWithinCooldown"/>
+        <Button text="Test: After Cooldown" onAction="#onTestAfterCooldown"/>
+      </HBox> -->
+
     </top>
 
     <center>
