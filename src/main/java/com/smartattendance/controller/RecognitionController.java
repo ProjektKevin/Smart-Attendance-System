@@ -364,12 +364,12 @@ public class RecognitionController {
 
         try {
         // Check if the student is marked present or not (if present, leave)
-        if (ApplicationContext.getAttendanceService().isAlreadyMarked(studentId,
-        sessionId)) {
-        System.out.println("=====================================================");
-        System.out.println("Attendance already marked for: " + studentName + "\n\n");
-        return;
-        }
+        // if (ApplicationContext.getAttendanceService().isAlreadyMarked(studentId,
+        // sessionId)) {
+        // System.out.println("=====================================================");
+        // System.out.println("Attendance already marked for: " + studentName + "\n\n");
+        // return;
+        // }
 
         // Get full session object
         Session session = ApplicationContext.getSessionService().findById(sessionId);

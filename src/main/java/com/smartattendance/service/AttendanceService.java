@@ -62,6 +62,7 @@ public class AttendanceService {
         try {
             attendanceRecords.add(r);
             r.mark(observers);
+            System.out.println("Tehse are the observers:" + observers);// F_MA: for testing
         } catch (Exception e) {
             notifyAttendanceNotMarked(r);
         }
