@@ -3,7 +3,8 @@
 <?import javafx.scene.layout.*?>
 
 <ScrollPane xmlns:fx="http://javafx.com/fxml" fitToWidth="true"
-    fx:controller="com.smartattendance.controller.SettingsController">
+    fx:controller="com.smartattendance.controller.SettingsController"
+    stylesheets="@/view/styles/settings.css">
     <content>
         <GridPane hgap="10" vgap="10" style="-fx-padding: 20;">
 

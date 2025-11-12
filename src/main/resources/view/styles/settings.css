@@ -1,0 +1,75 @@
+/* -------- page surfaces -------- */
+.scroll-pane,
+.scroll-pane > .viewport,
+.grid-pane {
+  -fx-background-color: #0f172a;   /* page bg */
+}
+
+.label { -fx-text-fill: #e5e7eb; }  /* default label text */
+
+/* keep your red status label override working even in dark */
+#statusLabel { -fx-text-fill: #ef4444; -fx-font-weight: bold; }
+
+/* -------- inputs -------- */
+.text-field {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+  -fx-prompt-text-fill: #94a3b8;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 8; -fx-border-radius: 8;
+}
+.text-field:focused { -fx-border-color: #38bdf8; }
+
+/* ChoiceBox (the editor button) */
+.choice-box {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 8; -fx-border-radius: 8;
+}
+.choice-box .label { -fx-text-fill: #e5e7eb; }
+.choice-box:focused { -fx-border-color: #38bdf8; }
+
+/* ChoiceBox popup is a ContextMenu */
+.context-menu {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+}
+.menu-item .label { -fx-text-fill: #e5e7eb; }
+.menu-item:focused { -fx-background-color: #16223b; }
+
+/* If you use ComboBox elsewhere, make its popup dark too */
+.combo-box,
+.combo-box-popup > .list-view {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+}
+.combo-box .list-cell { -fx-text-fill: #e5e7eb; }
+.combo-box-popup .list-cell {
+  -fx-background-color: #0b1220; -fx-text-fill: #e5e7eb;
+}
+.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:selected { -fx-background-color: #16223b; }
+
+/* DatePicker (if you add one later) */
+.date-picker { 
+  -fx-background-color: #0b1220; -fx-border-color: #1f2937;
+  -fx-background-radius: 8; -fx-border-radius: 8;
+}
+.date-picker .text-field { -fx-background-color: transparent; -fx-text-fill: #e5e7eb; }
+.date-picker-popup { -fx-background-color: #0b1220; -fx-border-color: #1f2937; }
+.date-picker-popup > * > .day-cell { -fx-background-color: #0b1220; -fx-text-fill: #e5e7eb; }
+.date-picker-popup > * > .day-cell:hover,
+.date-picker-popup > * > .day-cell:selected { -fx-background-color: #16223b; }
+
+/* Slider */
+.slider .track { -fx-background-color: #1f2937; }
+.slider .thumb { -fx-background-color: #22c55e; }
+
+/* Buttons */
+.button {
+  -fx-background-color: #111827; -fx-text-fill: #e5e7eb;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 8; -fx-border-radius: 8;
+}
+.button:hover { -fx-background-color: #1a243b; }
