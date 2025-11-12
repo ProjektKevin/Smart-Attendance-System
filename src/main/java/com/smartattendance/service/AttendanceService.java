@@ -15,7 +15,7 @@ import java.util.Map;
 
 import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
-import com.smartattendance.controller.LiveRecognitionController;
+import com.smartattendance.controller.RecognitionController;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.repository.AttendanceRecordRepository;
 // import com.smartattendance.util.AttendanceObserver;
@@ -70,8 +70,8 @@ public class AttendanceService {
 
     private void notifyAttendanceNotMarked(AttendanceRecord r) {
         for (AttendanceObserver o : observers) {
-            if (o instanceof LiveRecognitionController) {
-                ((LiveRecognitionController) o).onAttendanceNotMarked(r);
+            if (o instanceof RecognitionController) {
+                ((RecognitionController) o).onAttendanceNotMarked(r);
             }
         }
     }

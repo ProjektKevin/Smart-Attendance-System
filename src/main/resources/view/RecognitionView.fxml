@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.layout.Pane?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
   fx:controller="com.smartattendance.controller.RecognitionController"
@@ -28,6 +29,7 @@
             <Font size="14" />
           </font>
         </Label>
+        <Pane fx:id="toastPane" pickOnBounds="false" style="-fx-background-color: transparent;" />
       </VBox>
     </top>
 
