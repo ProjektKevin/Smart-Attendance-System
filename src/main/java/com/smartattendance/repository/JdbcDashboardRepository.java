@@ -20,22 +20,35 @@ import com.smartattendance.model.dto.dashboard.DashboardTopCards;
 public class JdbcDashboardRepository implements DashboardRepository {
 
     private final String dbUrl;
+    private final String dbUser;
     private final String dbPass;
+    private final String dbSslMode;
 
     public JdbcDashboardRepository() {
-        this.dbUrl = System.getenv().getOrDefault(
-                "DATABASE_URL",
-                "jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?user=postgres.muholwznrkonrcjesdij"
-        );
-        this.dbPass = System.getenv().getOrDefault(
-                "DATABASE_PASSWORD",
-                "TheDawn5"
-        );
+        // Strict: fail fast if any required variable is missing.
+        this.dbUrl    = envOrThrow("DATABASE_URL");     // e.g. jdbc:postgresql://host:5432/dbname
+        this.dbUser   = envOrThrow("DATABASE_USER");    // e.g. postgres
+        this.dbPass   = envOrThrow("DATABASE_PASSWORD");// e.g. ********
+        // Optional (good default for cloud providers). Accepts: require, prefer, disable...
+        this.dbSslMode = System.getenv().getOrDefault("DATABASE_SSLMODE", "require");
+    }
+
+    private static String envOrThrow(String key) {
+        String v = System.getenv(key);
+        if (v == null || v.isBlank()) {
+            throw new IllegalStateException("Missing required environment variable: " + key);
+        }
+        return v;
     }
 
     private Connection openConnection() throws SQLException {
+        // Use properties (user/password/sslmode) instead of embedding user in the URL.
         Properties props = new Properties();
+        props.setProperty("user", dbUser);
         props.setProperty("password", dbPass);
+        if (dbSslMode != null && !dbSslMode.isBlank()) {
+            props.setProperty("sslmode", dbSslMode);
+        }
         return DriverManager.getConnection(dbUrl, props);
     }
 
@@ -153,25 +166,18 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
             try (PreparedStatement ps = conn.prepareStatement(stu.toString())) {
                 int idx = 1;
-                for (Object o : params) {
-                    ps.setObject(idx++, o);
-                }
-                for (String s : wantedStatuses) {
-                    ps.setString(idx++, s);
-                }
+                for (Object o : params) ps.setObject(idx++, o);
+                for (String s : wantedStatuses) ps.setString(idx++, s);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        students = rs.getInt("cnt");
-                    }
+                    if (rs.next()) students = rs.getInt("cnt");
                 }
             }
 
             if (students == 0) {
-                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE role = 'STUDENT'")) {
+                try (PreparedStatement ps = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM users WHERE role = 'STUDENT'")) {
                     try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            students = rs.getInt(1);
-                        }
+                        if (rs.next()) students = rs.getInt(1);
                     }
                 }
             }
@@ -187,13 +193,9 @@ public class JdbcDashboardRepository implements DashboardRepository {
                 if (filter.courseId != null) { ssb.append("AND course_id = ? "); p2.add(filter.courseId); }
 
                 try (PreparedStatement ps = conn.prepareStatement(ssb.toString())) {
-                    for (int i = 0; i < p2.size(); i++) {
-                        ps.setObject(i+1, p2.get(i));
-                    }
+                    for (int i = 0; i < p2.size(); i++) ps.setObject(i+1, p2.get(i));
                     try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            sessions = rs.getInt(1);
-                        }
+                        if (rs.next()) sessions = rs.getInt(1);
                     }
                 }
             }
@@ -211,13 +213,9 @@ public class JdbcDashboardRepository implements DashboardRepository {
                 if (filter.sessionId != null){ p.append("AND a.session_id = ? "); pp.add(filter.sessionId); }
 
                 try (PreparedStatement ps = conn.prepareStatement(p.toString())) {
-                    for (int i = 0; i < pp.size(); i++) {
-                        ps.setObject(i+1, pp.get(i));
-                    }
+                    for (int i = 0; i < pp.size(); i++) ps.setObject(i+1, pp.get(i));
                     try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            present = rs.getInt(1);
-                        }
+                        if (rs.next()) present = rs.getInt(1);
                     }
                 }
             }
@@ -249,7 +247,8 @@ public class JdbcDashboardRepository implements DashboardRepository {
         List<String> out = new ArrayList<>();
         out.add("All");
 
-        StringBuilder sb = new StringBuilder("SELECT session_id, session_date, start_time FROM sessions WHERE 1=1 ");
+        StringBuilder sb = new StringBuilder(
+                "SELECT session_id, session_date, start_time FROM sessions WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
         if (courseId != null) {
             sb.append("AND course_id = ? ");
@@ -262,9 +261,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
         try (Connection conn = openConnection();
              PreparedStatement ps = conn.prepareStatement(sb.toString())) {
 
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i+1, params.get(i));
-            }
+            for (int i = 0; i < params.size(); i++) ps.setObject(i+1, params.get(i));
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
