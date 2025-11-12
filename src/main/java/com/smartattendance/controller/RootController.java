@@ -1,19 +1,25 @@
 package com.smartattendance.controller;
 
+import com.smartattendance.ApplicationContext;
+import com.smartattendance.model.entity.AuthSession;
+import com.smartattendance.service.SessionService;
+import com.smartattendance.util.security.log.ApplicationLogger;
+
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-
-import com.smartattendance.ApplicationContext;
-import com.smartattendance.model.entity.AuthSession;
-import com.smartattendance.util.security.log.ApplicationLogger;
 
 public class RootController {
     @FXML
@@ -22,13 +28,17 @@ public class RootController {
     private ToggleButton themeToggle;
     @FXML
     private Button logoutButton;
+    @FXML
+    private TabPane tabPane;
 
     // Admin tabs (may be null on student view)
     @FXML
     private Tab tabDashboard, tabStudents, tabEnrollments, tabSessions, tabLive, tabReports, tabSettings;
-    // <!-- F_MA: modified by felicia handling marking attendance ##for testing-->
+    // F_MA: modified by felicia handling marking attendance ##for testing
+    private Tab tabRecognition;
     @FXML
-    private Tab tabTestAutoMark;
+    private RecognitionController recognitionViewController;
+
     // Student tabs (may be null on admin view)
     @FXML
     private Tab tabAttendance, tabProfile;
@@ -39,6 +49,8 @@ public class RootController {
     private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     private static final String VS16 = "\uFE0F";
+
+    private SessionService sessionService;
 
     @FXML
     public void initialize() {
@@ -59,8 +71,8 @@ public class RootController {
         safeSetTabIcon(tabStudents, "\uD83D\uDC65"); // 👥
         safeSetTabIcon(tabSessions, "\uD83D\uDD53"); // 🕓 (your original)
         safeSetTabIcon(tabLive, "\uD83C\uDFA5"); // 🎥
-        // <!-- F_MA: modified by felicia handling marking attendance ##for testing-->
-        safeSetTabIcon(tabTestAutoMark, "\uD83C\uDFA5"); // 🎥
+        // F_MA: modified by felicia handling marking attendance ##for testing
+        safeSetTabIcon(tabRecognition, "\uD83C\uDFA5");
         safeSetTabIcon(tabReports, "\uD83D\uDCCA"); // 📊
         safeSetTabIcon(tabSettings, "\u2699"); // ⚙
         safeSetTabIcon(tabProfile, "\uD83D\uDC64");
@@ -72,13 +84,16 @@ public class RootController {
         // If you prefer calendar for attendance, swap to: safeSetTabIcon(tabAttendance,
         // "\uD83D\uDCC5"); // 🗓
 
+        initializeTabBlocking(); // for recognition tab
+
         // Setup tab selection listeners for controllers that need to refresh data
         setupTabRefreshListeners();
     }
 
     /**
      * Setup listeners for tabs that have controllers implementing TabRefreshable.
-     * When a tab is selected, it calls the refresh() method on the registered controller.
+     * When a tab is selected, it calls the refresh() method on the registered
+     * controller.
      */
     private void setupTabRefreshListeners() {
         ControllerRegistry registry = ControllerRegistry.getInstance();
@@ -141,5 +156,63 @@ public class RootController {
             System.err.println("Error during logout: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * ADDED: Set up the Live Recognition tab access control
+     */
+    private void initializeTabBlocking() {
+        // Only set up if we're in admin view (tabLive exists)
+        if (tabLive == null || tabPane == null) {
+            return;
+        }
+
+        // Get session service
+        sessionService = ApplicationContext.getSessionService();
+
+        // Listen for tab changes
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldTab, newTab) -> {
+            // Check if user is trying to access Live Recognition
+            if (newTab == tabLive) {
+                // Check if there's an open session
+                if (!sessionService.isSessionOpen()) {
+                    // No session open - block access!
+
+                    // Use Platform.runLater to avoid issues with listener timing
+                    Platform.runLater(() -> {
+                        // Show alert
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("No Active Session");
+                        alert.setHeaderText("Live Recognition Unavailable");
+                        alert.setContentText(
+                                "Live Recognition requires an active session.\n\n" +
+                                        "Please go to the Sessions tab and create/open a session first.");
+
+                        // Add button to go to Sessions tab
+                        ButtonType goToSessionsButton = new ButtonType("Go to Sessions", ButtonBar.ButtonData.OK_DONE);
+                        ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+                        alert.getButtonTypes().setAll(goToSessionsButton, cancelButton);
+
+                        alert.showAndWait().ifPresent(response -> {
+                            if (response == goToSessionsButton) {
+                                // Redirect to Sessions tab
+                                tabPane.getSelectionModel().select(tabSessions);
+                            } else {
+                                // Go back to previous tab (or Dashboard if no previous)
+                                if (oldTab != null && oldTab != tabLive) {
+                                    tabPane.getSelectionModel().select(oldTab);
+                                } else if (tabDashboard != null) {
+                                    tabPane.getSelectionModel().select(tabDashboard);
+                                }
+                            }
+                        });
+                    });
+
+                    System.out.println("Live Recognition access blocked - no active session");
+                } else {
+                    System.out.println("Live Recognition access granted - session is open");
+                }
+            }
+        });
     }
 }

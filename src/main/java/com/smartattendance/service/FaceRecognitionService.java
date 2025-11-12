@@ -41,6 +41,13 @@ public class FaceRecognitionService {
       results.add(result);
     }
 
+    // Clean up
+    for (Mat faceROI : faceROIs) {
+      if (faceROI != null && !faceROI.empty()) {
+        faceROI.release();
+      }
+    }
+
     return results;
   }
 
@@ -66,6 +73,7 @@ public class FaceRecognitionService {
     }
 
     for (Rect faceRect : faceRects) {
+      Mat faceROI = null;
       try {
         // Validate rectangle bounds
         if (faceRect.x < 0 || faceRect.y < 0 ||
@@ -76,11 +84,15 @@ public class FaceRecognitionService {
         }
 
         // Extract face region
-        Mat faceROI = new Mat(frame, faceRect);
+        faceROI = new Mat(frame, faceRect);
         faceROIs.add(faceROI.clone()); // Clone to avoid reference issues
-
       } catch (Exception e) {
         System.out.println("Error extracting face ROI: " + e.getMessage());
+      } finally {
+        // Release the original Mat (we only need the clone)
+        if (faceROI != null) {
+          faceROI.release();
+        }
       }
     }
 

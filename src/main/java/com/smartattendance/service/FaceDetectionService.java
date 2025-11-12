@@ -37,7 +37,7 @@ public class FaceDetectionService {
 
     private static double getLowThreshold() {
         String value = Config.get("recognition.low.threshold");
-        return value != null ? Double.parseDouble(value) : 50.0; // Default 50.0
+        return value != null ? Double.parseDouble(value) : 30.0; // Default 30.0
     }
 
     /**

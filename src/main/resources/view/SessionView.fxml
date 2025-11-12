@@ -11,21 +11,23 @@
                maxWidth="1.7976931348623157E308" 
                style="-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;"/>
 
-        <TableView fx:id="sessionTable" prefHeight="600" prefWidth="700" VBox.vgrow="ALWAYS">
+        <TableView fx:id="sessionTable" prefHeight="600" prefWidth="800" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="colSelect" prefWidth="50">
                     <graphic>
                         <CheckBox fx:id="selectAllCheckBox" onAction="#onSelectAll"/>
                     </graphic>
                 </TableColumn>
-                <TableColumn fx:id="colId" text="Session ID" prefWidth="100"/>
+                <TableColumn fx:id="colId" text="Session ID" prefWidth="80"/>
                 <TableColumn fx:id="colCourse" text="Course" prefWidth="100"/>
                 <TableColumn fx:id="colDate" text="Date" prefWidth="100"/>
-                <TableColumn fx:id="colStart" text="Start" prefWidth="100"/>
-                <TableColumn fx:id="colEnd" text="End" prefWidth="100"/>
+                <TableColumn fx:id="colStart" text="Start" prefWidth="80"/>
+                <TableColumn fx:id="colEnd" text="End" prefWidth="80"/>
                 <TableColumn fx:id="colLoc" text="Location" prefWidth="100"/>
                 <TableColumn fx:id="colLate" text="Late Threshold" prefWidth="100"/>
-                <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
+                <TableColumn fx:id="colStatus" text="Status" prefWidth="80"/>
+                <TableColumn fx:id="colAutoStart" text="Auto Start" prefWidth="80"/>
+                <TableColumn fx:id="colAutoStop" text="Auto Stop" prefWidth="80"/>
                 <TableColumn fx:id="colViewMore" text="Action" prefWidth="120"/>
             </columns>
         </TableView>

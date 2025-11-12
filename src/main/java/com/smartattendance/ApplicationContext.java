@@ -1,6 +1,7 @@
 package com.smartattendance;
 
 import com.smartattendance.config.Config;
+import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AuthService;
@@ -14,9 +15,9 @@ import com.smartattendance.service.SessionService;
 import com.smartattendance.service.StudentService;
 import com.smartattendance.service.UserService;
 import com.smartattendance.service.recognition.HistogramRecognizer;
-import com.smartattendance.util.CameraUtils;
 import com.smartattendance.service.recognition.OpenFaceRecognizer;
-// import com.smartattendance.util.AutoAttendanceUpdater;
+import com.smartattendance.util.AutoAttendanceUpdater;
+import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.log.ApplicationLogger;
 
@@ -44,8 +45,8 @@ public final class ApplicationContext {
 
     // Busines Utils & Controller
     // F_MA: added by felicia handling marking attendance
-    // private static AutoAttendanceUpdater autoAttendanceUpdater;
-    // private static AttendanceController attendanceController;
+    private static AutoAttendanceUpdater autoAttendanceUpdater;
+    private static AttendanceController attendanceController;
 
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
@@ -107,12 +108,16 @@ public final class ApplicationContext {
 
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
-        // autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
-        // autoAttendanceUpdater.startAutoUpdate(60);
+        autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
+        autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
+        autoAttendanceUpdater.startAutoUpdate(60);
 
         // Apply recognition algorithm from the config
         applyRecognitionAlgorithm();
+    }
+
+    public static AttendanceController getAttendanceController() {
+        return attendanceController;
     }
 
     public static void loadOpenCV() {
@@ -371,9 +376,9 @@ public final class ApplicationContext {
 
         // F_MA: added by felicia handling marking attendance
         // Stop auto attendance updater
-        // if (autoAttendanceUpdater != null) {
-        // autoAttendanceUpdater.stopAutoUpdate();
-        // }
+        if (autoAttendanceUpdater != null) {
+        autoAttendanceUpdater.stopAutoUpdate();
+        }
 
         // Release camera resources
         CameraUtils.getInstance().releaseCamera();

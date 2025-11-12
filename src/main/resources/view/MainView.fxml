@@ -22,7 +22,7 @@
     </top>
 
     <center>
-        <TabPane tabClosingPolicy="UNAVAILABLE">
+        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE">
             <tabs>
                 <Tab fx:id="tabDashboard" text="Dashboard">
                     <content>
@@ -53,6 +53,12 @@
                 <Tab fx:id="tabLive" text="Live Recognition">
                     <content>
                         <fx:include source="RecognitionView.fxml" />
+                    </content>
+                </Tab>
+                <!-- F_MA: modified by felicia handling marking attendance ##for testing -->
+                <Tab fx:id="tabRecognition" text="Recognition Testing">
+                    <content>
+                        <fx:include source="RecognitionView.fxml" fx:id="recognitionView" />
                     </content>
                 </Tab>
                 <Tab fx:id="tabReports" text="Reports">
