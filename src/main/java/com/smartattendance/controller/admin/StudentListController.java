@@ -1,12 +1,13 @@
 package com.smartattendance.controller.admin;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.controller.ControllerRegistry;
+import com.smartattendance.controller.TabRefreshable;
 import com.smartattendance.model.entity.User;
 import com.smartattendance.model.dto.student.StudentProfileDTO;
 import com.smartattendance.model.dto.user.UserListDTO;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.service.UserService;
-import com.smartattendance.util.security.log.ApplicationLogger;
 
 import java.util.List;
 
@@ -26,10 +27,10 @@ import javafx.util.Callback;
  * A student list controller which connects the studentListView.fxml
  * Table inspried from the tanstack table
  * Link to tanstack table: https://tanstack.com/table/latest
- * 
+ *
  * @author Thiha Swan Htet
  **/
-public class StudentListController {
+public class StudentListController implements TabRefreshable {
     // Detail table
     @FXML
     private TableView<UserListDTO> table;
@@ -42,7 +43,6 @@ public class StudentListController {
 
     private final UserService userService = ApplicationContext.getUserService();
     private final AuthService authService = ApplicationContext.getAuthService();
-    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     // Store all students for searching
     private List<UserListDTO> allStudents;
@@ -53,6 +53,9 @@ public class StudentListController {
         // Setup actions column with buttons
         setupActionsColumn();
         loadStudents();
+
+        // Register controller for tab refresh functionality
+        ControllerRegistry.getInstance().register("studentList", this);
     }
 
     // Call DB for student data and set the table columns
@@ -349,6 +352,15 @@ public class StudentListController {
         alert.setHeaderText(headerText);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    /**
+     * Refresh the student list when the tab is selected.
+     * Implements TabRefreshable interface for automatic refresh on tab selection.
+     */
+    @Override
+    public void refresh() {
+        loadStudents();
     }
 
 }
