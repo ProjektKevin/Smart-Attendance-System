@@ -20,7 +20,7 @@ public class EmailService {
     private final String fromAddress;
 
     public EmailService() {
-        // read from ENV (matches your .env exactly)
+        // read from ENV 
         String host = getenv("SMTP_HOST", "smtp.gmail.com");
         String port = getenv("SMTP_PORT", "587");
         boolean tls = Boolean.parseBoolean(getenv("SMTP_TLS", "true"));
@@ -51,7 +51,7 @@ public class EmailService {
     }
 
     /**
-     * Main method your report service can call.
+     * Main method report service can call.
      * If you already call sendReport(...) keep this name.
      */
     public void sendReport(String to, String subject, String body, List<File> attachments) throws Exception {

@@ -7,7 +7,7 @@
 
 .label { -fx-text-fill: #e5e7eb; }  /* default label text */
 
-/* keep your red status label override working even in dark */
+/* keep red status label override working even in dark */
 #statusLabel { -fx-text-fill: #ef4444; -fx-font-weight: bold; }
 
 /* -------- inputs -------- */

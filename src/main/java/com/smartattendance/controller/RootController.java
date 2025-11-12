@@ -69,7 +69,7 @@ public class RootController {
         // Admin icons (null-safe)
         safeSetTabIcon(tabDashboard, "\uD83C\uDFE0"); // 🏠
         safeSetTabIcon(tabStudents, "\uD83D\uDC65"); // 👥
-        safeSetTabIcon(tabSessions, "\uD83D\uDD53"); // 🕓 (your original)
+        safeSetTabIcon(tabSessions, "\uD83D\uDD53"); // 🕓
         safeSetTabIcon(tabLive, "\uD83C\uDFA5"); // 🎥
         // F_MA: modified by felicia handling marking attendance ##for testing
         safeSetTabIcon(tabRecognition, "\uD83C\uDFA5");
@@ -81,8 +81,6 @@ public class RootController {
         // Student icons (null-safe)
         safeSetTabIcon(tabAttendance, "\uD83D\uDCCB"); // 🗋/📋 clipboard (or use calendar "\uD83D\uDCC5" 🗓)
         safeSetTabIcon(tabProfile, "\uD83D\uDC64");
-        // If you prefer calendar for attendance, swap to: safeSetTabIcon(tabAttendance,
-        // "\uD83D\uDCC5"); // 🗓
 
         initializeTabBlocking(); // for recognition tab
 

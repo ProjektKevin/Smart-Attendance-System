@@ -213,11 +213,6 @@ public class AttendanceRecordRepository {
         return null;
     }
 
-    /**
-     * This is the method that was breaking because your AttendanceRow only has
-     * (LocalDate date, String course, String session, String status). So here
-     * we build those 4 fields properly.
-     */
     public List<AttendanceRow> findByStudentId(int studentId) {
         List<AttendanceRow> result = new ArrayList<>();
         String sql
