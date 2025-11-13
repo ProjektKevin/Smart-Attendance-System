@@ -14,14 +14,13 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
-import com.smartattendance.service.AttendanceMarker;
 import com.smartattendance.model.enums.AttendanceStatus;
+import com.smartattendance.service.AttendanceMarker;
 import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.ManualAttendanceMarker;
 import com.smartattendance.service.StudentService;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -51,22 +50,27 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
+
+/**
+ * Controller for managing attendance records in a session.
+ * Implements {@link AttendanceObserver} to update UI when attendance changes.
+*/
 
 public class AttendanceController implements AttendanceObserver {
 
+    // ======= FXML UI Components =======
     @FXML
-    private Label attendanceInfo;
+    private Label attendanceInfo; // Label to display messages to the user
     @FXML
-    private Label lblSessionTitle;
+    private Label lblSessionTitle; // Label to display current session title
     @FXML
-    private Label lblAttendanceSummary;
+    private Label lblAttendanceSummary; // Label to display attendance statistics (number of present, late and total students)
     @FXML
-    private Button createButton;
+    private Button createButton; // Button to create new attendance recordss
     @FXML
-    private Button deleteButton;
+    private Button deleteButton; // Button to delete selected attendance records
     @FXML
-    private TableView<AttendanceRecord> attendanceTable;
+    private TableView<AttendanceRecord> attendanceTable; // Table showing attendance records
     @FXML
     private TableColumn<AttendanceRecord, String> colStudentId;
     @FXML
@@ -84,53 +88,92 @@ public class AttendanceController implements AttendanceObserver {
     @FXML
     private TableColumn<AttendanceRecord, Boolean> colSelect;
 
-    private final AttendanceService service = new AttendanceService();
-    private final StudentService studentService = new StudentService();
+    // ======= Services and Data =======
+    private final AttendanceService service = new AttendanceService(); // Local service instance
+    private final StudentService studentService = new StudentService(); // Service to fetch student info
     private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
-    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
-    private Session currentSession;
-    private Runnable backHandler;
+    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService(); // shared service
+    private Session currentSession; // Currently selected session
+    private Runnable backHandler; // Custom back button handler
 
-    // Track original valuees for comparison
+    // Track original valuees to detect changes for manual marking
     private final Map<Integer, String> originalStatuses = new HashMap<>();
     private final Map<Integer, String> originalNotes = new HashMap<>();
 
     // Formatter for timestamp display
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    // Track selections of attendance records
+    // Track selections of attendance records in table
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
 
+    // ======= AttendanceObserver Methods =======
+    /**
+     * Called when an attendance record is marked.
+     * Implementation required by {@link AttendanceObserver}.
+     *
+     * @param record The attendance record that was marked
+     * @param message Optional message describing the marking
+     */
     @Override
     public void onAttendanceMarked(AttendanceRecord record, String message) {
-        // single record marked (existing)
+        // Callback when a single attendance record is marked
+        // Currently empty as we update table separately
     }
 
+    /**
+     * Called when auto-updated attendance occurs.
+     * Reloads the attendance table on the JavaFX thread.
+     */
     @Override
     public void onAttendanceAutoUpdated() {
+        // Called when auto-marking updates multiple records
+        // Update the table on the JavaFX UI thread
         Platform.runLater(this::loadAttendanceRecords);
     }
 
-    // Helper methods for different message types
+    // ======= Message Display Helpers =======
+    /**
+     * Displays a success message in the info label.
+     *
+     * @param message The message text
+     */
     private void showSuccess(String message) {
         styleInfoLabel("success", "✓ " + message);
     }
 
+    /**
+     * Displays an error message in the info label.
+     *
+     * @param message The message text
+     */
     private void showError(String message) {
         styleInfoLabel("error", "✗ " + message);
     }
 
+    /**
+     * Displays a warning message in the info label.
+     *
+     * @param message The message text
+     */
     private void showWarning(String message) {
         styleInfoLabel("warning", "⚠ " + message);
     }
 
+    /**
+     * Displays a neutral info message in the info label.
+     *
+     * @param message The message text
+     */
     private void showInfo(String message) {
         styleInfoLabel("normal", "ℹ " + message);
     }
 
-    // Styles the info label based on message type
-    // @param type "success", "error", "warning", or "normal"
-    // @param message The text to display
+    /**
+     * Styles the info label based on message type.
+     *
+     * @param type    "success", "error", "warning", or "normal"
+     * @param message Text to display
+     */
     private void styleInfoLabel(String type, String message) {
         attendanceInfo.setText(message);
 
@@ -163,16 +206,29 @@ public class AttendanceController implements AttendanceObserver {
         // pause.play();
     }
 
+    /**
+     * Sets the back button handler.
+     *
+     * @param backHandler Runnable to execute on back
+     */
     public void setBackHandler(Runnable backHandler) {
         this.backHandler = backHandler;
     }
 
+    /**
+     * Sets the current session for which attendance is displayed.
+     *
+     * @param session The session
+     */
     public void setSession(Session session) {
         this.currentSession = session;
         lblSessionTitle.setText("Attendance for Session ID: " + session.getSessionId());
         loadAttendanceRecords();
     }
 
+    /**
+     * Initializes the selection map for checkboxes in the table.
+     */
     private void initSelectionMap() {
         selectionMap.clear();
         for (AttendanceRecord record : attendanceList) {
@@ -180,6 +236,9 @@ public class AttendanceController implements AttendanceObserver {
         }
     }
 
+    /**
+     * Sets up the checkbox column for selecting attendance records.
+     */
     private void setupCheckBoxColumn() {
         colSelect.setCellFactory(col -> new TableCell<>() {
             private final CheckBox checkBox = new CheckBox();
@@ -211,52 +270,12 @@ public class AttendanceController implements AttendanceObserver {
         });
     }
 
-    // public static void requestUserConfirmation(AttendanceRecord record) {
-    //     Platform.runLater(() -> {
-    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-    //         alert.setTitle("Confirm Student Identity");
-    //         alert.setHeaderText("Low Confidence Detection");
-    //         alert.setContentText(String.format(
-    //                 // "Detected student:\n\nName: %s\nID: %d\nConfidence: %.2f\n\nIs this correct?",
-    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
-    //                 record.getStudent().getName(),
-    //                 record.getStudent().getStudentId()
-    //                 // record.getConfidence()
-    //         ));
-    //         Optional<ButtonType> result = alert.showAndWait();
-    //         if (result.isPresent() && result.get() == ButtonType.OK) {
-    //             // user confirmed → mark attendance
-    //             try {
-    //                 record.mark(observers);
-    //             } catch (Exception e) {
-    //                 System.err.println("Failed to save attendance record");
-    //                 e.printStackTrace();
-    //             }
-    //         } else {
-    //             // user declined → skip
-    //             System.out.println("Skipped marking for " + record.getStudent().getName());
-    //         }
-    //     });
-    // }
-    // public static boolean requestUserConfirmation(AttendanceRecord record, Consumer<Boolean> callback) {
-    //     Platform.runLater(() -> {
-    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-    //         alert.setTitle("Confirm Student Identity");
-    //         alert.setHeaderText("Low Confidence Detection");
-    //         alert.setContentText(String.format(
-    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
-    //                 record.getStudent().getName(),
-    //                 record.getStudent().getStudentId()
-    //         ));
-    //         // Use Yes/No buttons
-    //         ButtonType yesButton = new ButtonType("Yes");
-    //         ButtonType noButton = new ButtonType("No");
-    //         alert.getButtonTypes().setAll(yesButton, noButton);
-    //         Optional<ButtonType> result = alert.showAndWait();
-    //         boolean confirmed = result.isPresent() && result.get() == yesButton;
-    //         callback.accept(confirmed); // notify caller asynchronously
-    //     });
-    // }
+    /**
+     * Shows a confirmation dialog asynchronously for low-confidence recognition.
+     *
+     * @param record   The attendance record requiring confirmation
+     * @param callback Consumer<Boolean> that receives true if confirmed, false otherwise
+     */
     public static void requestUserConfirmationAsync(AttendanceRecord record, Consumer<Boolean> callback) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -277,6 +296,9 @@ public class AttendanceController implements AttendanceObserver {
         });
     }
 
+    /**
+     * Initializes the controller and sets up table columns, buttons, and observers.
+     */
     @FXML
     public void initialize() {
         // Let each row have a selectable checkbox
@@ -384,95 +406,7 @@ public class AttendanceController implements AttendanceObserver {
             }
         });
 
-        // colNote.setCellValueFactory(new PropertyValueFactory<>("note"));
-        // colNote.setCellFactory(column -> {
-        //     // TableCell<AttendanceRecord, String> cell = new TableCell<>() {
-        //     return new TextFieldTableCell<AttendanceRecord, String>() {
-        //         private final Label label = new Label();
-        //         @Override
-        //         public void startEdit() {
-        //             super.startEdit();
-        //             setGraphic(getTextField());
-        //             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         }
-        //         @Override
-        //         public void cancelEdit() {
-        //             super.cancelEdit();
-        //             label.setText(getItem());
-        //             setGraphic(label);
-        //             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         }
-        //         @Override
-        //         public void updateItem(String item, boolean empty) {
-        //             super.updateItem(item, empty);
-        //             if (empty || item == null) {
-        //                 setGraphic(null);
-        //             } else {
-        //                 label.setText(item);
-        //                 label.setWrapText(true);
-        //                 label.setMaxWidth(column.getWidth() - 10);
-        //                 label.setTooltip(new Tooltip("Double-click to edit"));
-        //                 HBox box = new HBox(5, label, new Label("✏️"));
-        //                 box.setAlignment(Pos.TOP_LEFT);
-        //                 setGraphic(box);
-        //                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //             }
-        //         }
-        //     };
-        //     // return cell;
-        // });
-        // Configure note column
-        // colNote.setCellValueFactory(cellData
-        //         -> new SimpleStringProperty(cellData.getValue().getNote())
-        // );
-        // colNote.setCellFactory(column -> new TextFieldTableCell<AttendanceRecord, String>() {
-        //     private final Label label = new Label();
-        //     private final Label editIcon = new Label("✏️");
-        //     {
-        //         label.setWrapText(true);
-        //         label.setTooltip(new Tooltip("Double-click to edit"));
-        //         editIcon.setStyle("-fx-opacity: 0.6; -fx-font-size: 12;"); // subtle hint
-        //     }
-        //     @Override
-        //     public void startEdit() {
-        //         super.startEdit();
-        //         // create editable TextField manually since getTextField() is protected
-        //         javafx.scene.control.TextField textField = new javafx.scene.control.TextField(getItem());
-        //         textField.setOnAction(e -> {
-        //             commitEdit(textField.getText());
-        //         });
-        //         textField.focusedProperty().addListener((obs, oldV, newV) -> {
-        //             if (!newV) {
-        //                 commitEdit(textField.getText());
-        //             }
-        //         });
-        //         setGraphic(textField);
-        //         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //         textField.requestFocus();
-        //     }
-        //     @Override
-        //     public void cancelEdit() {
-        //         super.cancelEdit();
-        //         updateDisplay(getItem());
-        //     }
-        //     @Override
-        //     public void updateItem(String item, boolean empty) {
-        //         super.updateItem(item, empty);
-        //         if (empty || item == null) {
-        //             setGraphic(null);
-        //         } else {
-        //             updateDisplay(item);
-        //         }
-        //     }
-        //     private void updateDisplay(String text) {
-        //         label.setText(text);
-        //         label.setMaxWidth(colNote.getWidth() - 30);
-        //         HBox box = new HBox(5, label, editIcon);
-        //         box.setAlignment(Pos.TOP_LEFT);
-        //         setGraphic(box);
-        //         setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-        //     }
-        // });
+        
         // F_MA: added by felicia handling marking attendance
         // colNote.setCellFactory(TextFieldTableCell.forTableColumn());
         colNote.setOnEditCommit(event -> {
@@ -558,6 +492,10 @@ public class AttendanceController implements AttendanceObserver {
         attendanceService.addObserver(this);
     }
 
+     /**
+     * Loads attendance records for the current session into the table.
+     * Initializes selection map and stores original values for manual edits.
+     */
     // F_MA: modified by felicia handling marking attendance
     // private void loadAttendanceRecords() {
     public void loadAttendanceRecords() {
@@ -580,6 +518,9 @@ public class AttendanceController implements AttendanceObserver {
         }
     }
 
+     /**
+     * Updates the attendance summary label (Present, Late, Total).
+     */
     private void updateAttendanceSummary() {
         if (attendanceTable.getItems() == null) {
             return;
@@ -599,6 +540,9 @@ public class AttendanceController implements AttendanceObserver {
     }
 
 
+    /**
+     * Handles creating new attendance records via the Attendance Form.
+     */
     @FXML
     private void onCreateRecord() {
         if (getSelectedRecords().size() > 0) {
@@ -657,6 +601,9 @@ public class AttendanceController implements AttendanceObserver {
         }
     }
 
+     /**
+     * Handles deleting selected attendance records.
+     */
     @FXML
     private void onDeleteRecord() {
         List<AttendanceRecord> selectedRecords = attendanceList.stream()
@@ -686,6 +633,9 @@ public class AttendanceController implements AttendanceObserver {
         }
     }
 
+    /**
+     * Updates the enabled/disabled state of buttons based on selection.
+     */
     private void updateButtonStates() {
         boolean hasSelection = getSelectedRecords().size() > 0;
 
@@ -693,12 +643,20 @@ public class AttendanceController implements AttendanceObserver {
         createButton.setDisable(hasSelection); // disable create when records selected
     }
 
+    /**
+     * Gets a list of selected attendance records in the table.
+     *
+     * @return List of selected AttendanceRecord objects
+     */
     private List<AttendanceRecord> getSelectedRecords() {
         return attendanceList.stream()
                 .filter(r -> selectionMap.get(r.getStudent().getStudentId()).get())
                 .toList();
     }
 
+    /**
+     * Handles saving manual changes to attendance records.
+     */
     @FXML
     private void onSaveChanges() {
         try {
