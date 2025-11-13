@@ -2,6 +2,7 @@ package com.smartattendance.controller;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.config.Config;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.ChoiceBox;
@@ -22,6 +23,8 @@ public class SettingsController {
 
   @FXML
   private Slider imageAmountSlider;
+
+  private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
   @FXML
   public void initialize() {
@@ -128,7 +131,7 @@ public class SettingsController {
       ApplicationContext.getFaceRecognitionService().switchAlgorithm(selectedAlgorithm);
 
       // Show sucessfull
-      System.out.println("Settings saved successfully");
+      appLogger.info("Settings saved successfully");
 
       statusLabel.setText("New Settings saved! ");
       statusLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");

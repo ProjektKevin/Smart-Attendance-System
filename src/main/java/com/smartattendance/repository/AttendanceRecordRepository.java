@@ -19,11 +19,14 @@ import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.enums.AttendanceStatus;
 import com.smartattendance.model.enums.MarkMethod;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public class AttendanceRecordRepository {
 
     private final StudentRepository studentRepo;
     private final SessionRepository sessionRepo;
+
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     public AttendanceRecordRepository() {
         this.studentRepo = new StudentRepository();
@@ -49,7 +52,9 @@ public class AttendanceRecordRepository {
         List<AttendanceRecord> records = new ArrayList<>();
         String sql = "SELECT user_id, session_id, note, confidence, marked_at, last_seen, method, status FROM attendance";
 
-        try (Connection conn = DatabaseUtil.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 Student student = studentRepo.findById(rs.getInt("user_id"));
@@ -65,8 +70,7 @@ public class AttendanceRecordRepository {
                         rs.getDouble("confidence"),
                         method,
                         toLocalDateTime(rs.getTimestamp("marked_at")),
-                        toLocalDateTime(rs.getTimestamp("last_seen"))
-                );
+                        toLocalDateTime(rs.getTimestamp("last_seen")));
 
                 String note = rs.getString("note");
                 if (note != null) {
@@ -108,8 +112,7 @@ public class AttendanceRecordRepository {
                             rs.getDouble("confidence"),
                             method,
                             toLocalDateTime(rs.getTimestamp("marked_at")),
-                            toLocalDateTime(rs.getTimestamp("last_seen"))
-                    );
+                            toLocalDateTime(rs.getTimestamp("last_seen")));
 
                     String note = rs.getString("note");
                     if (note != null) {
@@ -152,8 +155,7 @@ public class AttendanceRecordRepository {
                             rs.getDouble("confidence"),
                             method,
                             toLocalDateTime(rs.getTimestamp("marked_at")),
-                            toLocalDateTime(rs.getTimestamp("last_seen"))
-                    );
+                            toLocalDateTime(rs.getTimestamp("last_seen")));
 
                     String note = rs.getString("note");
                     if (note != null) {
@@ -195,8 +197,7 @@ public class AttendanceRecordRepository {
                             rs.getDouble("confidence"),
                             method,
                             toLocalDateTime(rs.getTimestamp("marked_at")),
-                            toLocalDateTime(rs.getTimestamp("last_seen"))
-                    );
+                            toLocalDateTime(rs.getTimestamp("last_seen")));
 
                     String note = rs.getString("note");
                     if (note != null) {
@@ -215,8 +216,7 @@ public class AttendanceRecordRepository {
 
     public List<AttendanceRow> findByStudentId(int studentId) {
         List<AttendanceRow> result = new ArrayList<>();
-        String sql
-                = "SELECT a.user_id, a.session_id, "
+        String sql = "SELECT a.user_id, a.session_id, "
                 + "       s.session_date, s.start_time, s.end_time, "
                 + "       c.course_code, c.course_name, "
                 + "       a.status "
@@ -386,9 +386,10 @@ public class AttendanceRecordRepository {
             int affectedRows = ps.executeUpdate();
 
             if (affectedRows > 0) {
-                System.out.println("Record with StudentId: " + record.getStudent().getStudentId() + " deleted successfully");
+                appLogger
+                        .info("Record with StudentId: " + record.getStudent().getStudentId() + " deleted successfully");
             } else {
-                System.out.println("No record found with StudentId: " + record.getStudent().getStudentId()
+                appLogger.info("No record found with StudentId: " + record.getStudent().getStudentId()
                         + " SessionId: " + record.getSession().getSessionId());
             }
         } catch (SQLException e) {
