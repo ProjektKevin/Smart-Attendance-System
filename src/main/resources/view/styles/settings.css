@@ -1,4 +1,6 @@
-/* ====== SETTINGS PAGE — DARK (scoped) ====== */
+/* ===============================
+   SETTINGS PAGE: DARK MODE ONLY
+   =============================== */
 /* Page & viewport */
 .root.dark .settings-page {
   -fx-background-color: #0f172a;
