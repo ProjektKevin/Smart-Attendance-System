@@ -1,7 +1,6 @@
-/* -------- base (light stays as-is) -------- */
-/* we keep light mode untouched, so no base color overrides here */
-
-/* ========== DARK MODE: scoped to this page ========== */
+/* ============================================
+   STUDENT ATTENDANCE VIEW PAGE: DARK MODE ONLY
+   ============================================ */
 .root.dark .student-attendance {
   /* optional page bg polish if needed:
      -fx-background-color: transparent; */
