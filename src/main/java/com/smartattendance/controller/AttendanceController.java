@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
@@ -54,6 +55,7 @@ import javafx.stage.Stage;
 /**
  * Controller for managing attendance records in a session.
  * Implements {@link AttendanceObserver} to update UI when attendance changes.
+ * @author Chue Wan Yan
 */
 
 public class AttendanceController implements AttendanceObserver {
@@ -91,8 +93,8 @@ public class AttendanceController implements AttendanceObserver {
     // ======= Services and Data =======
     private final AttendanceService service = new AttendanceService(); // Local service instance
     private final StudentService studentService = new StudentService(); // Service to fetch student info
-    private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList();
-    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService(); // shared service
+    private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList(); // Observable list of attendance records
+    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService(); // Shared attendance service
     private Session currentSession; // Currently selected session
     private Runnable backHandler; // Custom back button handler
 
@@ -101,7 +103,7 @@ public class AttendanceController implements AttendanceObserver {
     private final Map<Integer, String> originalNotes = new HashMap<>();
 
     // Formatter for timestamp display
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Config.get("datetime.format"));
 
     // Track selections of attendance records in table
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
