@@ -119,6 +119,10 @@ public class RecognitionController implements AttendanceObserver {
         faceDetectionService = ApplicationContext.getFaceDetectionService();
         faceRecognitionService = ApplicationContext.getFaceRecognitionService();
 
+        this.startButton.setText("Start Recognition");
+        this.startButton.setStyle(
+                    "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
+
         statusLabel.setText("Status: Loading...");
         cameraStatusLabel.setText("Camera: Disconnected");
         modelStatusLabel.setText("Model: Not Loaded");
