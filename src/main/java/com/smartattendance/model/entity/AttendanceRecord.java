@@ -18,8 +18,8 @@ import com.smartattendance.service.AutoAttendanceMarker;
 public class AttendanceRecord {
 
     // these two make it easy to persist/auto-mark, but they also couple the entity
-    private AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
-    private AutoAttendanceMarker autoAttendanceMarker = new AutoAttendanceMarker();
+    // private AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
+    // private AutoAttendanceMarker autoAttendanceMarker = new AutoAttendanceMarker();
 
     private final Student student;
     private final Session session;
@@ -78,14 +78,14 @@ public class AttendanceRecord {
     /**
      * Marks attendance via auto marker.
      */
-    public void mark(List<AttendanceObserver> observers) throws Exception {
-        try {
-            // System.out.println("run until here 3"); // for testing
-            autoAttendanceMarker.markAttendance(observers, this);
-        } catch (Exception e) {
-            throw new Exception("Failed to save attendance record", e);
-        }
-    }
+    // public void mark(List<AttendanceObserver> observers) throws Exception {
+    //     try {
+    //         // System.out.println("run until here 3"); // for testing
+    //         autoAttendanceMarker.markAttendance(observers, this);
+    //     } catch (Exception e) {
+    //         throw new Exception("Failed to save attendance record", e);
+    //     }
+    // }
 
     // -------------------------------------------------------------------------
     // getters / setters
@@ -146,9 +146,9 @@ public class AttendanceRecord {
         this.confidence = confidence;
     }
 
-    public AttendanceRecordRepository getAttendanceRecordRepo() {
-        return attendanceRecordRepo;
-    }
+    // public AttendanceRecordRepository getAttendanceRecordRepo() {
+    //     return attendanceRecordRepo;
+    // }
 
     public AttendanceStatus getOriginalStatus() {
         return originalStatus;

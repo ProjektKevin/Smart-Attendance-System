@@ -5,66 +5,61 @@
  */
 package com.smartattendance.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.controller.RecognitionController;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.repository.AttendanceRecordRepository;
-// import com.smartattendance.util.AttendanceObserver;
 
+/**
+ * Service layer that coordinates attendance operations between
+ * repository, recognition system, and observers.
+ * @author Chue Wan Yan
+ *
+ * Follows the Observer and Strategy patterns.
+ * - AutoAttendanceMarker handles automatic marking logic.
+ * - Observers (like UI controllers) respond to attendance updates.
+ */
 public class AttendanceService {
 
     private final List<AttendanceObserver> observers = new ArrayList<>();
-    private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
-    private final Map<String, AttendanceRecord> records = new HashMap<>();
+    // private final List<AttendanceRecord> attendanceRecords = new ArrayList<>();
     private final double threshold = Double.parseDouble(Config.get("recognition.high.threshold"));
     private final AttendanceRecordRepository repo;
+    private final AutoAttendanceMarker autoAttendanceMarker;
 
     public AttendanceService() {
         this.repo = new AttendanceRecordRepository();
+        this.autoAttendanceMarker = new AutoAttendanceMarker();
     }
 
     public void addObserver(AttendanceObserver o) {
         observers.add(o);
     }
 
-    // F_MA: modified by felicia handling marking attendance
-    public synchronized void markAttendance(AttendanceRecord r) {
-        try {
-            // Already marked or high confidence → mark directly
-            if (r.getConfidence() >= threshold) {
-                saveAttendanceRecord(r);
-                return;
+    public void notifyMarked(List<AttendanceObserver> observers, AttendanceRecord record, String message) {
+        for (AttendanceObserver o : observers) {
+            // notify the recognitionService that the attendance of a particular student is marked
+            if (o instanceof RecognitionController rc) {
+                rc.onAttendanceMarked(record, message);
             }
 
-            // Low confidence → ask for user confirmation asynchronously
-            AttendanceController.requestUserConfirmationAsync(r, confirmed -> {
-                if (confirmed) {
-                    saveAttendanceRecord(r);
-                } else {
-                    notifyAttendanceNotMarked(r);
-                }
-            });
-        } catch (Exception e) {
-            notifyAttendanceNotMarked(r);
+            // refresh the attendancceRecords page
+            if (o instanceof AttendanceController ac) {
+                ac.loadAttendanceRecords();
+            }
         }
     }
 
-    private void saveAttendanceRecord(AttendanceRecord r) {
-        try {
-            attendanceRecords.add(r);
-            r.mark(observers);
-            System.out.println("Tehse are the observers:" + observers);// F_MA: for testing
-        } catch (Exception e) {
-            notifyAttendanceNotMarked(r);
+    public void notifySkipped(List<AttendanceObserver> observers, AttendanceRecord record, String reason) {
+        for (AttendanceObserver o : observers) {
+            // notify the recognitionService that the attendance of a particular student is skipping remark
+            if (o instanceof RecognitionController rc) {
+                rc.onAttendanceSkipped(record, reason);
+            }
         }
     }
 
@@ -76,125 +71,61 @@ public class AttendanceService {
         }
     }
 
-    // public synchronized void markAttendance(AttendanceRecord r) {
-    // boolean result = true;
-    // try {
-    // // if confidence < threshold, request user confirmation
-    // if (r.getConfidence() < threshold) {
-    // result = AttendanceController.requestUserConfirmation(r);
-    // // return;
-    // System.out.println("result " + result); // for testing
-    // }
-    // System.out.println("result " + result); // for testing
-    // if (result) {
-    // attendanceRecords.add(r);
-    // System.out.println("run until here 1"); // for testing
-    // r.mark(observers);
-    // System.out.println("run until here 2"); // for testing
-    // // for (AttendanceObserver o : observers) {
-    // // // notify the recognitionService that the attendance of a particular
-    // student is marked
-    // // o.onAttendanceMarked(r);
-    // // if (o instanceof AttendanceController) {
-    // // // refresh the attendancceRecords page
-    // // ((AttendanceController) o).loadAttendanceRecords();
-    // // }
-    // // }
-    // } else {
-    // for (AttendanceObserver o : observers) {
-    // // notify the recognitionService that the attendance of a particular student
-    // is NOT marked
-    // if (o instanceof LiveRecognitionController) {
-    // ((LiveRecognitionController) o).onAttendanceNotMarked(r);
-    // }
-    // }
-    // }
-    // } catch (Exception e) {
-    // for (AttendanceObserver o : observers) {
-    // // notify the recognitionService that the attendance of a particular student
-    // is NOT marked
-    // if (o instanceof LiveRecognitionController) {
-    // ((LiveRecognitionController) o).onAttendanceNotMarked(r);
-    // }
-    // }
-    // }
-    // }
-    // public synchronized void markAttendance(AttendanceRecord r) {
-    // try {
-    // attendanceRecords.add(r);
-    // r.mark();
-    // for (AttendanceObserver o : observers) {
-    // // notify the recognitionService that the attendance of a particular student
-    // is marked
-    // o.onAttendanceMarked(r);
-    // }
-    // } catch (Exception e) {
-    // for (AttendanceObserver o : observers) {
-    // // notify the recognitionService that the attendance of a particular student
-    // is NOT marked
-    // if (o instanceof LiveRecognitionController) {
-    // ((LiveRecognitionController) o).onAttendanceNotMarked(r);
-    // }
-    // }
-    // }
-    // }
-    // public AttendanceRecord getOrCreateRecord(Student student, Session session) {
-    // return records.computeIfAbsent(student.getStudentId(), id -> new
-    // AttendanceRecord(student, session));
-    // }
-    // public AttendanceRecord getRecord(Student student, Session session) {
-    // return records.computeIfAbsent(student.getStudentId(), id -> new
-    // AttendanceRecord(student, session));
-    // }
-    public void updateLastSeen(String studentId, LocalDateTime time) {
-        if (records.containsKey(studentId)) {
-            records.get(studentId).setLastSeen(time);
-        }
-    }
-
-    public synchronized Map<String, AttendanceRecord> getAll() {
-        return Collections.unmodifiableMap(new HashMap<>(records));
-    }
-
-    public synchronized void printAllRecords() {
-        for (Map.Entry<String, AttendanceRecord> entry : records.entrySet()) {
-            String studentId = entry.getKey();
-            AttendanceRecord record = entry.getValue();
-
-            System.out.printf("Student ID: %s | Name: %s | Status: %s | Method: %s | Last Seen: %s%n",
-                    studentId,
-                    record.getStudent().getName(),
-                    record.getStatus(),
-                    record.getMethod(),
-                    record.getLastSeen());
-        }
-    }
-
-    // public void addObserver(AttendanceObserver o) {
-    // observers.add(o);
-    // }
-    // public synchronized void markAttendance(AttendanceRecord r) {
-    // records.add(r);
-    // for (AttendanceObserver o : observers)
-    // o.onAttendanceMarked(r);
-    // }
-    // public synchronized List<AttendanceRecord> getAll() {
-    // return new ArrayList<>(records);
-    // }
-    public synchronized List<AttendanceRecord> getBetween(LocalDate from, LocalDate to) {
-        List<AttendanceRecord> out = new ArrayList<>();
-        for (AttendanceRecord r : attendanceRecords) {
-            LocalDate d = r.getTimestamp().toLocalDate();
-            boolean ok = (from == null || !d.isBefore(from)) && (to == null || !d.isAfter(to));
-            if (ok) {
-                out.add(r);
+    /**
+     * Attempts to mark attendance.
+     * Delegates automatic marking to AutoAttendanceMarker.
+     */
+    // F_MA: modified by felicia handling marking attendance
+    public synchronized void markAttendance(AttendanceRecord record) {
+        try {
+            // Already marked or high confidence → mark directly
+            if (record.getConfidence() >= threshold) {
+                saveAttendanceRecord(record);
+                return;
             }
+
+            // Low confidence → ask for user confirmation asynchronously
+            AttendanceController.requestUserConfirmationAsync(record, confirmed -> {
+                if (confirmed) {
+                    saveAttendanceRecord(record);
+                } else {
+                    notifyAttendanceNotMarked(record);
+                }
+            });
+        } catch (Exception e) {
+            notifyAttendanceNotMarked(record);
         }
-        return out;
+    }
+
+    private void saveAttendanceRecord(AttendanceRecord record) {
+        try {
+            // attendanceRecords.add(r);
+            // record.mark(observers);
+            autoAttendanceMarker.markAttendance(observers, record);
+            // System.out.println("Tehse are the observers:" + observers);// F_MA: for testing
+        } catch (Exception e) {
+            notifyAttendanceNotMarked(record);
+        }
+    }
+
+    public AttendanceRecord findById(int studentId, int sessionId) {
+        return repo.findById(studentId, sessionId);
     }
 
     public List<AttendanceRecord> findBySessionId(int session_id) {
         return repo.findBySessionId(session_id);
+    }
+
+    public void saveRecord(AttendanceRecord record) {
+        repo.save(record);
+    }
+
+    public void updateRecord(AttendanceRecord record) {
+        repo.update(record);
+    }
+
+    public void updateLastSeen(AttendanceRecord record) {
+        repo.updateLastSeen(record);
     }
 
     public void updateStatus(AttendanceRecord record) {
@@ -209,16 +140,12 @@ public class AttendanceService {
         repo.deleteRecord(record);
     }
 
-    public void saveRecord(AttendanceRecord record) {
-        repo.save(record);
-    }
-
     public String capitalize(String str) {
         return repo.capitalize(str);
     }
 
-    public boolean isAlreadyMarked(int studentId, int sessionId) {
-        AttendanceRecord existing = repo.findById(studentId, sessionId);
-        return existing != null;
-    }
+    // public boolean isAlreadyMarked(int studentId, int sessionId) {
+    //     AttendanceRecord existing = repo.findById(studentId, sessionId);
+    //     return existing != null;
+    // }
 }

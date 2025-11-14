@@ -7,19 +7,24 @@ import java.util.TimerTask;
 
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.service.AttendanceObserver;
-import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AutoAttendanceMarker;
+
+/**
+ * Automatically update attendance records
+ * @author Sarah Smith
+ */
 
 public class AutoAttendanceUpdater {
 
     private final SessionRepository sessionRepository;
-    private final AttendanceService attendanceService;
+    // private final AttendanceService attendanceService;
     private final List<AttendanceObserver> observers = new ArrayList<>();
     private final Timer timer;
+    private final AutoAttendanceMarker autoAttendanceMarker = new AutoAttendanceMarker();
 
-    public AutoAttendanceUpdater(AttendanceService attendanceService) {
+    public AutoAttendanceUpdater() {
         this.sessionRepository = new SessionRepository();
-        this.attendanceService = attendanceService;
+        // this.attendanceService = attendanceService;
         this.timer = new Timer(true); // daemon thread
     }
 
@@ -42,7 +47,7 @@ public class AutoAttendanceUpdater {
             @Override
             public void run() {
                 try {
-                    AutoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository, attendanceService);
+                    autoAttendanceMarker.markPendingAttendanceAsAbsent(sessionRepository);
                     // // Refresh UI on JavaFX thread
                     // Platform.runLater(() -> {
                     //     attendanceController.loadAttendanceRecords();
