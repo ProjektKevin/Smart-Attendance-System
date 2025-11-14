@@ -2,17 +2,23 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<ScrollPane xmlns:fx="http://javafx.com/fxml" fitToWidth="true"
-    fx:controller="com.smartattendance.controller.SettingsController">
+<ScrollPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.smartattendance.controller.SettingsController"
+            fitToWidth="true"
+            styleClass="settings-page"
+            stylesheets="@/view/styles/settings.css">
+
     <content>
-        <GridPane hgap="10" vgap="10" style="-fx-padding: 20;">
+        <!-- give the content a class so CSS can theme it -->
+        <GridPane hgap="10" vgap="10"
+                  style="-fx-padding: 20;"
+                  styleClass="settings-surface">
 
             <Label text="Camera Index:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
             <TextField fx:id="cameraIndexField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
             <Label text="Recognition Algorithm:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-            <ChoiceBox fx:id="algorithmChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1"
-                prefWidth="200.0" />
+            <ChoiceBox fx:id="algorithmChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200.0" />
 
             <Label text="High Recognition Threshold:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
             <TextField fx:id="highThresholdField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -28,18 +34,16 @@
 
             <Label text="Enrollment Image Amount:" GridPane.columnIndex="0" GridPane.rowIndex="6" />
             <Slider fx:id="imageAmountSlider" GridPane.columnIndex="1" GridPane.rowIndex="6"
-                min="10" max="25" blockIncrement="1" majorTickUnit="1" minorTickCount="0"
-                showTickLabels="true" showTickMarks="true" />
+                    min="10" max="25" blockIncrement="1" majorTickUnit="1" minorTickCount="0"
+                    showTickLabels="true" showTickMarks="true" />
             <Label fx:id="imageAmountLabel" GridPane.columnIndex="1" GridPane.rowIndex="7" />
 
-
             <Label fx:id="statusLabel" GridPane.columnIndex="0" GridPane.rowIndex="8"
-                GridPane.columnSpan="2"
-                style="-fx-text-fill: red; -fx-font-weight: bold;" />
+                   GridPane.columnSpan="2"
+                   style="-fx-text-fill: red; -fx-font-weight: bold;" />
 
-            <!-- Save Button -->
             <Button text="Save" GridPane.columnIndex="1" GridPane.rowIndex="9"
-                onAction="#onSaveSettings" />
+                    onAction="#onSaveSettings" />
 
         </GridPane>
     </content>

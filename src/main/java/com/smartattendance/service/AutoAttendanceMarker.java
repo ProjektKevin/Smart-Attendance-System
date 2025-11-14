@@ -29,7 +29,11 @@ public class AutoAttendanceMarker implements AttendanceMarker {
     // private final int cooldownSeconds = 30;
     private final int cooldownSeconds = Integer.parseInt(Config.get("cooldown.seconds")); // Extract cooldown time from config file
     private final AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository(); // Repository to query database for attendance related operations
-    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService(); // Shared attendance service
+    private final AttendanceService attendanceService; // Shared attendance service
+
+    public AutoAttendanceMarker(AttendanceService service) {
+        this.attendanceService = service; // need this so service won't be fetch until ApplicationContext is fully initialized
+    }
 
     @Override
     public void markAttendance(List<AttendanceObserver> observers, AttendanceRecord record) throws Exception {

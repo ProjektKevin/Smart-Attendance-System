@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -17,19 +18,32 @@ import com.smartattendance.util.report.AttendanceReportRow;
 
 public class AttendanceRepository {
 
-    private static final String DB_URL  = System.getenv().getOrDefault(
-            "DATABASE_URL",
-            "jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?user=postgres.muholwznrkonrcjesdij"
-    );
-    private static final String DB_PASS = System.getenv().getOrDefault(
-            "DATABASE_PASSWORD",
-            "TheDawn5"
-    );
+    private final String dbUrl;
+    private final String dbUser;
+    private final String dbPass;
+    private final String dbSslMode;
 
-    private Connection openConnection() throws Exception {
+    public AttendanceRepository() {
+        this.dbUrl    = envOrThrow("DATABASE_URL");      // e.g. jdbc:postgresql://host:5432/postgres
+        this.dbUser   = envOrThrow("DATABASE_USER");     // e.g. postgres
+        this.dbPass   = envOrThrow("DATABASE_PASSWORD"); // e.g. ********
+        this.dbSslMode = System.getenv().getOrDefault("DATABASE_SSLMODE", "require");
+    }
+
+    private static String envOrThrow(String key) {
+        String v = System.getenv(key);
+        if (v == null || v.isBlank()) {
+            throw new IllegalStateException("Missing required environment variable: " + key);
+        }
+        return v;
+    }
+
+    private Connection openConnection() throws SQLException {
         Properties props = new Properties();
-        props.setProperty("password", DB_PASS);
-        return DriverManager.getConnection(DB_URL, props);
+        props.setProperty("user", dbUser);
+        props.setProperty("password", dbPass);
+        if (dbSslMode != null && !dbSslMode.isBlank()) props.setProperty("sslmode", dbSslMode);
+        return DriverManager.getConnection(dbUrl, props);
     }
 
     /* ===== combos ===== */
@@ -38,10 +52,10 @@ public class AttendanceRepository {
         List<String> out = new ArrayList<>();
         out.add("All");
         String sql =
-                "SELECT s.session_id, s.session_date, s.start_time, c.course_code, c.course_name " +
-                "FROM sessions s " +
-                "LEFT JOIN courses c ON s.course_id = c.course_id " +
-                "ORDER BY s.session_date DESC, s.start_time DESC";
+            "SELECT s.session_id, s.session_date, s.start_time, c.course_code, c.course_name " +
+            "FROM sessions s " +
+            "LEFT JOIN courses c ON s.course_id = c.course_id " +
+            "ORDER BY s.session_date DESC, s.start_time DESC";
         try (Connection conn = openConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -51,7 +65,6 @@ public class AttendanceRepository {
                 Date d = rs.getDate("session_date");
                 LocalDate date = d != null ? d.toLocalDate() : null;
 
-                // start_time in your schema is TIMESTAMP, but we only need time-of-day for display
                 Timestamp ts = rs.getTimestamp("start_time");
                 LocalTime time = ts != null ? ts.toLocalDateTime().toLocalTime() : LocalTime.MIDNIGHT;
 
@@ -62,7 +75,7 @@ public class AttendanceRepository {
                         (name != null ? " (" + name + ")" : "");
                 out.add(label);
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return out;
@@ -82,7 +95,7 @@ public class AttendanceRepository {
                 String name = rs.getString("course_name");
                 out.add(id + " - " + code + " (" + name + ")");
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return out;
@@ -90,11 +103,11 @@ public class AttendanceRepository {
 
     public AttendanceReportService.LatestSessionInfo fetchLatestSession() {
         String sql =
-                "SELECT s.session_id, s.session_date, s.start_time, s.course_id, c.course_code, c.course_name " +
-                "FROM sessions s " +
-                "LEFT JOIN courses c ON s.course_id = c.course_id " +
-                "ORDER BY s.session_date DESC, s.start_time DESC " +
-                "LIMIT 1";
+            "SELECT s.session_id, s.session_date, s.start_time, s.course_id, c.course_code, c.course_name " +
+            "FROM sessions s " +
+            "LEFT JOIN courses c ON s.course_id = c.course_id " +
+            "ORDER BY s.session_date DESC, s.start_time DESC " +
+            "LIMIT 1";
         try (Connection conn = openConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -122,7 +135,7 @@ public class AttendanceRepository {
 
                 return info;
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
@@ -140,27 +153,26 @@ public class AttendanceRepository {
         List<AttendanceReportRow> out = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder(
-                "SELECT " +
-                        "a.marked_at, " +
-                        "a.session_id, " +
-                        "a.user_id, " +
-                        "u.username, " +
-                        "a.status, " +
-                        "a.method, " +
-                        "a.note, " +
-                        "a.confidence, " +
-                        "c.course_code, " +
-                        "c.course_id " +
-                "FROM attendance a " +
-                "JOIN sessions s ON a.session_id = s.session_id " +
-                "JOIN courses  c ON s.course_id = c.course_id " +
-                "LEFT JOIN users u ON a.user_id = u.user_id " +
-                "WHERE 1=1 "
+            "SELECT " +
+            "a.marked_at, " +
+            "a.session_id, " +
+            "a.user_id, " +
+            "u.username, " +
+            "a.status, " +
+            "a.method, " +
+            "a.note, " +
+            "a.confidence, " +
+            "c.course_code, " +
+            "c.course_id " +
+            "FROM attendance a " +
+            "JOIN sessions s ON a.session_id = s.session_id " +
+            "JOIN courses  c ON s.course_id = c.course_id " +
+            "LEFT JOIN users u ON a.user_id = u.user_id " +
+            "WHERE 1=1 "
         );
 
         List<Object> params = new ArrayList<>();
 
-        // date range on the timestamp in attendance
         if (from != null) {
             sb.append("AND a.marked_at >= ? ");
             params.add(Timestamp.valueOf(from.atStartOfDay()));
@@ -170,33 +182,28 @@ public class AttendanceRepository {
             params.add(Timestamp.valueOf(to.atTime(23, 59, 59)));
         }
 
-        // session filter (combo text is "id - ...")
         Integer sessionId = parseIdFromDisplay(sessionDisplay);
         if (sessionId != null) {
             sb.append("AND a.session_id = ? ");
             params.add(sessionId);
         }
 
-        // course filter (combo text is "id - ...")
         Integer courseId = parseIdFromDisplay(courseDisplay);
         if (courseId != null) {
             sb.append("AND c.course_id = ? ");
             params.add(courseId);
         }
 
-        // status
         if (status != null && !"All".equalsIgnoreCase(status)) {
             sb.append("AND a.status = ? ");
             params.add(status);
         }
 
-        // method
         if (method != null && !"All".equalsIgnoreCase(method)) {
             sb.append("AND a.method = ? ");
             params.add(method);
         }
 
-        // confidence
         if (confidenceExpr != null && !"All".equalsIgnoreCase(confidenceExpr)) {
             if (confidenceExpr.startsWith(">=")) {
                 double min = Double.parseDouble(confidenceExpr.substring(2).trim());
@@ -223,34 +230,24 @@ public class AttendanceRepository {
                     AttendanceReportRow r = new AttendanceReportRow();
 
                     Timestamp ts = rs.getTimestamp("marked_at");
-                    if (ts != null) {
-                        r.setTimestamp(ts.toLocalDateTime());
-                    }
+                    if (ts != null) r.setTimestamp(ts.toLocalDateTime());
 
-                    // session id
                     r.setSessionId(String.valueOf(rs.getInt("session_id")));
-
-                    // course code from courses table
                     r.setCourseCode(rs.getString("course_code"));
-
-                    // student
                     r.setStudentId(String.valueOf(rs.getInt("user_id")));
-                    r.setStudentName(rs.getString("username")); // you could join profile if you want full name
-
+                    r.setStudentName(rs.getString("username"));
                     r.setStatus(rs.getString("status"));
                     r.setMethod(rs.getString("method"));
                     r.setNote(rs.getString("note"));
 
                     Object conf = rs.getObject("confidence");
-                    if (conf != null) {
-                        r.setConfidence(String.valueOf(conf));
-                    }
+                    if (conf != null) r.setConfidence(String.valueOf(conf));
 
                     out.add(r);
                 }
             }
 
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             return List.of();
         }

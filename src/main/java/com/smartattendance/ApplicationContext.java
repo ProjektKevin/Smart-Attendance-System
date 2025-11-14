@@ -108,7 +108,7 @@ public final class ApplicationContext {
 
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
-        autoAttendanceUpdater = new AutoAttendanceUpdater();
+        autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
         autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         autoAttendanceUpdater.startAutoUpdate(60);
 

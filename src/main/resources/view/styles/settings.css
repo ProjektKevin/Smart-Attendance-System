@@ -1,0 +1,85 @@
+/* ====== SETTINGS PAGE — DARK (scoped) ====== */
+/* Page & viewport */
+.root.dark .settings-page {
+  -fx-background-color: #0f172a;
+}
+.root.dark .settings-page > .viewport {
+  -fx-background-color: #0f172a;   /* the big white area */
+}
+/* ScrollPane corner (bottom-right square) */
+.root.dark .settings-page .corner {
+  -fx-background-color: #0f172a;
+}
+
+/* Content node inside the ScrollPane */
+.root.dark .settings-page .settings-surface {
+  -fx-background-color: #0f172a;   /* ensures content itself is dark */
+}
+
+/* Safety: make common containers on this page transparent so they don't
+   repaint a light layer on top of the dark page */
+.root.dark .settings-page .vbox,
+.root.dark .settings-page .hbox,
+.root.dark .settings-page .grid-pane,
+.root.dark .settings-page .anchor-pane,
+.root.dark .settings-page .pane,
+.root.dark .settings-page .border-pane,
+.root.dark .settings-page .stack-pane {
+  -fx-background-color: transparent;
+}
+
+/* ===== ChoiceBox popup (ContextMenu) — DARK ===== */
+.root.dark .settings-page .choice-box {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 8; -fx-border-radius: 8;
+  -fx-mark-color: #cbd5e1;         /* dropdown arrow color */
+}
+
+/* The popup container */
+.root.dark .settings-page .context-menu {
+  -fx-background-color: #0b1220;   /* menu panel */
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 10; -fx-border-radius: 10;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 16, 0.25, 0, 4);
+}
+
+/* Menu items */
+.root.dark .settings-page .menu-item {
+  -fx-background-color: transparent;
+  -fx-padding: 8 14;
+}
+
+.root.dark .settings-page .menu-item .label {
+  -fx-text-fill: #e5e7eb;          /* item text */
+  -fx-font-weight: 600;
+}
+
+/* Hover/keyboard focus highlight for the row */
+.root.dark .settings-page .menu-item:focused {
+  -fx-background-color: #0f2a46;   /* dark teal */
+  -fx-background-insets: 0;
+  -fx-background-radius: 8;
+}
+
+.root.dark .settings-page .menu-item:focused .label {
+  -fx-text-fill: #ffffff;
+}
+
+/* Optional: separator line inside the menu */
+.root.dark .settings-page .separator .line {
+  -fx-background-color: #1f2937;
+}
+
+/* If you ever use ComboBox on this page, keep its popup consistent */
+.root.dark .settings-page .combo-box-popup > .list-view {
+  -fx-background-color: #0b1220; -fx-border-color: #1f2937;
+}
+.root.dark .settings-page .combo-box-popup .list-cell {
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .settings-page .combo-box-popup .list-cell:hover,
+.root.dark .settings-page .combo-box-popup .list-cell:selected {
+  -fx-background-color: #0f2a46;
+}

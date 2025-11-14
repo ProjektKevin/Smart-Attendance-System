@@ -56,7 +56,7 @@ public class AttendanceRecord {
 
     // -------------------------------------------------------------------------
     // 2) constructor used by repository (with BOTH marked_at and last_seen)
-    //    THIS is the one your repository is calling.
+    //    THIS is the one the repository is calling.
     // -------------------------------------------------------------------------
     public AttendanceRecord(Student student,
                             Session session,

@@ -26,7 +26,7 @@ import javafx.scene.layout.HBox;
 
 /**
  * Builds dashboard charts from raw attendance records.
- * Uses your util.chart classes so they're not unused.
+ * Uses util.chart classes.
  */
 public final class DashboardCharts {
 

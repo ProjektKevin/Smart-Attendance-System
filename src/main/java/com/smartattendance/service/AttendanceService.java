@@ -33,7 +33,11 @@ public class AttendanceService {
 
     public AttendanceService() {
         this.repo = new AttendanceRecordRepository();
-        this.autoAttendanceMarker = new AutoAttendanceMarker();
+        this.autoAttendanceMarker = new AutoAttendanceMarker(this);
+    }
+
+    public AutoAttendanceMarker getAutoAttendanceMarker() {
+        return autoAttendanceMarker;
     }
 
     public void addObserver(AttendanceObserver o) {

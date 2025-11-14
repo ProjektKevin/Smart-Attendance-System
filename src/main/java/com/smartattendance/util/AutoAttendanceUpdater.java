@@ -7,6 +7,7 @@ import java.util.TimerTask;
 
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.service.AttendanceObserver;
+import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AutoAttendanceMarker;
 
 /**
@@ -20,11 +21,11 @@ public class AutoAttendanceUpdater {
     // private final AttendanceService attendanceService;
     private final List<AttendanceObserver> observers = new ArrayList<>();
     private final Timer timer;
-    private final AutoAttendanceMarker autoAttendanceMarker = new AutoAttendanceMarker();
+    private final AutoAttendanceMarker autoAttendanceMarker;
 
-    public AutoAttendanceUpdater() {
+    public AutoAttendanceUpdater(AttendanceService attendanceService) {
         this.sessionRepository = new SessionRepository();
-        // this.attendanceService = attendanceService;
+        this.autoAttendanceMarker = attendanceService.getAutoAttendanceMarker();
         this.timer = new Timer(true); // daemon thread
     }
 

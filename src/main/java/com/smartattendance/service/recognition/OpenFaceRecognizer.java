@@ -272,7 +272,7 @@ public class OpenFaceRecognizer extends Recognizer {
                 // - similarity 0.4  → 30% confidence (likely wrong)
                 // - similarity 0.2  → 10% confidence (definitely wrong)
                 double confidence;
-                if (bestSimilarity >= 0.6) {
+                if (bestSimilarity >= 0.5) {
                     // Good match range: 0.6-1.0 maps to 50%-100%
                     confidence = 50.0 + (bestSimilarity - 0.6) / 0.4 * 50.0;
                 } else if (bestSimilarity >= 0.0) {

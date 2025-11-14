@@ -14,7 +14,7 @@ import javafx.stage.Window;
 
 /**
  * PNG exporter with 2x scale so it isn't blurry.
- * Implements your project's ChartExporter (export(Node, String, boolean)).
+ * Implements project's ChartExporter (export(Node, String, boolean)).
  */
 public class PngChartExporter implements ChartExporter {
 
