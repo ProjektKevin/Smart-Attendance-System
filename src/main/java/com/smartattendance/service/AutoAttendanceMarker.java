@@ -71,7 +71,11 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                     = attendanceService.findById(student.getStudentId(), session.getSessionId());
 
             if (existingRecord == null) {
-                existingRecord = record;
+                AttendanceRecord newRecord = new AttendanceRecord(student, session, AttendanceStatus.PENDING, 
+                        record.getConfidence(), MarkMethod.NONE, record.getTimestamp());
+                newRecord.setNote("New record created while record not found during face detection.");
+                attendanceService.saveRecord(newRecord); // create and save new record if record not found
+                existingRecord = newRecord;
             }
 
             String lastSeenMessage = "Updated last seen for " + student.getName()
@@ -109,7 +113,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                     attendanceService.updateLastSeen(record);
                     attendanceService.notifyMarked(lastSeenMessage);
                 } else {
-                    attendanceService.notifyMarked(coolDownMessage);
+                    attendanceService.notifySkipped(coolDownMessage);
                 }
             } else {
                 attendanceService.notifySkipped(skippingMessage);
