@@ -25,6 +25,11 @@ public class FaceProcessingService {
     }
 
     // ===== Main Function =====
+    /**
+     * Backward Compatibility for preprocessFace(Mat faceImg, Rect faceRect, int
+     * targetWidth, int targetHeight,
+     * boolean isProcessingHistogram)
+     */
     public Mat preprocessFace(Mat faceImg, Rect faceRect, int targetWidth, int targetHeight) {
         return preprocessFace(faceImg, faceRect, targetWidth, targetHeight, true);
     }
@@ -122,6 +127,14 @@ public class FaceProcessingService {
         return gray;
     }
 
+    /**
+     * Crop the images and just return the cropped face
+     * models train better if there are less background noise
+     * 
+     * @param grayImg
+     * @param faceRect
+     * @return
+     */
     public Mat cropDetectedFace(Mat grayImg, Rect faceRect) {
         if (grayImg.empty() || faceRect.width <= 0 || faceRect.height <= 0) {
             appLogger.error("Invalid image or face rectangle");
@@ -142,6 +155,15 @@ public class FaceProcessingService {
         return croppedFace.clone();
     }
 
+    /**
+     * Resizes an image to the specified dimensions
+     * Uses OpenCV's resize function with default interpolation
+     * 
+     * @param image  the input image to resize
+     * @param width  the target width in pixels
+     * @param height the target height in pixels
+     * @return the resized image, or empty Mat if input image is empty
+     */
     public Mat resizeImage(Mat image, int width, int height) {
         if (image.empty()) {
             appLogger.error("No image found!");

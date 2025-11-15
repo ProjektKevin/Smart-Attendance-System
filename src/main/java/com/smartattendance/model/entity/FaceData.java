@@ -5,12 +5,25 @@ import java.util.List;
 
 import org.opencv.core.Mat;
 
+/**
+ * Face Data
+ * Stores face-related data for a student including images, paths, histograms,
+ * and embeddings
+ * Used for both training and recognition processes
+ * 
+ * @author Min Thet Khine
+ */
+
 public class FaceData {
     private List<Mat> images;
     private List<String> imagePaths;
     private Mat histogram;
     private Mat faceEmbedding;
 
+    /**
+     * Default constructor
+     * Initializes empty lists for images and image paths
+     */
     public FaceData() {
         this.images = new ArrayList<>();
         this.imagePaths = new ArrayList<>();

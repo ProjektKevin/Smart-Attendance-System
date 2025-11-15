@@ -36,7 +36,6 @@ import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.enums.AttendanceStatus;
 import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.model.enums.ToastType;
-import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
@@ -58,7 +57,9 @@ import com.smartattendance.util.security.log.AttendanceLogger;
  *      3. Recognizing students, logging and update attendance automatically.
  *      4. Displaying UI updates, alerts and toast messages.
  * 
- * @author Min Thet Khine
+ * @author Min Thet Khine (initialize, startRecognition, stopRecognition, clearHistory, 
+ *         grabFrame, stopAcquisition, updateImageView, processRecognitionResults, 
+ *         logAttendance, logUnknownFace, updateFPS, loadSessionStudentsAsync)
  * @author Chue Wan Yan (create showToast, onAttendanceMarked, onAttenedanceNotMarked, 
  *         onAttendanceSkipped, requestUserCongirmationAsync. Added javadoc comments.)
  *
@@ -117,9 +118,7 @@ public class RecognitionController implements RecognitionObserver {
     // Recognition cooldown to avoid spam
     private long lastRecognitionTime = 0;
     private long lastAlertTime = 0;
-    private static final long RECOGNITION_COOLDOWN_MS = Long.parseLong(Config.get("cooldown.seconds")) * 1000; // * 1000
-                                                                                                               // //
-                                                                                                               // milliseconds
+    private static final long RECOGNITION_COOLDOWN_MS = Long.parseLong(Config.get("cooldown.seconds")) * 1000; // * 1000 to change from seconds to milliseconds
     private static final long ALERT_COOLDOWN_MS = 5000; // 5 seconds
 
     // Time formatter for logs
@@ -131,8 +130,6 @@ public class RecognitionController implements RecognitionObserver {
     // Confidence threshold
     private static final double LOW_CONFIDENCE_THRESHOLD = 30.0;
 
-    // F_MA: modified by felicia handling marking attendance ##for testing
-    // private RecognitionServiceTest testService;
     // Logger
     private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
     private final AttendanceLogger attendanceLogger = AttendanceLogger.getInstance();

@@ -20,6 +20,8 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  *
  * All values loaded or updated through this class persist immediately
  * to disk so that the configuration survives application restarts.
+ * 
+ * @author Ernest Lun, Min Thet Khine
  */
 public class Config {
 

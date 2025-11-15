@@ -29,6 +29,7 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  * 
  * Skeleton by @author Thiha Swan Htet
  * Attendance related logics by @author Chue Wan Yan
+ * Recognition, OpenCV related models by @author Min Thet Khine
  * 
  * @version 13:23 15 Nov 2025
  */

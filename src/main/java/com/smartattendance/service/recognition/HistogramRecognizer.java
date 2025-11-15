@@ -16,6 +16,15 @@ import com.smartattendance.model.entity.FaceData;
 import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.util.security.log.ApplicationLogger;
 
+/**
+ * Histogram Recognizer
+ * Implements face recognition using histogram comparison
+ * Computes and compares grayscale histograms of face images
+ * Uses correlation-based matching for face identification
+ * 
+ * @author Min Thet Khine
+ */
+
 public class HistogramRecognizer extends Recognizer {
   private final FaceProcessingService faceProcessingService;
   private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
@@ -35,6 +44,12 @@ public class HistogramRecognizer extends Recognizer {
   }
 
   // ----- Recoginzer classes -----
+  /**
+   * Train the recognizer by computing average histograms for each student
+   * Processes all enrolled students and generates their face histograms
+   * 
+   * @param students List of students to train the recognizer with
+   */
   @Override
   public void train(List<Student> students) {
     for (Student student : students) {
@@ -61,6 +76,14 @@ public class HistogramRecognizer extends Recognizer {
     }
   }
 
+  /**
+   * Recognize a face by comparing its histogram with stored student histograms
+   * Uses correlation comparison to find the best match among enrolled students
+   * 
+   * @param faceImage        The face image to recognize
+   * @param enrolledStudents List of students to compare against
+   * @return RecognitionResult containing the matched student and confidence score
+   */
   @Override
   public RecognitionResult recognize(Mat faceImage, List<Student> enrolledStudents) {
     if (faceImage.empty() || faceImage == null) {
@@ -140,6 +163,14 @@ public class HistogramRecognizer extends Recognizer {
   }
 
   // ----- Histogram Computation -----
+  /**
+   * Recognize multiple faces from a list of face images
+   * Processes each face image individually and returns a list of results
+   * 
+   * @param faceImages       List of face images to recognize
+   * @param enrolledStudents List of students to compare against
+   * @return List of recognition results for each face
+   */
   public Mat computeHistogram(Mat image) {
     if (image.empty()) {
       appLogger.error("Cannot compute histogram for empty image");
@@ -171,6 +202,13 @@ public class HistogramRecognizer extends Recognizer {
 
   }
 
+  /**
+   * Compute normalized histogram for a grayscale image
+   * Calculates the distribution of pixel intensities (0-255)
+   * 
+   * @param image The grayscale image to compute histogram for
+   * @return Normalized histogram as Mat, or empty Mat on failure
+   */
   public Mat computeAverageHistogram(List<Mat> rawFaceImages) {
     if (rawFaceImages.isEmpty() || rawFaceImages == null) {
       return new Mat();

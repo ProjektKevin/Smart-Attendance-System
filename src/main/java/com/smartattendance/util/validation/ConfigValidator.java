@@ -1,15 +1,26 @@
 package com.smartattendance.util.validation;
 
+/**
+ * Config Validator
+ * Checks all the input fields for the configuration matters
+ * Used for when user update configuration properties in settings
+ * 
+ * @author Min Thet Khine
+ */
 public class ConfigValidator {
+  /**
+   * Validates all configuration settings
+   * Checks: camera index, thresholds, cooldown time, database path
+   *
+   * @param cameraIndex   the camera index to validate
+   * @param highThreshold the high threshold to validate
+   * @param lowThreshold  the low threshold to validate
+   * @param cooldownTime  the cooldown time to validate
+   * @param databasePath  the database path to validate
+   * @return ValidationResult containing all validation errors
+   */
   public static ValidationResult validateConfig(String cameraIndex, String highThreshold, String lowThreshold,
       String cooldownTime, String databasePath) {
-    /*
-     * Things to validate
-     * 1. Camera Index
-     * 2. Recognition Thresholds
-     * 3. Recognition Cool Down Time
-     * 4. Database Path
-     */
 
     ValidationResult result = new ValidationResult();
 
@@ -24,6 +35,13 @@ public class ConfigValidator {
     return result;
   }
 
+  /**
+   * Validates camera index
+   * Checks: not empty, valid integer, non-negative (>= 0)
+   *
+   * @param cameraIndex the camera index to validate
+   * @param result      the ValidationResult to add errors to
+   */
   public static void validateCameraIndex(String cameraIndex, ValidationResult result) {
     // Check if empty
     if (Validator.validateEmptyInput(cameraIndex)) {
@@ -49,6 +67,14 @@ public class ConfigValidator {
     }
   }
 
+  /**
+   * Validates recognition thresholds
+   * Checks: not empty, valid numbers, within range (0-100), high > low, at least 1 point apart
+   *
+   * @param highThreshold the high threshold to validate
+   * @param lowThreshold  the low threshold to validate
+   * @param result        the ValidationResult to add errors to
+   */
   public static void validateThresholds(String highThreshold, String lowThreshold, ValidationResult result) {
     if (Validator.validateEmptyInput(highThreshold)) {
       result.addFieldError("highThreshold", "High threshold is required");
@@ -109,6 +135,13 @@ public class ConfigValidator {
     }
   }
 
+  /**
+   * Validates cooldown time
+   * Checks: not empty, valid integer, non-negative
+   *
+   * @param cooldownTime the cooldown time to validate
+   * @param result       the ValidationResult to add errors to
+   */
   public static void validateCooldownTime(String cooldownTime, ValidationResult result) {
     // Check if empty
     if (Validator.validateEmptyInput(cooldownTime)) {
@@ -134,6 +167,42 @@ public class ConfigValidator {
     }
   }
 
+  /**
+   * Validates database path
+   * Checks: not empty, valid path format, file extension
+   *
+   * @param databasePath the database path to validate
+   * @param result       the ValidationResult to add errors to
+   */
   public static void validateDatabasePath(String databasePath, ValidationResult result) {
+    // Check if empty
+    if (Validator.validateEmptyInput(databasePath)) {
+      result.addFieldError("databasePath", "Database path is required");
+      return;
+    }
+
+    String trimmed = databasePath.trim();
+
+    // Check minimum length
+    if (!Validator.validateStringMinChar(3, trimmed)) {
+      result.addFieldError("databasePath", "Database path must be at least 3 characters");
+      return;
+    }
+
+    // Check if path has valid extension (optional but recommended)
+    if (!trimmed.toLowerCase().endsWith(".db") &&
+        !trimmed.toLowerCase().endsWith(".sqlite") &&
+        !trimmed.toLowerCase().endsWith(".sqlite3")) {
+      result.addFieldError("databasePath",
+          "Database path must end with .db, .sqlite, or .sqlite3");
+      return;
+    }
+
+    // Check for invalid characters in path
+    if (trimmed.contains("<") || trimmed.contains(">") ||
+        trimmed.contains("|") || trimmed.contains("\"")) {
+      result.addFieldError("databasePath", "Database path contains invalid characters");
+      return;
+    }
   }
 }
