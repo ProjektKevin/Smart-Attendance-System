@@ -29,6 +29,7 @@
         <Button fx:id="createButton" text="Create" onAction="#onCreateRecord"/>
         <Button fx:id="deleteButton" text="Delete" onAction="#onDeleteRecord"/>
         <Button text="Save Changes" onAction="#onSaveChanges"/>
+        <Button fx:id="clearEditButton" text="Clear Edit" visible="false" managed="false" />
         <Button text="Back" onAction="#onBack"/>
     </HBox>
 </VBox>
