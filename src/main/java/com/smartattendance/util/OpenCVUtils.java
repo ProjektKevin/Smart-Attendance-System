@@ -17,6 +17,7 @@ import javafx.scene.image.Image;
 /**
  * Utilities used for opencv and java fx integration
  * 
+ * @author Min Thet Khine, Thiha Swan Htet
  */
 public final class OpenCVUtils {
 	private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();

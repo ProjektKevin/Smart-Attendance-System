@@ -10,6 +10,13 @@ import com.smartattendance.model.entity.Verification;
 import com.smartattendance.model.enums.AuthVerification;
 import com.smartattendance.config.DatabaseUtil;
 
+/**
+ * Verification Repository
+ * Performs DB operations for all verification in general
+ * Creates tokens specific for various auth types and user id
+ * 
+ * @author Thiha Swan Htet
+ */
 public class VerificationRepository {
 
     /**

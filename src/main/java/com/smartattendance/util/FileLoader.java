@@ -12,6 +12,8 @@ import com.smartattendance.util.security.log.ApplicationLogger;
 
 /**
  * Utility for loading files from resources folder.
+ * 
+ * @author Thiha Swan Htet, Min Thet Khine
  */
 public class FileLoader {
 

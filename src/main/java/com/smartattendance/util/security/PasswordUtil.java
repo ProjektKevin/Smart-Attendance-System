@@ -4,6 +4,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Base64;
 
+/**
+ * Utility to hash password and check if it matches
+ * 
+ * @author Ernest Lun
+ */
 public class PasswordUtil {
   public static String hash(String p) {
     try {

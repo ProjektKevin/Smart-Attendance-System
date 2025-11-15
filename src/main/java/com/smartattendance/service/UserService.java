@@ -13,6 +13,14 @@ import com.smartattendance.repository.CourseRepository;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Auth Service
+ * Controls auth business logic and interact with db repository
+ * Displays user information by various filtered entities: id, role...etc
+ * Performs other actions: such as inviting users and enrolling students
+ * 
+ * @author Thiha Swan Htet
+ */
 public class UserService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
@@ -22,19 +30,6 @@ public class UserService {
         this.userRepository = new UserRepository();
         this.profileRepository = new ProfileRepository();
         this.courseRepository = new CourseRepository();
-    }
-
-    public UserService(UserRepository userRepository, ProfileRepository profileRepository) {
-        this.userRepository = userRepository;
-        this.profileRepository = profileRepository;
-        this.courseRepository = new CourseRepository();
-    }
-
-    public UserService(UserRepository userRepository, ProfileRepository profileRepository,
-            CourseRepository courseRepository) {
-        this.userRepository = userRepository;
-        this.profileRepository = profileRepository;
-        this.courseRepository = courseRepository;
     }
 
     // ==================== Entity Methods ====================

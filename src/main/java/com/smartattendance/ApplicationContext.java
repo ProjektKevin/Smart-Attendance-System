@@ -26,7 +26,7 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  * The created instances are reused across the project avoid extra memo leak or
  * usage
  * 
- * Skeleton by @author Thiha Swan Htet
+ * @author Chue Wan Yan, Ernest Lun, Lim Jia Hui, Min Thet Khine, Thiha Swan Htet 
  */
 public final class ApplicationContext {
 

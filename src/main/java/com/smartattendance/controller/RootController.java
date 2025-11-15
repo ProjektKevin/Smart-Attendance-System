@@ -22,6 +22,11 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+/**
+ * Root controller that controls the view of both the admin and the students
+ * 
+ * @author Ernest Lun
+ */
 public class RootController {
     @FXML
     private BorderPane root;

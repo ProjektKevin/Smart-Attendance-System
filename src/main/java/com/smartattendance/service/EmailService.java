@@ -28,6 +28,8 @@ import jakarta.mail.internet.MimeMultipart;
  * </ul>
  *
  * <p>The {@code SMTP_USER} value is also used as the {@code From} address for all emails.
+ * 
+ * @author Ernest Lun
  */
 public class EmailService {
 
