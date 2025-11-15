@@ -21,6 +21,7 @@ import javafx.application.Platform;
 
 /**
  * Automatically marks attendance using face recognition confidence values.
+ * Implements {@link AttendanceMarker}.
  *
  * @version 18:18 14 Nov 2025
  * @author Chue Wan Yan
@@ -30,14 +31,31 @@ public class AutoAttendanceMarker implements AttendanceMarker {
     // private final int lateThresholdMinutes = 15;
     // private final int cooldownSeconds = 30;
     private final int cooldownSeconds = Integer.parseInt(Config.get("cooldown.seconds")); // Extract cooldown time from config file
-    private final AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository(); // Repository to query database for attendance related operations
+    private final AttendanceRecordRepository attendanceRecordRepo
+            = new AttendanceRecordRepository(); // Repository to query database for attendance related operations
     private final AttendanceService attendanceService; // Shared attendance service
     private final ApplicationLogger appLogger = ApplicationLogger.getInstance(); // App logger to show info message
 
+    /**
+     * Constructs an AutoAttendanceMarker with the provided attendance service.
+     *
+     * @param service the shared AttendanceService instance
+     */
     public AutoAttendanceMarker(AttendanceService service) {
         this.attendanceService = service; // need this so service won't be fetch until ApplicationContext is fully initialized
     }
 
+    /**
+     * Marks the attendance for a single student record.
+     *
+     * If the student is in PENDING status, marks them as PRESENT or LATE
+     * depending on lateness. If already PRESENT or LATE, updates their lastSeen
+     * timestamp respecting the cooldown period. Otherwise, the marking is
+     * skipped.
+     *
+     * @param record the attendance record to mark
+     * @throws Exception if attendance marking fails
+     */
     @Override
     public void markAttendance(AttendanceRecord record) throws Exception {
         try {
@@ -49,15 +67,20 @@ public class AutoAttendanceMarker implements AttendanceMarker {
             Student student = record.getStudent();
             Session session = record.getSession();
             LocalDateTime now = record.getTimestamp();
+            AttendanceRecord existingRecord
+                    = attendanceService.findById(student.getStudentId(), session.getSessionId());
 
-            AttendanceRecord existingRecord = attendanceService.findById(student.getStudentId(), session.getSessionId());
             if (existingRecord == null) {
                 existingRecord = record;
             }
 
-            String lastSeenMessage = "Updated last seen for " + student.getName() + " (StudentId: " + student.getStudentId() + ")";
-            String coolDownMessage = "Cooldown active for " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + ", skipping re-mark.";
-            String skippingMessage = "Skipping " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + ": already marked as " + existingRecord.getStatus();
+            String lastSeenMessage = "Updated last seen for " + student.getName()
+                    + " (StudentId: " + student.getStudentId() + ")";
+            String coolDownMessage = "Cooldown active for " + student.getName()
+                    + " (Student Id: " + student.getStudentId() + ")" + ", skipping re-mark.";
+            String skippingMessage = "Skipping " + student.getName()
+                    + " (Student Id: " + student.getStudentId() + ")"
+                    + ": already marked as " + existingRecord.getStatus();
 
             // if the student is not marked as present before (still in default PENDING status), update the student attendance
             if (existingRecord.getStatus() == AttendanceStatus.PENDING) {
@@ -66,7 +89,8 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 AttendanceStatus status = (minutesLate > session.getLateThresholdMinutes())
                         ? AttendanceStatus.LATE
                         : AttendanceStatus.PRESENT;
-                String message = "Marked " + student.getName() + " (Student Id: " + student.getStudentId() + ")" + " as " + status;
+                String message = "Marked " + student.getName() + " (Student Id: "
+                        + student.getStudentId() + ")" + " as " + status;
 
                 record.setStatus(status);
                 record.setTimestamp(now);
@@ -76,7 +100,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 attendanceService.updateRecord(record);
                 attendanceService.notifyMarked(message);
 
-                // student already marked then update last seen
+                // If student already marked then update last seen
             } else if (existingRecord.getStatus() == AttendanceStatus.PRESENT || existingRecord.getStatus() == AttendanceStatus.LATE) {
                 long secondsSinceLastSeen = AttendanceTimeUtils.secondsBetween(existingRecord.getLastSeen(), now);
 
@@ -104,15 +128,15 @@ public class AutoAttendanceMarker implements AttendanceMarker {
      */
     public void markPendingAttendanceAsAbsent(SessionRepository sessionRepository) {
         // AttendanceRecordRepository attendanceRecordRepo = new AttendanceRecordRepository();
-        List<Session> allSessions = sessionRepository.findAll();
+        List<Session> allSessions = sessionRepository.findAll(); // Extract all existing sessions
         LocalDateTime now = LocalDateTime.now();
-        boolean updatedAny = false;
+        boolean updatedAny = false; // Flag for whether any record is updated
 
         for (Session session : allSessions) {
             if (isSessionClosed(session)) {
                 boolean updated = updatePendingRecords(session, now);
                 if (updated) {
-                    updatedAny = true;
+                    updatedAny = true; // Set updatedAny as true when there's record being updated
                 }
             }
         }
@@ -141,10 +165,13 @@ public class AutoAttendanceMarker implements AttendanceMarker {
      */
     private boolean updatePendingRecords(Session session, LocalDateTime timestamp) {
         List<AttendanceRecord> pendingRecords = attendanceRecordRepo
-                .findPendingAttendanceBySessionId(session.getSessionId(), AttendanceStatus.PENDING);
+                .findPendingAttendanceBySessionId(
+                        session.getSessionId(),
+                        AttendanceStatus.PENDING);
 
         if (pendingRecords != null && !pendingRecords.isEmpty()) {
-            appLogger.info("AutoAttendanceMarker - Update records in session: " + session.getSessionId() + " with PENDING status to ABSENT after session closed.");
+            appLogger.info("AutoAttendanceMarker - Update records in session: "
+                    + session.getSessionId() + " with PENDING status to ABSENT after session closed.");
 
             for (AttendanceRecord record : pendingRecords) {
                 record.setStatus(AttendanceStatus.ABSENT);
@@ -153,7 +180,8 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 record.setNote("Auto-marked as Absent after session closed");
 
                 attendanceRecordRepo.update(record);
-                appLogger.info("AutoAttendanceMarker - Updated attendance to ABSENT for student: " + record.getStudent().getName());
+                appLogger.info("AutoAttendanceMarker - Updated attendance to ABSENT for student: "
+                        + record.getStudent().getName());
             }
         }
 
@@ -165,7 +193,10 @@ public class AutoAttendanceMarker implements AttendanceMarker {
      * Only refresh the UI if the cells are not being edited.
      */
     private void refreshAttendanceUI() {
-        AttendanceController attendanceController = (AttendanceController) ControllerRegistry.getInstance().getController("attendance");
+        AttendanceController attendanceController = (AttendanceController) ControllerRegistry
+                .getInstance()
+                .getController("attendance");
+
         if (attendanceController != null) {
             Platform.runLater(() -> {
                 boolean isEditing = attendanceController.getAttendanceTable().getEditingCell() != null;
