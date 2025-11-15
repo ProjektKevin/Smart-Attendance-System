@@ -211,16 +211,16 @@ public class EnrollmentController {
 							appLogger.info("Attempting to save image for student: " + studentId);
 							if (imageService.captureAndSaveImage(studentId, sharedFrame)) {
 								int count = captureCount.incrementAndGet();
-								attendanceLogger
-										.info("Successfully captured " + count + " images for " + studentId);
+								appLogger.info("Successfully captured " + count + " images for " + studentId);
 								Platform.runLater(() -> {
 									statusLabel.setText("Status: Capturing faces (" + count + "/" + MAX_CAPTURES + ")");
 								});
 							} else {
-								System.err.println("Failed to save image for student: " + studentId);
+								appLogger.error("Failed to save image for student: " + studentId);
 							}
 						} else {
 							appLogger.warn("No face detected in current frame");
+							statusLabel.setText("Please ensure only 1 person is present");
 						}
 					}
 				}

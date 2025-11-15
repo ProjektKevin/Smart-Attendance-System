@@ -43,6 +43,7 @@ public class StudentListController implements TabRefreshable {
 
     private final UserService userService = ApplicationContext.getUserService();
     private final AuthService authService = ApplicationContext.getAuthService();
+    private final ControllerRegistry registry = ControllerRegistry.getInstance();
 
     // Store all students for searching
     private List<UserListDTO> allStudents;
@@ -55,7 +56,7 @@ public class StudentListController implements TabRefreshable {
         loadStudents();
 
         // Register controller for tab refresh functionality
-        ControllerRegistry.getInstance().register("studentList", this);
+        registry.register("studentList", this);
     }
 
     // Call DB for student data and set the table columns
