@@ -2,14 +2,18 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <VBox xmlns:fx="http://javafx.com/fxml" fx:controller="com.smartattendance.controller.AttendanceController" spacing="10" style="-fx-padding: 10;">
+    <!-- Attendance page title -->
     <Label fx:id="lblSessionTitle" text="Attendance for Session"/>
     <!-- <Label fx:id="attendanceInfo" text="Attendance info (stub)"  -->
+    <!-- Attendance Summary Counter -->
     <Label fx:id="lblAttendanceSummary" text="Present: 0 / Late: 0 / Total: 0"
            style="-fx-font-weight: bold; -fx-padding: 5; -fx-border-color: black; -fx-border-width: 1; 
               -fx-border-radius: 4; -fx-background-radius: 4; -fx-background-color: #f0f0f0;"/>
+    <!-- Attendance info section -->
     <Label fx:id="attendanceInfo" maxWidth="1.7976931348623157E308" 
            style="-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;"/>
     
+    <!-- Fields in attendance table -->
     <TableView fx:id="attendanceTable" prefWidth="700" prefHeight="400">
     <!-- <TableView fx:id="attendanceTable" VBox.vgrow="ALWAYS"> -->
         <columns>
@@ -25,10 +29,12 @@
         </columns>
     </TableView>
 
+    <!-- Buttons to create, delete and save changes of a record -->
     <HBox spacing="10">
         <Button fx:id="createButton" text="Create" onAction="#onCreateRecord"/>
         <Button fx:id="deleteButton" text="Delete" onAction="#onDeleteRecord"/>
         <Button text="Save Changes" onAction="#onSaveChanges"/>
-        <Button text="Back" onAction="#onBack"/>
+        <Button fx:id="clearEditButton" text="Clear Edit" visible="false" managed="false" /> <!-- Clear changes -->
+        <Button text="Back" onAction="#onBack"/> <!-- Go back to sessionView page -->
     </HBox>
 </VBox>

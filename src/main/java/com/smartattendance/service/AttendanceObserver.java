@@ -1,22 +1,23 @@
-/*
- # Done by: Chue Wan Yan
- # Step: 7
- # Date: 13 Oct 2025
-*/
-
 package com.smartattendance.service;
-import com.smartattendance.model.entity.AttendanceRecord;
 
 /**
  * Observer interface for updating UI or logs when attendance changes.
  * Implements the Observer Design Pattern.
+ * 
+ * @author Chue Wan Yan 
+ * 
+ * @version 18:45 15 Nov 2025
  */
 public interface AttendanceObserver {
-    // F_MA: added by felicia handling marking attendance
+    /**
+     * Called when an attendance record has been marked. 
+     * Inherited by RecognitionObserver.
+     *
+     * @param message a message describing the attendance update event
+     */
+    void onAttendanceMarked(String message);
 
-    void onAttendanceMarked(AttendanceRecord record, String message);
-
-    void onAttendanceAutoUpdated();
+    // void onAttendanceAutoUpdated();
 
     // void attendanceUpdated(AttendanceRecord record);
 }

@@ -1,7 +1,8 @@
 package com.smartattendance;
 
 import com.smartattendance.config.Config;
-import com.smartattendance.controller.AttendanceController;
+// import com.smartattendance.controller.AttendanceController;
+import com.smartattendance.controller.RecognitionController;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AuthService;
@@ -26,7 +27,10 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  * The created instances are reused across the project avoid extra memo leak or
  * usage
  * 
- * @author Chue Wan Yan, Ernest Lun, Lim Jia Hui, Min Thet Khine, Thiha Swan Htet 
+ * Skeleton by @author Thiha Swan Htet
+ * Attendance related logics by @author Chue Wan Yan
+ * 
+ * @version 13:23 15 Nov 2025
  */
 public final class ApplicationContext {
 
@@ -43,10 +47,9 @@ public final class ApplicationContext {
     private static CourseService courseService;
     private static ImageService imageService;
 
-    // Busines Utils & Controller
+    // Busines Util
     // F_MA: added by felicia handling marking attendance
     private static AutoAttendanceUpdater autoAttendanceUpdater;
-    private static AttendanceController attendanceController;
 
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
@@ -55,6 +58,8 @@ public final class ApplicationContext {
 
     private static HistogramRecognizer histogramRecognizer;
     private static OpenFaceRecognizer openFaceRecognizer;
+
+    private static RecognitionController recognitionController;
 
     // Logger
     private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
@@ -109,17 +114,20 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
         autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
+        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         autoAttendanceUpdater.startAutoUpdate(60);
 
         // Apply recognition algorithm from the config
         applyRecognitionAlgorithm();
     }
 
-    public static AttendanceController getAttendanceController() {
-        return attendanceController;
-    }
+    // public static AttendanceController getAttendanceController() {
+    //     return attendanceController;
+    // }
 
+    /**
+     * Load OpenCV-related services
+     */
     public static void loadOpenCV() {
         try {
             // Load opencv locally
@@ -298,6 +306,26 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the RecognitionController instance.
+     * 
+     * @return RecognitionController
+     * @throws IllegalStateException if not initialized
+     */
+    public static RecognitionController getRecognitionController() {
+        checkInitialized();
+        return recognitionController;
+    }
+
+    /**
+     * Set the RecognitionController instance.
+     *
+     * @param controller the RecognitionController instance
+     */
+    public static void setRecognitionController(RecognitionController controller) {
+        recognitionController = controller;
+    }
+
+    /**
      * Get the ImageService instance.
      *
      * @return ImageService
@@ -377,6 +405,11 @@ public final class ApplicationContext {
         // Stop auto attendance updater
         if (autoAttendanceUpdater != null) {
             autoAttendanceUpdater.stopAutoUpdate();
+        }
+
+        // Stop recognition if active
+        if (recognitionController != null) {
+            recognitionController.stopAcquisition();
         }
 
         // Release camera resources
