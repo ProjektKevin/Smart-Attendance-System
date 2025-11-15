@@ -56,11 +56,11 @@
                     </content>
                 </Tab>
                 <!-- F_MA: modified by felicia handling marking attendance ##for testing -->
-                <Tab fx:id="tabRecognition" text="Recognition Testing">
+                <!-- <Tab fx:id="tabRecognition" text="Recognition Testing">
                     <content>
                         <fx:include source="RecognitionView.fxml" fx:id="recognitionView" />
                     </content>
-                </Tab>
+                </Tab> -->
                 <Tab fx:id="tabReports" text="Reports">
                     <content>
                         <fx:include source="ReportView.fxml" />

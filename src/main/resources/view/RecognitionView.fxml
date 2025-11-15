@@ -21,6 +21,7 @@
           <font><Font name="System Bold" size="24"/></font>
         </Label>
         <Label fx:id="statusLabel" text="Status: Ready" styleClass="muted"/>
+        <!-- Show attendance marking related message -->
         <Pane fx:id="toastPane" pickOnBounds="false" styleClass="toast-layer"/>
       </VBox>
     </top>
