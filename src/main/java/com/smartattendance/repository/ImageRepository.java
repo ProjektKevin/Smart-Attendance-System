@@ -10,12 +10,14 @@ import org.opencv.core.Mat;
 
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.util.OpenCVUtils;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 /**
  * Repository for face data persistence to Supabase
  * Handles all database operations for face_data table
  */
 public class ImageRepository {
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     /**
      * Retrieve histogram bytes for a student from face_data table
@@ -40,7 +42,7 @@ public class ImageRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error retrieving histogram for student " + studentId + ": " + e.getMessage());
+            appLogger.error("Error retrieving histogram for student " + studentId + ": " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -67,14 +69,14 @@ public class ImageRepository {
 
             ps.setInt(1, studentId);
             ps.setBytes(2, histogramBytes);
-            ps.setString(3, averageEmbeddingStringh); 
+            ps.setString(3, averageEmbeddingStringh);
             ps.setTimestamp(4, sqlCurrentTime);
 
             ps.executeUpdate();
             return true;
 
         } catch (SQLException e) {
-            System.err.println("Error inserting face data with embedding: " + e.getMessage());
+            appLogger.error("Error inserting face data with embedding: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -107,7 +109,7 @@ public class ImageRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error retrieving embedding for student " + studentId + ": " + e.getMessage());
+            appLogger.error("Error retrieving embedding for student " + studentId + ": " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -137,7 +139,7 @@ public class ImageRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error retrieving embedding string for student " + studentId + ": " + e.getMessage());
+            appLogger.error("Error retrieving embedding string for student " + studentId + ": " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -167,7 +169,7 @@ public class ImageRepository {
             return rowsAffected > 0;
 
         } catch (SQLException e) {
-            System.err.println("Error updating embedding for student " + studentId + ": " + e.getMessage());
+            appLogger.error("Error updating embedding for student " + studentId + ": " + e.getMessage());
             e.printStackTrace();
         }
 

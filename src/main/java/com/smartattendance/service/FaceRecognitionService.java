@@ -14,6 +14,7 @@ import com.smartattendance.service.recognition.HistogramRecognizer;
 import com.smartattendance.service.recognition.OpenFaceRecognizer;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.service.recognition.Recognizer;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public class FaceRecognitionService {
   private final FaceDetectionService faceDetectionService;
@@ -22,6 +23,9 @@ public class FaceRecognitionService {
   private Recognizer recognizer;
   private List<Student> enrolledStudents;
 
+  // Logger
+  private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
   // ----- Constructor -----
   public FaceRecognitionService(FaceDetectionService faceDetectionService) {
     this.faceDetectionService = faceDetectionService;
@@ -29,7 +33,7 @@ public class FaceRecognitionService {
     this.studentRepository = new StudentRepository();
     this.enrolledStudents = new ArrayList<>();
 
-    System.out.println("FaceRecognitionService initialized with HistogramRecognizer");
+    appLogger.info("FaceRecognitionService initialized with HistogramRecognizer");
   }
 
   // ----- Face Recognition Methods -----
@@ -53,12 +57,12 @@ public class FaceRecognitionService {
 
   public RecognitionResult recognizeFace(Mat faceROI) {
     if (faceROI == null || faceROI.empty()) {
-      System.out.println("Cannot recognize empty face ROI");
+      appLogger.error("Cannot recognize empty face ROI");
       return new RecognitionResult();
     }
 
     if (recognizer == null) {
-      System.err.println("ERROR: Recognizer not initialized! Call switchAlgorithm() first.");
+      appLogger.error("ERROR: Recognizer not initialized! Call switchAlgorithm() first.");
       return new RecognitionResult();
     }
 
@@ -79,7 +83,7 @@ public class FaceRecognitionService {
         if (faceRect.x < 0 || faceRect.y < 0 ||
             faceRect.x + faceRect.width > frame.cols() ||
             faceRect.y + faceRect.height > frame.rows()) {
-          System.out.println("Face rectangle out of bounds, skipping");
+          appLogger.warn("Face rectangle out of bounds, skipping");
           continue;
         }
 
@@ -87,7 +91,7 @@ public class FaceRecognitionService {
         faceROI = new Mat(frame, faceRect);
         faceROIs.add(faceROI.clone()); // Clone to avoid reference issues
       } catch (Exception e) {
-        System.out.println("Error extracting face ROI: " + e.getMessage());
+        appLogger.error("Error extracting face ROI", e);
       } finally {
         // Release the original Mat (we only need the clone)
         if (faceROI != null) {
@@ -101,7 +105,7 @@ public class FaceRecognitionService {
 
   // ----- Student Session Management ------
   public int loadEnrolledStudentsBySessionId(Integer sessionId) throws SQLException {
-    System.out.println("Loading enrolled students in sessionId: " + sessionId);
+    appLogger.info("Loading enrolled students in sessionId: " + sessionId);
 
     // Fetch students from repository
     List<Student> students = studentRepository.fetchEnrolledStudentsByCourse(sessionId);
@@ -113,21 +117,21 @@ public class FaceRecognitionService {
       this.enrolledStudents = students;
     }
 
-    System.out.println("Loaded " + students.size() + " students from sessionId " + sessionId);
+    appLogger.info("Loaded " + students.size() + " students from sessionId " + sessionId);
     return students.size();
   }
 
   public void switchAlgorithm(String algorithmName) {
     if (algorithmName == null) {
-      System.out.println("Algorithm name is null, defaulting to HISTOGRAM");
+      appLogger.warn("Algorithm name is null, defaulting to HISTOGRAM");
       algorithmName = "HISTOGRAM";
     }
 
-    System.out.println("Switching recognition algorithm to: " + algorithmName);
+    appLogger.info("Switching recognition algorithm to: " + algorithmName);
 
     if (algorithmName.equalsIgnoreCase("OPENFACE")) {
       if (ApplicationContext.getOpenFaceRecognizer() == null) {
-        System.err.println("OpenFace not available. Falling back to HISTOGRAM");
+        appLogger.error("OpenFace not available. Falling back to HISTOGRAM");
         this.recognizer = ApplicationContext.getHistogramRecognizer();
         algorithmName = "HISTOGRAM";
         Config.set("recognition.algorithm", algorithmName);
@@ -135,10 +139,10 @@ public class FaceRecognitionService {
       }
 
       this.recognizer = ApplicationContext.getOpenFaceRecognizer();
-      System.out.println("Using OpenFaceRecognizer (DNN-based)");
+      appLogger.info("Using OpenFaceRecognizer (DNN-based)");
     } else {
       this.recognizer = ApplicationContext.getHistogramRecognizer();
-      System.out.println("Using HistogramRecognizer");
+      appLogger.info("Using HistogramRecognizer");
       algorithmName = "HISTOGRAM"; // Name Normalization
     }
 
@@ -146,7 +150,7 @@ public class FaceRecognitionService {
   }
 
   // ----- Debugging Methods -----
-  // usage: System.out.println("Current algorithm: " +
+  // usage: appLogger.info("Current algorithm: " +
   // faceRecognitionService.getCurrentAlgorithm());
   public String getCurrentAlgorithm() {
     if (recognizer == null) {

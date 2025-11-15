@@ -3,10 +3,28 @@ package com.smartattendance.repository;
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.entity.User;
 import com.smartattendance.model.enums.Role;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import java.sql.*;
 
+/**
+ * Auth Repository
+ * Performs DB operations for all authentication of user
+ * Login, registration, invite, forget password
+ * 
+ * @author Thiha Swan Htet
+ */
 public class AuthRepository {
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
+    /**
+     * Retrieve User by the username
+     * Used for user login, and registration to check duplication
+     *
+     * @param username The username of the user
+     *
+     * @return User object
+     */
     public User findUserByUsername(String username) {
         String sql = "SELECT * FROM users WHERE username = ?";
 
@@ -34,6 +52,15 @@ public class AuthRepository {
         return null;
     }
 
+    /**
+     * Retrieve User by the email
+     * Used for adding more users (Admin panel)
+     * Used in forget password and user registration to check user existence
+     *
+     * @param email The email of the user
+     *
+     * @return User object
+     */
     public User findUserByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
 
@@ -61,6 +88,16 @@ public class AuthRepository {
         return null;
     }
 
+    /**
+     * User Invitation (Admin)
+     * Used for adding more users (Admin panel)
+     * Used in passing the form data from the AddUseraDialog
+     *
+     * @param email The email of the user
+     * @param role  The role of the user
+     *
+     * @return boolean: true if created, else -> false
+     */
     public boolean createEmailRole(String email, String role) {
         String sql = "INSERT INTO users(email, role) VALUES(?,?)";
         int rowsAffected = 0;
@@ -77,6 +114,15 @@ public class AuthRepository {
         return rowsAffected == 1;
     }
 
+    /**
+     * Update Password
+     * Used for forgot password
+     *
+     * @param userId The id of the user
+     * @param role   The hashed password of the user
+     *
+     * @return boolean: true if created, else -> false
+     */
     public boolean updatePassword(Integer userId, String hashedPassword) {
         String sql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
         int rowsAffected = 0;
@@ -99,8 +145,8 @@ public class AuthRepository {
      * Updates users table with username and password
      * Inserts into profile table with firstName and lastName
      *
-     * This is a transactional operation - both queries must succeed or both will be
-     * rolled back
+     * Transactional operation: if error occurs, should roll back for both tables
+     * integrity
      *
      * @param userId         The user ID (already exists from admin invitation)
      * @param username       The chosen username
@@ -120,7 +166,7 @@ public class AuthRepository {
             conn.setAutoCommit(false);
 
             try {
-                // Step 1: Update users table with username and password
+                // Update users table with username and password
                 try (PreparedStatement updateUserStmt = conn.prepareStatement(updateUserSql)) {
                     updateUserStmt.setString(1, username);
                     updateUserStmt.setString(2, hashedPassword);
@@ -130,12 +176,12 @@ public class AuthRepository {
                     int userRowsAffected = updateUserStmt.executeUpdate();
                     if (userRowsAffected != 1) {
                         conn.rollback();
-                        System.err.println("Failed to update user record");
+                        appLogger.error("Failed to update user record");
                         return false;
                     }
                 }
 
-                // Step 2: Insert into profile table with firstName and lastName
+                // Insert into profile table with firstName and lastName
                 try (PreparedStatement insertProfileStmt = conn.prepareStatement(insertProfileSql)) {
                     insertProfileStmt.setString(1, firstName);
                     insertProfileStmt.setString(2, lastName);
@@ -144,7 +190,7 @@ public class AuthRepository {
                     int profileRowsAffected = insertProfileStmt.executeUpdate();
                     if (profileRowsAffected != 1) {
                         conn.rollback();
-                        System.err.println("Failed to insert profile record");
+                        appLogger.error("Failed to insert profile record");
                         return false;
                     }
                 }
@@ -160,7 +206,7 @@ public class AuthRepository {
                 } catch (SQLException rollbackEx) {
                     rollbackEx.printStackTrace();
                 }
-                System.err.println("Transaction failed: " + e.getMessage());
+                appLogger.error("Transaction failed: " + e.getMessage());
                 e.printStackTrace();
                 return false;
 
@@ -174,8 +220,7 @@ public class AuthRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Database connection error: " + e.getMessage());
-            e.printStackTrace();
+            appLogger.error("Database connection error", e);
         }
 
         return false;

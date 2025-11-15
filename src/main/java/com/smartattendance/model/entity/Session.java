@@ -2,6 +2,8 @@ package com.smartattendance.model.entity;
 
 import java.time.*;
 
+import com.smartattendance.util.security.log.ApplicationLogger;
+
 public class Session extends AbstractEntity {
 
   private final String course, location;
@@ -12,6 +14,9 @@ public class Session extends AbstractEntity {
   private String status;
   private boolean autoStart;
   private boolean autoStop;
+
+  // Logger
+  private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
   // For session creation using form
   public Session(String course, LocalDate sessionDate,
@@ -93,9 +98,9 @@ public class Session extends AbstractEntity {
   // }
 
   public void open() {
-    System.out.println("Session: open() called - changing status from " + this.status + " to Open");
+    appLogger.info("Session: open() called - changing status from " + this.status + " to Open");
     this.status = "Open";
-    System.out.println("Session: Status is now: " + this.status);
+    appLogger.info("Session: Status is now: " + this.status);
   }
 
   public void close() {

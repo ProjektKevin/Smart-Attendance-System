@@ -4,6 +4,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import com.smartattendance.util.security.log.ApplicationLogger;
+
 /**
  * Validator Util to validate input fields
  * Base general validations
@@ -11,6 +13,7 @@ import java.util.regex.PatternSyntaxException;
  * @author Thiha Swan Htet
  */
 public class Validator {
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     /**
      * Method to validate if the user input is null
@@ -200,8 +203,7 @@ public class Validator {
             Matcher matcher = pattern.matcher(input);
             return matcher.find();
         } catch (PatternSyntaxException e) {
-            // chore(), Harry: Change back to logger if got time
-            System.out.println("Invalid regex pattern: " + e.getDescription());
+            appLogger.error("Invalid regex pattern: " + e.getDescription(), e);
             return false;
         }
     }

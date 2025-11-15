@@ -8,6 +8,7 @@ import com.smartattendance.model.dto.student.StudentProfileDTO;
 import com.smartattendance.model.dto.user.UserListDTO;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.service.UserService;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import java.util.List;
 
@@ -44,6 +45,7 @@ public class StudentListController implements TabRefreshable {
     private final UserService userService = ApplicationContext.getUserService();
     private final AuthService authService = ApplicationContext.getAuthService();
     private final ControllerRegistry registry = ControllerRegistry.getInstance();
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     // Store all students for searching
     private List<UserListDTO> allStudents;
@@ -194,6 +196,7 @@ public class StudentListController implements TabRefreshable {
                 // Call UI Warning Dialog
                 setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "No Courses Selected",
                         "Please select at least one course", "You must select at least one course to enroll.");
+                return;
             }
 
             // Execute deletions
@@ -220,13 +223,14 @@ public class StudentListController implements TabRefreshable {
 
             // Summary of the enrolled courses
             setInfoDialog(javafx.scene.control.Alert.AlertType.INFORMATION, "Enrollments Updated",
-                    "Please select at least one course",
+                    "Enrollment Successful",
                     summary.toString() + "\nStudent is now enrolled in " + newCourseIds.size()
                             + " course(s).");
 
         } catch (Exception e) {
             setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Error",
                     "Failed to Manage Enrollments", e.getMessage());
+            appLogger.error("Failed to Manage Enrollments", e);
             return;
         }
     }
@@ -254,15 +258,16 @@ public class StudentListController implements TabRefreshable {
         } catch (Exception e) {
             setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Error",
                     "Failed to Delete Student", e.getMessage());
+            appLogger.error("Error Deleting Student", e);
             return;
         }
     }
 
     @FXML
-    private void onAddStudent() {
+    private void onAddUser() {
         try {
             // Open Add Student dialog
-            AddStudentDialog dialog = new AddStudentDialog();
+            AddUserDialog dialog = new AddUserDialog();
             dialog.show();
 
             // Check if user submitted the form
@@ -279,7 +284,7 @@ public class StudentListController implements TabRefreshable {
             if (user != null) {
                 // User already exists - show error message
                 setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "User Already Exists",
-                        "Cannot Add Student", "A user with email '" + email + "' already exists.");
+                        "Cannot Add User", "A user with email '" + email + "' already exists.");
                 return;
             }
 
@@ -293,17 +298,18 @@ public class StudentListController implements TabRefreshable {
             if (isUserAdded) {
                 // Success message
                 setInfoDialog(javafx.scene.control.Alert.AlertType.INFORMATION, "Success",
-                        "Student Added", "User Added: " + email);
+                        "User Added", "User Added: " + email);
             } else {
                 // Failure message - invitation returned false
                 setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "Failed",
-                        "Could Not Add Student", "Failed to create account for: " + email);
+                        "Could Not Add User", "Failed to create account for: " + email);
                 return;
             }
 
         } catch (Exception e) {
             setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Error",
-                    "Failed to add student", e.getMessage());
+                    "Failed to Add User", e.getMessage());
+            appLogger.error("Error Adding User", e);
             return;
         }
     }

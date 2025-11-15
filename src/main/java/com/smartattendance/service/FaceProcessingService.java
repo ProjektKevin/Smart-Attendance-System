@@ -5,8 +5,19 @@ import org.opencv.core.Rect;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import com.smartattendance.util.security.log.ApplicationLogger;
+
+/**
+ * Process facial data
+ * Crop faces, grayscale, ...etc
+ * 
+ * @author Min Thet Khine, Thiha Swan Htet
+ */
 public class FaceProcessingService {
     private final FaceDetectionService faceDetectionService;
+
+    // Logger
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     // ===== Constructor =====
     public FaceProcessingService(FaceDetectionService faceDetectionService) {
@@ -29,7 +40,7 @@ public class FaceProcessingService {
             if (isProcessingHistogram) {
                 processedImg = convertToGrayscale(faceImg);
                 if (processedImg.empty()) {
-                    System.out.println("Failed to convert to grayscale");
+                    appLogger.error("Failed to convert to grayscale");
                     return new Mat();
                 }
             } else {
@@ -55,14 +66,14 @@ public class FaceProcessingService {
             // Step 2: Crop the face region
             croppedFace = cropDetectedFace(processedImg, faceRect);
             if (croppedFace.empty()) {
-                System.out.println("Failed to crop face");
+                appLogger.error("Failed to crop face");
                 return new Mat();
             }
 
             // Step 3: Resize to target dimensions
             resizedFace = resizeImage(croppedFace, targetWidth, targetHeight);
             if (resizedFace.empty()) {
-                System.out.println("Failed to resize face");
+                appLogger.error("Failed to resize face");
                 return new Mat();
             }
 
@@ -77,7 +88,7 @@ public class FaceProcessingService {
             return resizedFace;
 
         } catch (Exception e) {
-            System.err.println("Error preprocessing face: " + e.getMessage());
+            appLogger.error("Error preprocessing face: " + e.getMessage());
             return new Mat();
 
         } finally {
@@ -100,8 +111,7 @@ public class FaceProcessingService {
      */
     public Mat convertToGrayscale(Mat colorImg) {
         if (colorImg.empty() || colorImg == null) {
-            // chore(), Harry: Throw a custom error or built in error here
-            System.out.println("No image found!");
+            appLogger.error("No image found!");
         }
 
         Mat gray = new Mat();
@@ -114,7 +124,7 @@ public class FaceProcessingService {
 
     public Mat cropDetectedFace(Mat grayImg, Rect faceRect) {
         if (grayImg.empty() || faceRect.width <= 0 || faceRect.height <= 0) {
-            System.out.println("Invalid image or face rectangle");
+            appLogger.error("Invalid image or face rectangle");
             return new Mat(); // Return empty Mat or just throw custom Error
         }
 
@@ -122,7 +132,7 @@ public class FaceProcessingService {
         if (faceRect.x < 0 || faceRect.y < 0 ||
                 faceRect.x + faceRect.width > grayImg.cols() ||
                 faceRect.y + faceRect.height > grayImg.rows()) {
-            System.out.println("Face rectangle is out of image bounds");
+            appLogger.warn("Face rectangle is out of image bounds");
             return new Mat(); // Return empty Mat or just throw custom Error
         }
 
@@ -134,7 +144,7 @@ public class FaceProcessingService {
 
     public Mat resizeImage(Mat image, int width, int height) {
         if (image.empty()) {
-            System.out.println("No image found!");
+            appLogger.error("No image found!");
             return new Mat();
         }
 
@@ -144,6 +154,5 @@ public class FaceProcessingService {
 
         return resized;
     }
-
 
 }

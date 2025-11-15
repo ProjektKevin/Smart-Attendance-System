@@ -2,7 +2,7 @@ package com.smartattendance.model.entity;
 
 import com.smartattendance.model.enums.Role;
 
-public class User extends AbstractEntity {
+public class User {
   private Integer id;
   private String email;
   private String userName;

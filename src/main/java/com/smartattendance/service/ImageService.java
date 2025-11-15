@@ -159,13 +159,13 @@ public class ImageService {
             boolean persistSuccess = imageRepository.insertFaceData(studentId, histogramBytes, embeddingString);
 
             if (!persistSuccess) {
-                attendanceLogger.error("Failed to Persist Histogram and Embedding to Database");
+                appLogger.error("Failed to Persist Histogram and Embedding to Database");
                 // Cleanup on failure
                 cleanupCapturedImages(studentId);
                 return false;
             }
 
-            attendanceLogger.info("Histogram and Embedding Persisted to Database");
+            appLogger.info("Histogram and Embedding Persisted to Database");
 
             // Cleanup captured images
             appLogger.info("Cleaning Up Captured Images");
@@ -197,7 +197,7 @@ public class ImageService {
     private List<Mat> loadImagesFromDisk(Integer studentId) {
         List<Mat> images = new ArrayList<>();
 
-        String studentDir = CAPTURE_DIR + File.separator + studentId;
+        String studentDir = CAPTURE_DIR + File.separator + "student_" + studentId;
         File dir = new File(studentDir);
 
         if (!dir.exists() || !dir.isDirectory()) {
@@ -239,7 +239,7 @@ public class ImageService {
      * @param studentId the student ID
      */
     private void cleanupCapturedImages(Integer studentId) {
-        String studentDir = CAPTURE_DIR + File.separator + studentId;
+        String studentDir = CAPTURE_DIR + File.separator + "student_" + studentId;
         Path path = Paths.get(studentDir);
 
         try {

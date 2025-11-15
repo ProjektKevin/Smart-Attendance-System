@@ -150,7 +150,7 @@ public class SettingsController {
       statusLabel.setText("New Settings saved! ");
       statusLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
     } catch (Exception e) {
-      System.err.println("Error: " + e.getMessage());
+      appLogger.error("Error: " + e.getMessage());
       e.printStackTrace();
 
       statusLabel.setText("Error: Failed to save settings");

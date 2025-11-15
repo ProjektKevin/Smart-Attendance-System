@@ -49,8 +49,6 @@ public class EnrollmentController {
 	@FXML
 	private Button captureButton;
 	@FXML
-	private Button cancelButton;
-	@FXML
 	private Label statusLabel;
 	@FXML
 	private ImageView currentFrame;
@@ -181,6 +179,7 @@ public class EnrollmentController {
 			Platform.runLater(() -> {
 				this.captureButton.setText("Capturing...");
 				this.captureButton.setDisable(true);
+				this.button.setDisable(true);
 				this.statusLabel.setText("Status: Capturing faces (0/" + MAX_CAPTURES + ")");
 			});
 
@@ -245,7 +244,7 @@ public class EnrollmentController {
 				this.captureTimer.shutdown();
 				this.captureTimer.awaitTermination(100, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
-				System.err.println("Error stopping capture: " + e.getMessage());
+				appLogger.error("Error stopping capture: " + e.getMessage());
 			}
 		}
 
@@ -294,7 +293,6 @@ public class EnrollmentController {
 							} catch (Exception e) {
 								this.statusLabel.setText("Error Loading Student Portal: " + e.getMessage());
 								appLogger.error("Error Navigating to Student Portal", e);
-								e.printStackTrace();
 							}
 						} else {
 							this.statusLabel.setText("Status: Enrollment failed. Please try again.");
@@ -354,7 +352,7 @@ public class EnrollmentController {
 
 			} catch (Exception e) {
 				// log the error
-				System.err.println("Exception during the image elaboration: " + e);
+				appLogger.error("Exception during the image elaboration: " + e);
 			}
 		}
 	}
@@ -370,7 +368,7 @@ public class EnrollmentController {
 				this.timer.awaitTermination(33, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
 				// log any exception
-				System.err.println("Exception in stopping the frame capture, trying to release the camera now... " + e);
+				appLogger.error("Exception in stopping the frame capture, trying to release the camera now... " + e);
 			}
 		}
 
@@ -380,7 +378,7 @@ public class EnrollmentController {
 				this.captureTimer.shutdown();
 				this.captureTimer.awaitTermination(100, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
-				System.err.println("Exception in stopping capture timer: " + e);
+				appLogger.error("Exception in stopping capture timer: " + e);
 			}
 		}
 
@@ -390,7 +388,7 @@ public class EnrollmentController {
 				this.enrollmentExecutor.shutdown();
 				this.enrollmentExecutor.awaitTermination(500, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
-				System.err.println("Exception in stopping enrollment executor: " + e);
+				appLogger.error("Exception in stopping enrollment executor: " + e);
 			}
 		}
 

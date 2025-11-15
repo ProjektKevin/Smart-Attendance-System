@@ -14,9 +14,11 @@ import org.opencv.imgproc.Imgproc;
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.entity.FaceData;
 import com.smartattendance.service.FaceProcessingService;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public class HistogramRecognizer extends Recognizer {
   private final FaceProcessingService faceProcessingService;
+  private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
   // Image Dimensions
   private static final int DEFAULT_FACE_WIDTH = 100;
@@ -41,19 +43,19 @@ public class HistogramRecognizer extends Recognizer {
         try {
           Mat avgHistogram = computeAverageHistogram(faceData.getImages());
           if (avgHistogram.empty()) {
-            System.out.println("Failed to compute average histogram for student " + student.getName());
+            appLogger.error("Failed to compute average histogram for student " + student.getName());
             continue;
           }
 
           faceData.setHistogram(avgHistogram);
 
-          System.out.println("Got average Hist for " + student.getName());
+          appLogger.info("Got average Hist for " + student.getName());
         } catch (Exception e) {
-          System.out.println("Error processing student " + student.getName() + ": " + e.getMessage());
+          appLogger.error("Error processing student " + student.getName(), e);
           continue;
         }
       } else {
-        System.out.println("Student " + student.getName() + " has no face data");
+        appLogger.warn("Student " + student.getName() + " has no face data");
         continue;
       }
     }
@@ -62,12 +64,12 @@ public class HistogramRecognizer extends Recognizer {
   @Override
   public RecognitionResult recognize(Mat faceImage, List<Student> enrolledStudents) {
     if (faceImage.empty() || faceImage == null) {
-      System.out.println("Input face image is empty or null");
+      appLogger.error("Input face image is empty or null");
       return new RecognitionResult();
     }
 
     if (enrolledStudents.isEmpty() || enrolledStudents == null) {
-      System.out.println("No enrolled students to compare against");
+      appLogger.error("No enrolled students to compare against");
       return new RecognitionResult();
     }
     try {
@@ -101,7 +103,7 @@ public class HistogramRecognizer extends Recognizer {
             bestMatch = student;
           }
         } catch (Exception e) {
-          System.out.println("Error comparing histograms for student " + student.getName() + ": " + e.getMessage());
+          appLogger.error("Error comparing histograms for student " + student.getName(), e);
         }
       }
 
@@ -112,15 +114,15 @@ public class HistogramRecognizer extends Recognizer {
         // Convert correlation score to percentage (correlation is -1 to 1)
         double confidence = (bestScore + 1.0) * 50.0;
 
-        System.out.println("Best match: " + bestMatch.getName() +
+        appLogger.info("Best match: " + bestMatch.getName() +
             " with confidence: " + String.format("%.1f%%", confidence));
-            
+
         return new RecognitionResult(bestMatch, confidence);
       }
 
       return new RecognitionResult();
     } catch (Exception e) {
-      System.out.println("Error during recognition: " + e.getMessage());
+      appLogger.error("Error during recognition", e);
       return new RecognitionResult();
     }
   }
@@ -140,7 +142,7 @@ public class HistogramRecognizer extends Recognizer {
   // ----- Histogram Computation -----
   public Mat computeHistogram(Mat image) {
     if (image.empty()) {
-      System.out.println("Cannot compute histogram for empty image");
+      appLogger.error("Cannot compute histogram for empty image");
       return new Mat();
     }
 
@@ -160,7 +162,7 @@ public class HistogramRecognizer extends Recognizer {
 
       return hist;
     } catch (Exception e) {
-      System.err.println("Error computing histogram: " + e.getMessage());
+      appLogger.error("Error computing histogram: " + e.getMessage());
       if (!hist.empty()) {
         hist.release();
       }
@@ -200,7 +202,7 @@ public class HistogramRecognizer extends Recognizer {
       }
 
       if (validCount == 0) {
-        System.out.println("No valid images to compute average histogram");
+        appLogger.info("No valid images to compute average histogram");
         sumHistogram.release();
         return new Mat();
       }
@@ -209,10 +211,10 @@ public class HistogramRecognizer extends Recognizer {
       sumHistogram.convertTo(sumHistogram, sumHistogram.type(), 1.0 / validCount);
       Core.normalize(sumHistogram, sumHistogram, 0, 1, Core.NORM_MINMAX);
 
-      System.out.println("Computed average histogram from " + validCount + " images");
+      appLogger.info("Computed average histogram from " + validCount + " images");
       return sumHistogram;
     } catch (Exception e) {
-      System.err.println("Error computing average histogram: " + e.getMessage());
+      appLogger.error("Error computing average histogram: " + e.getMessage());
       return new Mat();
     }
   }

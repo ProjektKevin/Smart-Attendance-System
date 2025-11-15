@@ -24,7 +24,7 @@ import java.util.Map;
  * Takes email and role as inputs
  * @author Thiha Swan Htet
  */
-public class AddStudentDialog {
+public class AddUserDialog {
     private final Stage stage;
     private boolean submitted = false;
     private String resultEmail;
@@ -37,7 +37,7 @@ public class AddStudentDialog {
     private Label roleError;
     private Label statusLabel;
 
-    public AddStudentDialog() {
+    public AddUserDialog() {
         this.stage = new Stage();
         initializeDialog();
     }
@@ -150,7 +150,7 @@ public class AddStudentDialog {
         HBox panel = new HBox(10);
         panel.setStyle("-fx-alignment: center-right;");
 
-        Button submitBtn = new Button("Add Student");
+        Button submitBtn = new Button("Add User");
         submitBtn.setStyle("-fx-padding: 8 24; -fx-font-size: 12;");
         submitBtn.setOnAction(event -> handleAddStudent());
 
