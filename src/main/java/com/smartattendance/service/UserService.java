@@ -6,7 +6,7 @@ import com.smartattendance.model.dto.user.UserProfileDTO;
 import com.smartattendance.model.entity.Profile;
 import com.smartattendance.model.entity.User;
 import com.smartattendance.model.entity.Course;
-import com.smartattendance.repository.PostgresUserRepository;
+import com.smartattendance.repository.UserRepository;
 import com.smartattendance.repository.ProfileRepository;
 import com.smartattendance.repository.CourseRepository;
 
@@ -14,23 +14,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class UserService {
-    private final PostgresUserRepository userRepository;
+    private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final CourseRepository courseRepository;
 
     public UserService() {
-        this.userRepository = new PostgresUserRepository();
+        this.userRepository = new UserRepository();
         this.profileRepository = new ProfileRepository();
         this.courseRepository = new CourseRepository();
     }
 
-    public UserService(PostgresUserRepository userRepository, ProfileRepository profileRepository) {
+    public UserService(UserRepository userRepository, ProfileRepository profileRepository) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
         this.courseRepository = new CourseRepository();
     }
 
-    public UserService(PostgresUserRepository userRepository, ProfileRepository profileRepository,
+    public UserService(UserRepository userRepository, ProfileRepository profileRepository,
             CourseRepository courseRepository) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;

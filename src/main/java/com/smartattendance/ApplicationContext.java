@@ -163,8 +163,7 @@ public final class ApplicationContext {
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
             appLogger.info("Face Recognition Service Initialized");
             if (!openFaceRecognizer.isModelLoaded()) {
-                appLogger.warn("OpenFace Model Failed to Load! Recognition Will Not Work.");
-                System.err.println("WARNING: OpenFace Model Not Loaded. Check Model File Path.");
+                appLogger.warn("OpenFace Model Not Loaded. Check Model File Path.");
                 throw new IllegalStateException("OpenFace Model Required But Failed to Load");
             }
             appLogger.info("Face Recognition Service Initialized");
@@ -382,7 +381,7 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Stop auto attendance updater
         if (autoAttendanceUpdater != null) {
-        autoAttendanceUpdater.stopAutoUpdate();
+            autoAttendanceUpdater.stopAutoUpdate();
         }
 
         // Release camera resources

@@ -13,47 +13,45 @@ import com.smartattendance.model.dto.dashboard.AttendanceRecord;
 import com.smartattendance.model.dto.dashboard.DashboardFilter;
 import com.smartattendance.repository.DashboardRepository;
 import com.smartattendance.repository.JdbcDashboardRepository;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public class StudentAttendanceService {
 
     private final DashboardRepository repo = new JdbcDashboardRepository();
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     public List<StudentAttendanceRow> loadRowsForStudent(int studentId) {
         DashboardFilter filter = new DashboardFilter();
         filter.from = LocalDate.of(2020, 1, 1);
-        filter.to   = LocalDate.now().plusDays(1);
+        filter.to = LocalDate.now().plusDays(1);
 
         List<AttendanceRecord> all;
         try {
             all = repo.findAttendance(filter);
         } catch (Exception e) {
-            System.out.println("[StudentAttendanceService] fetch failed: " + e.getMessage());
-            e.printStackTrace();
+            appLogger.error("[StudentAttendanceService] fetch failed", e);
             return List.of();
         }
 
         List<StudentAttendanceRow> rows = new ArrayList<>();
         for (AttendanceRecord rec : all) {
-            if (rec.userId == null || rec.userId != studentId) continue;
+            if (rec.userId == null || rec.userId != studentId)
+                continue;
 
-            LocalDate date =
-                    rec.sessionDate != null ? rec.sessionDate :
-                    (rec.markedAt != null ? rec.markedAt.toLocalDate() : LocalDate.now());
+            LocalDate date = rec.sessionDate != null ? rec.sessionDate
+                    : (rec.markedAt != null ? rec.markedAt.toLocalDate() : LocalDate.now());
 
-            String course =
-                    (rec.courseCode != null && !rec.courseCode.isBlank())
-                            ? rec.courseCode
-                            : (rec.courseId != null ? "Course " + rec.courseId : "Unknown");
+            String course = (rec.courseCode != null && !rec.courseCode.isBlank())
+                    ? rec.courseCode
+                    : (rec.courseId != null ? "Course " + rec.courseId : "Unknown");
 
-            String status =
-                    (rec.status != null && !rec.status.isBlank())
-                            ? capitalize(rec.status)
-                            : "Pending";
+            String status = (rec.status != null && !rec.status.isBlank())
+                    ? capitalize(rec.status)
+                    : "Pending";
 
-            String method =
-                    (rec.method != null && !rec.method.isBlank())
-                            ? capitalize(rec.method)
-                            : "Unknown";
+            String method = (rec.method != null && !rec.method.isBlank())
+                    ? capitalize(rec.method)
+                    : "Unknown";
 
             String markedAtStr = (rec.markedAt != null)
                     ? rec.markedAt.toString().replace('T', ' ')
@@ -69,14 +67,13 @@ public class StudentAttendanceService {
             List<StudentAttendanceRow> master,
             String selectedCourse,
             LocalDate from,
-            LocalDate to
-    ) {
+            LocalDate to) {
         List<StudentAttendanceRow> filtered = master.stream()
                 .filter(r -> selectedCourse == null
                         || "All courses".equals(selectedCourse)
                         || r.getCourse().equals(selectedCourse))
                 .filter(r -> from == null || !r.getDate().isBefore(from))
-                .filter(r -> to   == null || !r.getDate().isAfter(to))
+                .filter(r -> to == null || !r.getDate().isAfter(to))
                 .sorted(Comparator.comparing(StudentAttendanceRow::getDate).reversed())
                 .toList();
 
@@ -117,7 +114,8 @@ public class StudentAttendanceService {
     }
 
     private static String capitalize(String s) {
-        if (s == null || s.isBlank()) return s;
+        if (s == null || s.isBlank())
+            return s;
         s = s.toLowerCase();
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }

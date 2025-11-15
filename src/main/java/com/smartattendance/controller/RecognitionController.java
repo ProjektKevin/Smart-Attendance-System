@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
@@ -45,6 +46,8 @@ import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
 // // F_MA: modified by felicia handling marking attendance ##for testing
 // import com.smartattendance.service.RecognitionServiceTest;
+import com.smartattendance.util.security.log.ApplicationLogger;
+import com.smartattendance.util.security.log.AttendanceLogger;
 
 /**
  * Controller for managing face recognition and attendance logging and update.
@@ -114,7 +117,9 @@ public class RecognitionController implements RecognitionObserver {
     // Recognition cooldown to avoid spam
     private long lastRecognitionTime = 0;
     private long lastAlertTime = 0;
-    private static final long RECOGNITION_COOLDOWN_MS = 10000; // 10 seconds
+    private static final long RECOGNITION_COOLDOWN_MS = Long.parseLong(Config.get("cooldown.seconds")) * 1000; // * 1000
+                                                                                                               // //
+                                                                                                               // milliseconds
     private static final long ALERT_COOLDOWN_MS = 5000; // 5 seconds
 
     // Time formatter for logs
@@ -128,6 +133,9 @@ public class RecognitionController implements RecognitionObserver {
 
     // F_MA: modified by felicia handling marking attendance ##for testing
     // private RecognitionServiceTest testService;
+    // Logger
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+    private final AttendanceLogger attendanceLogger = AttendanceLogger.getInstance();
 
     // =======================================================================
     /**
@@ -141,6 +149,10 @@ public class RecognitionController implements RecognitionObserver {
         faceDetectionService = ApplicationContext.getFaceDetectionService();
         faceRecognitionService = ApplicationContext.getFaceRecognitionService();
 
+        this.startButton.setText("Start Recognition");
+        this.startButton.setStyle(
+                "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
+
         statusLabel.setText("Status: Loading...");
         cameraStatusLabel.setText("Camera: Disconnected");
         modelStatusLabel.setText("Model: Not Loaded");
@@ -151,9 +163,9 @@ public class RecognitionController implements RecognitionObserver {
      */
     @FXML
     private void startRecognition() {
-        System.out.println("started loading student list");
+        appLogger.info("started loading student list");
         loadSessionStudentsAsync();
-        System.out.println("Loading done!");
+        appLogger.info("Loading done!");
 
         // Check parametes
 
@@ -207,7 +219,7 @@ public class RecognitionController implements RecognitionObserver {
 
             } else {
                 // Camera failed to open
-                System.err.println("Camera Connection Failed");
+                appLogger.error("Camera Connection Failed");
                 statusLabel.setText("Status: Camera Error");
             }
 
@@ -257,7 +269,7 @@ public class RecognitionController implements RecognitionObserver {
     private void clearHistory() {
         // Empty method stub for FXML
         recognitionListView.getItems().clear();
-        System.out.println("Clear history button clicked");
+        appLogger.info("Clear history button clicked");
     }
 
     // ======= Helper Functions =======
@@ -308,7 +320,7 @@ public class RecognitionController implements RecognitionObserver {
 
             } catch (Exception e) {
                 // log the error
-                System.err.println("Exception during the image elaboration: " + e);
+                appLogger.error("Exception during the image elaboration: " + e);
             }
         }
 
@@ -326,7 +338,7 @@ public class RecognitionController implements RecognitionObserver {
                 this.timer.awaitTermination(33, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 // log any exception
-                System.err.println("Exception in stopping the frame capture, trying to release the camera now... " + e);
+                appLogger.error("Exception in stopping the frame capture, trying to release the camera now... " + e);
             }
         }
 
@@ -397,7 +409,7 @@ public class RecognitionController implements RecognitionObserver {
         // Check if there's an active session
         Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
         if (sessionId == null) {
-            System.out.println("No active session - cannot mark attendance");
+            appLogger.info("No active session - cannot mark attendance");
             return;
         }
 
@@ -432,9 +444,9 @@ public class RecognitionController implements RecognitionObserver {
 
         // Console log
         if (isNewStudent) {
-            System.out.println("NEW STUDENT RECOGNIZED: " + logEntry);
+            appLogger.info("NEW STUDENT RECOGNIZED: " + logEntry);
         } else {
-            System.out.println("STUDENT RE-DETECTED: " + logEntry);
+            appLogger.info("STUDENT RE-DETECTED: " + logEntry);
         }
 
         CompletableFuture.runAsync(() -> {
@@ -442,7 +454,7 @@ public class RecognitionController implements RecognitionObserver {
                 // Get full session object
                 Session session = ApplicationContext.getSessionService().findById(sessionId);
                 if (session == null) {
-                    System.out.println("Session not found - cannot mark attendance");
+                    appLogger.info("Session not found - cannot mark attendance");
                     return;
                 }
 
@@ -455,12 +467,12 @@ public class RecognitionController implements RecognitionObserver {
                         LocalDateTime.now());
 
                 // Pass to attendance service
-                System.out.println("calling mark attendance now");
+                appLogger.info("calling mark attendance now");
                 ApplicationContext.getAttendanceService().markAttendance(record);
 
-                System.out.println("Attendance record created for: " + studentName);
+                attendanceLogger.info("Attendance record created for: " + studentName);
             } catch (Exception e) {
-                System.err.println("Error creating attendance record: " + e.getMessage());
+                appLogger.error("Error creating attendance record: " + e.getMessage());
             }
         });
     }
@@ -471,7 +483,7 @@ public class RecognitionController implements RecognitionObserver {
      * @param confidence The recognition confidence
      */
     private void logUnknownFace(double confidence) {
-        System.out.println("Unknown face detected with confidence: " + confidence);
+        appLogger.info("Unknown face detected with confidence: " + confidence);
 
         totalDetections++;
 
@@ -502,7 +514,7 @@ public class RecognitionController implements RecognitionObserver {
             }
         });
 
-        System.out.println("UNKNOWN FACE: " + logEntry);
+        appLogger.info("UNKNOWN FACE: " + logEntry);
     }
 
     /**
@@ -531,12 +543,12 @@ public class RecognitionController implements RecognitionObserver {
      * Loads enrolled students for the current session asynchronously if any.
      */
     private void loadSessionStudentsAsync() {
-        System.out.println("Start loading session students asynchronously");
+        appLogger.info("Start loading session students asynchronously");
         new Thread(() -> {
             try {
                 // Check if there's an active session
                 if (!ApplicationContext.getAuthSession().hasActiveSession()) {
-                    System.out.println("No active session");
+                    appLogger.info("No active session");
                     Platform.runLater(() -> {
                         modelStatusLabel.setText("Model: No Active Session");
                         statusLabel.setText("Status: Please start a session first");
@@ -546,7 +558,7 @@ public class RecognitionController implements RecognitionObserver {
 
                 // Get the active session ID
                 Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
-                System.out.println("Active session ID: " + sessionId);
+                appLogger.info("Active session ID: " + sessionId);
 
                 // Load students from database
                 int studentCount = faceRecognitionService.loadEnrolledStudentsBySessionId(sessionId);
@@ -562,17 +574,17 @@ public class RecognitionController implements RecognitionObserver {
                             startButton.setDisable(false);
                         }
 
-                        System.out.println("Successfully loaded " + studentCount + " students");
+                        appLogger.info("Successfully loaded " + studentCount + " students");
                     } else {
                         modelStatusLabel.setText("Model: No Students Found");
                         statusLabel.setText("Status: No enrolled students");
 
-                        System.out.println("No enrolled students found in database");
+                        appLogger.info("No enrolled students found in database");
                     }
                 });
 
             } catch (Exception e) {
-                System.err.println("Error loading students: " + e.getMessage());
+                appLogger.error("Error loading students: " + e.getMessage());
                 e.printStackTrace();
 
                 // Update UI on JavaFX thread
@@ -580,7 +592,7 @@ public class RecognitionController implements RecognitionObserver {
                     modelStatusLabel.setText("Model: Error");
                     statusLabel.setText("Status: Database Error");
 
-                    System.out.println("Failed to load session students from database");
+                    appLogger.info("Failed to load session students from database");
                 });
             }
         }).start();

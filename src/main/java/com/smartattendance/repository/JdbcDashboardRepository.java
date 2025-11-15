@@ -2,7 +2,6 @@ package com.smartattendance.repository;
 
 import java.sql.Connection;
 import java.sql.Date;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,46 +10,13 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import com.smartattendance.model.dto.dashboard.AttendanceRecord;
 import com.smartattendance.model.dto.dashboard.DashboardFilter;
 import com.smartattendance.model.dto.dashboard.DashboardTopCards;
+import com.smartattendance.config.DatabaseUtil;
 
 public class JdbcDashboardRepository implements DashboardRepository {
-
-    private final String dbUrl;
-    private final String dbUser;
-    private final String dbPass;
-    private final String dbSslMode;
-
-    public JdbcDashboardRepository() {
-        // Strict: fail fast if any required variable is missing.
-        this.dbUrl    = envOrThrow("DATABASE_URL");     // e.g. jdbc:postgresql://host:5432/dbname
-        this.dbUser   = envOrThrow("DATABASE_USER");    // e.g. postgres
-        this.dbPass   = envOrThrow("DATABASE_PASSWORD");// e.g. ********
-        // Optional (good default for cloud providers). Accepts: require, prefer, disable...
-        this.dbSslMode = System.getenv().getOrDefault("DATABASE_SSLMODE", "require");
-    }
-
-    private static String envOrThrow(String key) {
-        String v = System.getenv(key);
-        if (v == null || v.isBlank()) {
-            throw new IllegalStateException("Missing required environment variable: " + key);
-        }
-        return v;
-    }
-
-    private Connection openConnection() throws SQLException {
-        // Use properties (user/password/sslmode) instead of embedding user in the URL.
-        Properties props = new Properties();
-        props.setProperty("user", dbUser);
-        props.setProperty("password", dbPass);
-        if (dbSslMode != null && !dbSslMode.isBlank()) {
-            props.setProperty("sslmode", dbSslMode);
-        }
-        return DriverManager.getConnection(dbUrl, props);
-    }
 
     @Override
     public List<AttendanceRecord> findAttendance(DashboardFilter filter) throws SQLException {
@@ -58,13 +24,13 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT a.marked_at, a.status, a.method, a.confidence, a.note, ")
-          .append("a.user_id, u.username, a.session_id, ")
-          .append("s.session_date, s.start_time, s.course_id, c.course_code ")
-          .append("FROM attendance a ")
-          .append("LEFT JOIN users u ON a.user_id = u.user_id ")
-          .append("LEFT JOIN sessions s ON a.session_id = s.session_id ")
-          .append("LEFT JOIN courses c ON s.course_id = c.course_id ")
-          .append("WHERE 1=1 ");
+                .append("a.user_id, u.username, a.session_id, ")
+                .append("s.session_date, s.start_time, s.course_id, c.course_code ")
+                .append("FROM attendance a ")
+                .append("LEFT JOIN users u ON a.user_id = u.user_id ")
+                .append("LEFT JOIN sessions s ON a.session_id = s.session_id ")
+                .append("LEFT JOIN courses c ON s.course_id = c.course_id ")
+                .append("WHERE 1=1 ");
 
         List<Object> params = new ArrayList<>();
 
@@ -87,8 +53,8 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
         sb.append("ORDER BY a.marked_at DESC");
 
-        try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sb.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
@@ -135,41 +101,61 @@ public class JdbcDashboardRepository implements DashboardRepository {
     public DashboardTopCards computeTopCards(DashboardFilter filter) throws SQLException {
         int students = 0;
         int sessions = 0;
-        int present  = 0;
+        int present = 0;
 
         List<String> wantedStatuses = new ArrayList<>();
-        if (filter.includePresent) wantedStatuses.add("Present");
-        if (filter.includeLate)    wantedStatuses.add("Late");
-        if (filter.includeAbsent)  wantedStatuses.add("Absent");
-        if (filter.includePending) wantedStatuses.add("Pending");
+        if (filter.includePresent)
+            wantedStatuses.add("Present");
+        if (filter.includeLate)
+            wantedStatuses.add("Late");
+        if (filter.includeAbsent)
+            wantedStatuses.add("Absent");
+        if (filter.includePending)
+            wantedStatuses.add("Pending");
 
-        try (Connection conn = openConnection()) {
+        try (Connection conn = DatabaseUtil.getConnection()) {
             // students
             StringBuilder stu = new StringBuilder(
                     "SELECT COUNT(DISTINCT a.user_id) AS cnt " +
-                    "FROM attendance a " +
-                    "LEFT JOIN sessions s ON a.session_id = s.session_id " +
-                    "WHERE 1=1 ");
+                            "FROM attendance a " +
+                            "LEFT JOIN sessions s ON a.session_id = s.session_id " +
+                            "WHERE 1=1 ");
             List<Object> params = new ArrayList<>();
-            if (filter.from != null) { stu.append("AND a.marked_at::date >= ? "); params.add(Date.valueOf(filter.from)); }
-            if (filter.to   != null) { stu.append("AND a.marked_at::date <= ? "); params.add(Date.valueOf(filter.to)); }
-            if (filter.courseId != null) { stu.append("AND s.course_id = ? "); params.add(filter.courseId); }
-            if (filter.sessionId != null){ stu.append("AND a.session_id = ? "); params.add(filter.sessionId); }
+            if (filter.from != null) {
+                stu.append("AND a.marked_at::date >= ? ");
+                params.add(Date.valueOf(filter.from));
+            }
+            if (filter.to != null) {
+                stu.append("AND a.marked_at::date <= ? ");
+                params.add(Date.valueOf(filter.to));
+            }
+            if (filter.courseId != null) {
+                stu.append("AND s.course_id = ? ");
+                params.add(filter.courseId);
+            }
+            if (filter.sessionId != null) {
+                stu.append("AND a.session_id = ? ");
+                params.add(filter.sessionId);
+            }
             if (!wantedStatuses.isEmpty()) {
                 stu.append("AND a.status IN (");
                 for (int i = 0; i < wantedStatuses.size(); i++) {
                     stu.append("?");
-                    if (i < wantedStatuses.size() - 1) stu.append(",");
+                    if (i < wantedStatuses.size() - 1)
+                        stu.append(",");
                 }
                 stu.append(") ");
             }
 
             try (PreparedStatement ps = conn.prepareStatement(stu.toString())) {
                 int idx = 1;
-                for (Object o : params) ps.setObject(idx++, o);
-                for (String s : wantedStatuses) ps.setString(idx++, s);
+                for (Object o : params)
+                    ps.setObject(idx++, o);
+                for (String s : wantedStatuses)
+                    ps.setString(idx++, s);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) students = rs.getInt("cnt");
+                    if (rs.next())
+                        students = rs.getInt("cnt");
                 }
             }
 
@@ -177,7 +163,8 @@ public class JdbcDashboardRepository implements DashboardRepository {
                 try (PreparedStatement ps = conn.prepareStatement(
                         "SELECT COUNT(*) FROM users WHERE role = 'STUDENT'")) {
                     try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) students = rs.getInt(1);
+                        if (rs.next())
+                            students = rs.getInt(1);
                     }
                 }
             }
@@ -188,14 +175,25 @@ public class JdbcDashboardRepository implements DashboardRepository {
             } else {
                 StringBuilder ssb = new StringBuilder("SELECT COUNT(*) FROM sessions WHERE 1=1 ");
                 List<Object> p2 = new ArrayList<>();
-                if (filter.from != null) { ssb.append("AND session_date >= ? "); p2.add(Date.valueOf(filter.from)); }
-                if (filter.to   != null) { ssb.append("AND session_date <= ? "); p2.add(Date.valueOf(filter.to)); }
-                if (filter.courseId != null) { ssb.append("AND course_id = ? "); p2.add(filter.courseId); }
+                if (filter.from != null) {
+                    ssb.append("AND session_date >= ? ");
+                    p2.add(Date.valueOf(filter.from));
+                }
+                if (filter.to != null) {
+                    ssb.append("AND session_date <= ? ");
+                    p2.add(Date.valueOf(filter.to));
+                }
+                if (filter.courseId != null) {
+                    ssb.append("AND course_id = ? ");
+                    p2.add(filter.courseId);
+                }
 
                 try (PreparedStatement ps = conn.prepareStatement(ssb.toString())) {
-                    for (int i = 0; i < p2.size(); i++) ps.setObject(i+1, p2.get(i));
+                    for (int i = 0; i < p2.size(); i++)
+                        ps.setObject(i + 1, p2.get(i));
                     try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) sessions = rs.getInt(1);
+                        if (rs.next())
+                            sessions = rs.getInt(1);
                     }
                 }
             }
@@ -204,18 +202,32 @@ public class JdbcDashboardRepository implements DashboardRepository {
             if (filter.includePresent) {
                 StringBuilder p = new StringBuilder(
                         "SELECT COUNT(*) FROM attendance a " +
-                        "LEFT JOIN sessions s ON a.session_id = s.session_id " +
-                        "WHERE a.status = 'Present' ");
+                                "LEFT JOIN sessions s ON a.session_id = s.session_id " +
+                                "WHERE a.status = 'Present' ");
                 List<Object> pp = new ArrayList<>();
-                if (filter.from != null) { p.append("AND a.marked_at::date >= ? "); pp.add(Date.valueOf(filter.from)); }
-                if (filter.to   != null) { p.append("AND a.marked_at::date <= ? "); pp.add(Date.valueOf(filter.to)); }
-                if (filter.courseId != null) { p.append("AND s.course_id = ? "); pp.add(filter.courseId); }
-                if (filter.sessionId != null){ p.append("AND a.session_id = ? "); pp.add(filter.sessionId); }
+                if (filter.from != null) {
+                    p.append("AND a.marked_at::date >= ? ");
+                    pp.add(Date.valueOf(filter.from));
+                }
+                if (filter.to != null) {
+                    p.append("AND a.marked_at::date <= ? ");
+                    pp.add(Date.valueOf(filter.to));
+                }
+                if (filter.courseId != null) {
+                    p.append("AND s.course_id = ? ");
+                    pp.add(filter.courseId);
+                }
+                if (filter.sessionId != null) {
+                    p.append("AND a.session_id = ? ");
+                    pp.add(filter.sessionId);
+                }
 
                 try (PreparedStatement ps = conn.prepareStatement(p.toString())) {
-                    for (int i = 0; i < pp.size(); i++) ps.setObject(i+1, pp.get(i));
+                    for (int i = 0; i < pp.size(); i++)
+                        ps.setObject(i + 1, pp.get(i));
                     try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) present = rs.getInt(1);
+                        if (rs.next())
+                            present = rs.getInt(1);
                     }
                 }
             }
@@ -229,9 +241,9 @@ public class JdbcDashboardRepository implements DashboardRepository {
         List<String> out = new ArrayList<>();
         out.add("All");
         String sql = "SELECT course_id, course_code, course_name FROM courses ORDER BY course_code";
-        try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 int id = rs.getInt("course_id");
                 String code = rs.getString("course_code");
@@ -258,15 +270,16 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sb.toString())) {
 
-            for (int i = 0; i < params.size(); i++) ps.setObject(i+1, params.get(i));
+            for (int i = 0; i < params.size(); i++)
+                ps.setObject(i + 1, params.get(i));
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     int sid = rs.getInt("session_id");
-                    Date d  = rs.getDate("session_date");
+                    Date d = rs.getDate("session_date");
                     Timestamp st = rs.getTimestamp("start_time");
 
                     String label = String.valueOf(sid);
@@ -296,8 +309,8 @@ public class JdbcDashboardRepository implements DashboardRepository {
 
         DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             if (courseId != null) {
                 ps.setInt(1, courseId);
@@ -306,7 +319,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     int sid = rs.getInt("session_id");
-                    Date d  = rs.getDate("session_date");
+                    Date d = rs.getDate("session_date");
                     Timestamp st = rs.getTimestamp("start_time");
 
                     String label = String.valueOf(sid);

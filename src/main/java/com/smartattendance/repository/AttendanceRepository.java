@@ -15,50 +15,22 @@ import java.util.Properties;
 
 import com.smartattendance.service.AttendanceReportService;
 import com.smartattendance.util.report.AttendanceReportRow;
+import com.smartattendance.config.DatabaseUtil;
 
 public class AttendanceRepository {
-
-    private final String dbUrl;
-    private final String dbUser;
-    private final String dbPass;
-    private final String dbSslMode;
-
-    public AttendanceRepository() {
-        this.dbUrl    = envOrThrow("DATABASE_URL");      // e.g. jdbc:postgresql://host:5432/postgres
-        this.dbUser   = envOrThrow("DATABASE_USER");     // e.g. postgres
-        this.dbPass   = envOrThrow("DATABASE_PASSWORD"); // e.g. ********
-        this.dbSslMode = System.getenv().getOrDefault("DATABASE_SSLMODE", "require");
-    }
-
-    private static String envOrThrow(String key) {
-        String v = System.getenv(key);
-        if (v == null || v.isBlank()) {
-            throw new IllegalStateException("Missing required environment variable: " + key);
-        }
-        return v;
-    }
-
-    private Connection openConnection() throws SQLException {
-        Properties props = new Properties();
-        props.setProperty("user", dbUser);
-        props.setProperty("password", dbPass);
-        if (dbSslMode != null && !dbSslMode.isBlank()) props.setProperty("sslmode", dbSslMode);
-        return DriverManager.getConnection(dbUrl, props);
-    }
 
     /* ===== combos ===== */
 
     public List<String> fetchSessionOptions() {
         List<String> out = new ArrayList<>();
         out.add("All");
-        String sql =
-            "SELECT s.session_id, s.session_date, s.start_time, c.course_code, c.course_name " +
-            "FROM sessions s " +
-            "LEFT JOIN courses c ON s.course_id = c.course_id " +
-            "ORDER BY s.session_date DESC, s.start_time DESC";
-        try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        String sql = "SELECT s.session_id, s.session_date, s.start_time, c.course_code, c.course_name " +
+                "FROM sessions s " +
+                "LEFT JOIN courses c ON s.course_id = c.course_id " +
+                "ORDER BY s.session_date DESC, s.start_time DESC";
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 int id = rs.getInt("session_id");
@@ -85,9 +57,9 @@ public class AttendanceRepository {
         List<String> out = new ArrayList<>();
         out.add("All");
         String sql = "SELECT course_id, course_code, course_name FROM courses ORDER BY course_code";
-        try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 int id = rs.getInt("course_id");
@@ -102,15 +74,14 @@ public class AttendanceRepository {
     }
 
     public AttendanceReportService.LatestSessionInfo fetchLatestSession() {
-        String sql =
-            "SELECT s.session_id, s.session_date, s.start_time, s.course_id, c.course_code, c.course_name " +
-            "FROM sessions s " +
-            "LEFT JOIN courses c ON s.course_id = c.course_id " +
-            "ORDER BY s.session_date DESC, s.start_time DESC " +
-            "LIMIT 1";
-        try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        String sql = "SELECT s.session_id, s.session_date, s.start_time, s.course_id, c.course_code, c.course_name " +
+                "FROM sessions s " +
+                "LEFT JOIN courses c ON s.course_id = c.course_id " +
+                "ORDER BY s.session_date DESC, s.start_time DESC " +
+                "LIMIT 1";
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             if (rs.next()) {
                 AttendanceReportService.LatestSessionInfo info = new AttendanceReportService.LatestSessionInfo();
@@ -144,32 +115,31 @@ public class AttendanceRepository {
     /* ===== data for report ===== */
 
     public List<AttendanceReportRow> findAttendance(LocalDate from,
-                                                    LocalDate to,
-                                                    String sessionDisplay,
-                                                    String courseDisplay,
-                                                    String status,
-                                                    String method,
-                                                    String confidenceExpr) {
+            LocalDate to,
+            String sessionDisplay,
+            String courseDisplay,
+            String status,
+            String method,
+            String confidenceExpr) {
         List<AttendanceReportRow> out = new ArrayList<>();
 
         StringBuilder sb = new StringBuilder(
-            "SELECT " +
-            "a.marked_at, " +
-            "a.session_id, " +
-            "a.user_id, " +
-            "u.username, " +
-            "a.status, " +
-            "a.method, " +
-            "a.note, " +
-            "a.confidence, " +
-            "c.course_code, " +
-            "c.course_id " +
-            "FROM attendance a " +
-            "JOIN sessions s ON a.session_id = s.session_id " +
-            "JOIN courses  c ON s.course_id = c.course_id " +
-            "LEFT JOIN users u ON a.user_id = u.user_id " +
-            "WHERE 1=1 "
-        );
+                "SELECT " +
+                        "a.marked_at, " +
+                        "a.session_id, " +
+                        "a.user_id, " +
+                        "u.username, " +
+                        "a.status, " +
+                        "a.method, " +
+                        "a.note, " +
+                        "a.confidence, " +
+                        "c.course_code, " +
+                        "c.course_id " +
+                        "FROM attendance a " +
+                        "JOIN sessions s ON a.session_id = s.session_id " +
+                        "JOIN courses  c ON s.course_id = c.course_id " +
+                        "LEFT JOIN users u ON a.user_id = u.user_id " +
+                        "WHERE 1=1 ");
 
         List<Object> params = new ArrayList<>();
 
@@ -218,8 +188,8 @@ public class AttendanceRepository {
 
         sb.append("ORDER BY a.marked_at DESC");
 
-        try (Connection conn = openConnection();
-             PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sb.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
@@ -230,7 +200,8 @@ public class AttendanceRepository {
                     AttendanceReportRow r = new AttendanceReportRow();
 
                     Timestamp ts = rs.getTimestamp("marked_at");
-                    if (ts != null) r.setTimestamp(ts.toLocalDateTime());
+                    if (ts != null)
+                        r.setTimestamp(ts.toLocalDateTime());
 
                     r.setSessionId(String.valueOf(rs.getInt("session_id")));
                     r.setCourseCode(rs.getString("course_code"));
@@ -241,7 +212,8 @@ public class AttendanceRepository {
                     r.setNote(rs.getString("note"));
 
                     Object conf = rs.getObject("confidence");
-                    if (conf != null) r.setConfidence(String.valueOf(conf));
+                    if (conf != null)
+                        r.setConfidence(String.valueOf(conf));
 
                     out.add(r);
                 }
@@ -256,7 +228,8 @@ public class AttendanceRepository {
     }
 
     private Integer parseIdFromDisplay(String val) {
-        if (val == null || val.isBlank() || "All".equals(val)) return null;
+        if (val == null || val.isBlank() || "All".equals(val))
+            return null;
         String[] parts = val.split(" - ", 2);
         try {
             return Integer.parseInt(parts[0].trim());

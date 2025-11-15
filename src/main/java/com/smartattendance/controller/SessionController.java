@@ -16,6 +16,7 @@ import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
 // import com.smartattendance.util.ControllerRegistry;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -103,6 +104,9 @@ public class SessionController {
     // F_MA: added by felicia handling marking attendance
     private AttendanceController attendanceController; // store reference
 
+    // Logger
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
     @FXML
     public void initialize() {
         // Apply initial styling to the info label
@@ -155,7 +159,8 @@ public class SessionController {
 
         // Auto session processor - runs every 30 seconds
         Timeline autoSessionProcessor = new Timeline(new KeyFrame(Duration.seconds(30), e -> {
-            // System.out.println("SessionController: Auto-session processor triggered (30-second interval)");
+            // System.out.println("SessionController: Auto-session processor triggered
+            // (30-second interval)");
 
             // Uses decorator pattern rules
             ss.processAutoSessions();
@@ -317,6 +322,11 @@ public class SessionController {
             selectionMap.clear();
             for (Session session : sessions) {
                 selectionMap.put(session.getSessionId(), new SimpleBooleanProperty(false));
+
+                // Store the session id if the session loaded is Open
+                if ("Open".equals(session.getStatus())) {
+                    ApplicationContext.getAuthSession().setActiveSessionId(session.getSessionId());
+                }
             }
 
             showInfo("Loaded " + sessions.size() + " sessions");
@@ -440,7 +450,6 @@ public class SessionController {
             if (newSession != null) {
                 loadSessionsFromDatabase(); // Reload to get the new session
                 showSuccess("Session " + newSession.getSessionId() + " created successfully!");
-                ApplicationContext.getAuthSession().setActiveSessionId(newSession.getSessionId());
             }
 
         } catch (Exception e) {
@@ -609,7 +618,8 @@ public class SessionController {
                         Session session = getTableView().getItems().get(getIndex());
                         if (session != null) {
                             boolean newAutoStart = toggleButton.isSelected();
-                            // System.out.println("Auto Start button CLICKED for session " + session.getSessionId());
+                            // System.out.println("Auto Start button CLICKED for session " +
+                            // session.getSessionId());
 
                             // Update the setting (no validation needed - button is disabled if not allowed)
                             session.setAutoStart(newAutoStart);
@@ -655,7 +665,8 @@ public class SessionController {
                     // If auto-start is enabled but no longer allowed, disable it
                     if (!canHaveAutoStart && session.isAutoStart()) {
                         // System.out.println(
-                        //         "SessionController: Auto-start was enabled but is no longer allowed - disabling");
+                        // "SessionController: Auto-start was enabled but is no longer allowed -
+                        // disabling");
                         session.setAutoStart(false);
                         ss.updateAutoSettings(session.getSessionId(), false, session.isAutoStop());
                     }
@@ -673,7 +684,7 @@ public class SessionController {
     }
 
     private void setupAutoStopColumn() {
-        System.out.println("SessionController: Setting up Auto Stop column");
+        appLogger.info("SessionController: Setting up Auto Stop column");
         colAutoStop.setCellFactory(column -> new TableCell<Session, Boolean>() {
             private final ToggleButton toggleButton = new ToggleButton();
             private boolean initializing = true;
@@ -687,7 +698,8 @@ public class SessionController {
                         Session session = getTableView().getItems().get(getIndex());
                         if (session != null) {
                             boolean newAutoStop = toggleButton.isSelected();
-                            // System.out.println("Auto Stop button CLICKED for session " + session.getSessionId());
+                            // System.out.println("Auto Stop button CLICKED for session " +
+                            // session.getSessionId());
 
                             // Update the setting
                             session.setAutoStop(newAutoStop);
@@ -733,7 +745,8 @@ public class SessionController {
                     // If auto-stop is enabled but no longer allowed, disable it
                     if (!canHaveAutoStop && session.isAutoStop()) {
                         // System.out.println(
-                        //         "SessionController: Auto-stop was enabled but is no longer allowed - disabling");
+                        // "SessionController: Auto-stop was enabled but is no longer allowed -
+                        // disabling");
                         session.setAutoStop(false);
                         ss.updateAutoSettings(session.getSessionId(), session.isAutoStart(), false);
                     }
@@ -756,5 +769,6 @@ public class SessionController {
 // ensure view for each type of user (e.g. admin, ta, student, prof) is
 // different
 // cannot create a session from 23:00 to 00:00?
-// - if late threshold is not filled in, use deefault threshold in config.properties
+// - if late threshold is not filled in, use deefault threshold in
+// config.properties
 // - late threshold cannot be more than duration of session

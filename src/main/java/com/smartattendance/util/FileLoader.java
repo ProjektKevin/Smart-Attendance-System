@@ -8,6 +8,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.smartattendance.util.security.log.ApplicationLogger;
+
 /**
  * Utility for loading files from resources folder.
  */
@@ -15,6 +17,8 @@ public class FileLoader {
 
     // Cache to avoid creating duplicate temp files
     private static final Map<String, String> tempFileCache = new HashMap<>();
+    // Logger
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     /**
      * Load a file from resources as an InputStream.
@@ -107,7 +111,7 @@ public class FileLoader {
             try {
                 Files.deleteIfExists(Path.of(entry.getValue()));
             } catch (IOException e) {
-                System.err.println("Failed to delete temp file: " + entry.getValue());
+                appLogger.error("Failed to delete temp file: " + entry.getValue());
             }
         }
         tempFileCache.clear();

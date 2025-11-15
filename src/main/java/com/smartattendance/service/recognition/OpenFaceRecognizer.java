@@ -56,8 +56,8 @@ public class OpenFaceRecognizer extends Recognizer {
         try {
             // Check if resource exists before attempting to load
             if (!FileLoader.exists(MODEL_RESOURCE_PATH)) {
-                System.err.println("ERROR: OpenFace model file is missing!");
-                System.err.println("Please ensure nn4.small2.v1.t7 is located at: src/main/resources/openFaceModels/");
+                appLogger.error("ERROR: OpenFace model file is missing!");
+                appLogger.error("Please ensure nn4.small2.v1.t7 is located at: src/main/resources/openFaceModels/");
                 return;
             }
 
@@ -69,8 +69,8 @@ public class OpenFaceRecognizer extends Recognizer {
             faceNet = Dnn.readNetFromTorch(modelPath);
 
             if (faceNet.empty()) {
-                System.err.println("ERROR: OpenFace model loaded but network is empty!");
-                System.err.println("The model file may be corrupted or incompatible.");
+                appLogger.error("ERROR: OpenFace model loaded but network is empty!");
+                appLogger.error("The model file may be corrupted or incompatible.");
                 return;
             }
 
@@ -81,7 +81,7 @@ public class OpenFaceRecognizer extends Recognizer {
             appLogger.info("OpenFace face recognition model initialized");
 
         } catch (Exception e) {
-            System.err.println("ERROR: Failed to load OpenFace model");
+            appLogger.error("ERROR: Failed to load OpenFace model");
             e.printStackTrace();
         }
     }
@@ -100,7 +100,7 @@ public class OpenFaceRecognizer extends Recognizer {
     public void train(List<Student> students) {
         if (faceNet == null || faceNet.empty()) {
             appLogger.warn("Cannot train: OpenFace model not loaded");
-            System.err.println("ERROR: Cannot train recognizer - model not loaded");
+            appLogger.error("ERROR: Cannot train recognizer - model not loaded");
             return;
         }
 
@@ -151,7 +151,7 @@ public class OpenFaceRecognizer extends Recognizer {
                 }
 
                 if (embeddings.isEmpty()) {
-                    attendanceLogger.info("Failed to compute embeddings for " + student.getName());
+                    appLogger.info("Failed to compute embeddings for " + student.getName());
                     failureCount++;
                     continue;
                 }
@@ -172,7 +172,7 @@ public class OpenFaceRecognizer extends Recognizer {
                 successCount++;
 
             } catch (Exception e) {
-                System.err.println("✗ Error processing " + student.getName() + ": " + e.getMessage());
+                appLogger.error("✗ Error processing " + student.getName() + ": " + e.getMessage());
                 failureCount++;
                 e.printStackTrace();
             }
@@ -185,17 +185,17 @@ public class OpenFaceRecognizer extends Recognizer {
     @Override
     public RecognitionResult recognize(Mat faceImage, List<Student> enrolledStudents) {
         if (faceNet == null || faceNet.empty()) {
-            System.err.println("Cannot recognize: model not loaded");
+            appLogger.error("Cannot recognize: model not loaded");
             return new RecognitionResult();
         }
 
         if (faceImage == null || faceImage.empty()) {
-            System.err.println("Input face image is empty or null");
+            appLogger.error("Input face image is empty or null");
             return new RecognitionResult();
         }
 
         if (enrolledStudents == null || enrolledStudents.isEmpty()) {
-            System.err.println("No enrolled students to compare against");
+            appLogger.error("No enrolled students to compare against");
             return new RecognitionResult();
         }
 
@@ -210,7 +210,7 @@ public class OpenFaceRecognizer extends Recognizer {
                     false);
 
             if (preprocessedFace.empty()) {
-                System.err.println("Failed to preprocess face");
+                appLogger.error("Failed to preprocess face");
                 return new RecognitionResult();
             }
 
@@ -219,7 +219,7 @@ public class OpenFaceRecognizer extends Recognizer {
             preprocessedFace.release();
 
             if (inputEmbedding.empty()) {
-                System.err.println("Failed to compute embedding for input face");
+                appLogger.error("Failed to compute embedding for input face");
                 return new RecognitionResult();
             }
 
@@ -244,7 +244,7 @@ public class OpenFaceRecognizer extends Recognizer {
                     // Compute similarity (using cosine similarity)
                     double similarity = cosineSimilarity(inputEmbedding, storedEmbedding);
 
-                    System.out.println("Comparing with " + student.getName() +
+                    appLogger.info("Comparing with " + student.getName() +
                             " - Input shape: " + inputEmbedding.rows() + "x" + inputEmbedding.cols() +
                             ", Stored shape: " + storedEmbedding.rows() + "x" + storedEmbedding.cols() +
                             ", Similarity: " + String.format("%.4f", similarity));
@@ -254,7 +254,7 @@ public class OpenFaceRecognizer extends Recognizer {
                         bestMatch = student;
                     }
                 } catch (Exception e) {
-                    System.err.println("Error comparing with student " + student.getName() + ": " + e.getMessage());
+                    appLogger.error("Error comparing with student " + student.getName() + ": " + e.getMessage());
                 }
             }
 
@@ -268,9 +268,9 @@ public class OpenFaceRecognizer extends Recognizer {
 
                 // Mapping Formula for OpenFace embeddings:
                 // - similarity 0.7+ → 70%+ confidence (good match)
-                // - similarity 0.6  → 50% confidence (uncertain)
-                // - similarity 0.4  → 30% confidence (likely wrong)
-                // - similarity 0.2  → 10% confidence (definitely wrong)
+                // - similarity 0.6 → 50% confidence (uncertain)
+                // - similarity 0.4 → 30% confidence (likely wrong)
+                // - similarity 0.2 → 10% confidence (definitely wrong)
                 double confidence;
                 if (bestSimilarity >= 0.5) {
                     // Good match range: 0.6-1.0 maps to 50%-100%
@@ -288,7 +288,7 @@ public class OpenFaceRecognizer extends Recognizer {
             return new RecognitionResult();
 
         } catch (Exception e) {
-            System.err.println("Error during recognition: " + e.getMessage());
+            appLogger.error("Error during recognition: " + e.getMessage());
             e.printStackTrace();
             return new RecognitionResult();
         }
@@ -317,12 +317,12 @@ public class OpenFaceRecognizer extends Recognizer {
      */
     private Mat computeEmbedding(Mat faceImage) {
         if (faceNet == null || faceNet.empty()) {
-            System.err.println("Cannot compute embedding: model not loaded");
+            appLogger.error("Cannot compute embedding: model not loaded");
             return new Mat();
         }
 
         if (faceImage.empty()) {
-            System.err.println("Cannot compute embedding: input face image is empty");
+            appLogger.error("Cannot compute embedding: input face image is empty");
             return new Mat();
         }
 
@@ -345,7 +345,7 @@ public class OpenFaceRecognizer extends Recognizer {
 
             // Validate output dimensions
             if (embedding.total() != EMBEDDING_SIZE) {
-                System.err.println("Unexpected embedding size: " + embedding.total() +
+                appLogger.error("Unexpected embedding size: " + embedding.total() +
                         " (expected " + EMBEDDING_SIZE + ")");
                 embedding.release();
                 return new Mat();
@@ -362,12 +362,12 @@ public class OpenFaceRecognizer extends Recognizer {
                 normalizedEmbedding = reshaped;
             }
 
-            System.out.println("Embedding shape: " + normalizedEmbedding.rows() + "x" + normalizedEmbedding.cols());
+            appLogger.info("Embedding shape: " + normalizedEmbedding.rows() + "x" + normalizedEmbedding.cols());
 
             return normalizedEmbedding;
 
         } catch (Exception e) {
-            System.err.println("Error computing embedding: " + e.getMessage());
+            appLogger.error("Error computing embedding: " + e.getMessage());
             e.printStackTrace();
             return new Mat();
         }
@@ -426,7 +426,7 @@ public class OpenFaceRecognizer extends Recognizer {
         }
 
         if (embedding1.total() != embedding2.total()) {
-            System.err.println("Embeddings have different dimensions");
+            appLogger.error("Embeddings have different dimensions");
             return -1.0;
         }
 

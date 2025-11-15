@@ -10,7 +10,7 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  * Created since camera did not get released unless manually closed and had to
  * end task from task manager
  *
- * @author Thiha Swan Htet
+ * @author Thiha Swan Htet, Min Thet Khine
  */
 public class CameraUtils {
 
@@ -111,5 +111,33 @@ public class CameraUtils {
      */
     public int getCameraId() {
         return this.cameraId;
+    }
+
+    public static int[] getAvailableCameras(int maxIndex) {
+        java.util.ArrayList<Integer> availableCameras = new java.util.ArrayList<>();
+
+        for (int i = 0; i <= maxIndex; i++) {
+            VideoCapture testCapture = new VideoCapture();
+            testCapture.open(i);
+
+            if (testCapture.isOpened()) {
+                availableCameras.add(i);
+                appLogger.info("Camera found at index: " + i);
+                testCapture.release();
+            }
+        }
+
+        // Convert ArrayList to int array
+        int[] result = new int[availableCameras.size()];
+        for (int i = 0; i < availableCameras.size(); i++) {
+            result[i] = availableCameras.get(i);
+        }
+
+        appLogger.info("Total cameras detected: " + result.length);
+        return result;
+    }
+
+    public static int[] getAvailableCameras() {
+        return getAvailableCameras(10);
     }
 }

@@ -4,6 +4,7 @@ import org.opencv.objdetect.CascadeClassifier;
 
 import com.smartattendance.config.Config;
 import com.smartattendance.service.recognition.RecognitionResult;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
@@ -15,6 +16,12 @@ import java.util.List;
 
 import org.opencv.core.Mat;
 
+/**
+ * Modular detection service that loads the cascade file
+ * All common functions: drawRectangles, Threshold, detection are here
+ * 
+ * @author Thiha Swan Htet, Min Thet Khine
+ */
 public class FaceDetectionService {
     private final CascadeClassifier faceDetector;
 
@@ -28,6 +35,9 @@ public class FaceDetectionService {
     private static final Scalar YELLOW_RECT_COLOR = new Scalar(0, 255, 255); // Yellow
     private static final Scalar RED_RECT_COLOR = new Scalar(0, 0, 255); // Red
     private static final int DEFAULT_RECT_THICKNESS = 2;
+
+    // Logger
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     // Confidence thresholds
     private static double getHighThreshold() {
@@ -51,9 +61,7 @@ public class FaceDetectionService {
         // Load face detector
         this.faceDetector = new CascadeClassifier(cascadePath);
         if (faceDetector.empty()) {
-            // chore(), Harry: Add logger to notify the loading error
-            System.out.println("Error loading cascade file: " + cascadePath);
-            // chore(), Harry: Throw a custom error or built in error here
+            appLogger.error("Error loading cascade file: " + cascadePath);
         }
     }
 
@@ -68,7 +76,7 @@ public class FaceDetectionService {
     public MatOfRect detectFaces(Mat gray, double scaleFactor, int minNeighbors) {
         // Handle gray empty error
         if (gray.empty() || gray == null) {
-            // chore(), Harry: Throw a custom error or built in error here
+            appLogger.error("The Mat object is empty");
         }
 
         MatOfRect faces = new MatOfRect();

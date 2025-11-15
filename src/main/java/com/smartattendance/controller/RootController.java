@@ -1,5 +1,6 @@
 package com.smartattendance.controller;
 
+import com.itextpdf.text.pdf.PdfStructTreeController.returnType;
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.SessionService;
@@ -46,14 +47,25 @@ public class RootController {
     private Label moonGlyph;
     private Label sunGlyph;
 
-    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
-
     private static final String VS16 = "\uFE0F";
 
     private SessionService sessionService;
 
+    /**
+     * Application Logger to show on terminal and write file to refer back to
+     */
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+    private final AuthSession authSession = ApplicationContext.getAuthSession();
+
     @FXML
     public void initialize() {
+        if (authSession.getCurrentUser() == null) {
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Invalid Session", "Authentication Error",
+                    "User Is Not Logged In");
+            redirectLogin();
+            return;
+        }
+
         if (!root.getStyleClass().contains("dark") && !root.getStyleClass().contains("light")) {
             root.getStyleClass().add("light");
         }
@@ -105,6 +117,16 @@ public class RootController {
                 }
             });
         }
+
+        // Setup listener for Profile tab
+        if (tabProfile != null) {
+            tabProfile.selectedProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal) { // When tab becomes selected
+                    registry.refresh("userProfile");
+                    appLogger.info("Profile tab selected - data refreshed");
+                }
+            });
+        }
     }
 
     @FXML
@@ -137,11 +159,16 @@ public class RootController {
      */
     @FXML
     private void handleLogout() {
-        try {
-            // Get the auth session and clear it
-            AuthSession session = ApplicationContext.getAuthSession();
-            session.logout();
+        // Get the auth session and clear it
+        authSession.logout();
+        redirectLogin();
+    }
 
+    /**
+     * Return to login screen
+     */
+    private void redirectLogin() {
+        try {
             // Load the login view
             Parent loginUI = FXMLLoader.load(getClass().getResource("/view/LoginView.fxml"));
 
@@ -149,11 +176,24 @@ public class RootController {
             Stage stage = (Stage) logoutButton.getScene().getWindow();
             stage.setScene(new Scene(loginUI));
             stage.setTitle("Smart Attendance System - Login");
-            stage.show();
         } catch (Exception e) {
-            System.err.println("Error during logout: " + e.getMessage());
-            e.printStackTrace();
+            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Redirect Error", "System Error", e.getMessage());
+            appLogger.error("Error Redirecting Login", e);
+            return;
         }
+    }
+
+    /**
+     * Show an alert dialog to the user
+     */
+    public void setInfoDialog(javafx.scene.control.Alert.AlertType alertType, String title, String headerText,
+            String content) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(headerText);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     /**
@@ -206,9 +246,9 @@ public class RootController {
                         });
                     });
 
-                    System.out.println("Live Recognition access blocked - no active session");
+                    appLogger.info("Live Recognition access blocked - no active session");
                 } else {
-                    System.out.println("Live Recognition access granted - session is open");
+                    appLogger.info("Live Recognition access granted - session is open");
                 }
             }
         });

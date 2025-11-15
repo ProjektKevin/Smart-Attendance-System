@@ -11,6 +11,7 @@ import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.StudentService;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -42,6 +43,7 @@ public class AttendanceFormController {
     private StudentService studentService = new StudentService(); // Service to handle student info
     private Session currentSession; // The session for which the record is being created
     private AttendanceRecord newRecord; // The newly created attendance record
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance(); // App logger to show message in terminal
 
     /**
      * Sets the session for the attendance record that will be created.
@@ -101,7 +103,8 @@ public class AttendanceFormController {
                             + " - " + student.getName())
                     );
             // studentService.getStudentsBySessionId(currentSession).forEach(student
-            //         -> cmbStudentId.getItems().add(String.valueOf(student.getStudentId() + " - " + student.getName()))
+            // -> cmbStudentId.getItems().add(String.valueOf(student.getStudentId() + " - "
+            // + student.getName()))
             // );
         }
     }
@@ -114,7 +117,8 @@ public class AttendanceFormController {
     @FXML
     private void onCreate() {
         try {
-            // System.out.println("|" + cmbStatus.getValue().toUpperCase() + "|"); // for testing
+            // System.out.println("|" + cmbStatus.getValue().toUpperCase() + "|"); // for
+            // testing
             int studentId = 0;
             Student student = null;
             String status = cmbStatus.getValue();
@@ -135,12 +139,12 @@ public class AttendanceFormController {
             }
 
             // if (student == null) {
-            //     Alert alert = new Alert(Alert.AlertType.WARNING);
-            //     alert.setTitle("Warning");
-            //     alert.setHeaderText("No student found with studentId: " + studentId);
-            //     alert.setContentText("Please enter a valid studentId.");
-            //     alert.showAndWait();
-            //     throw new Exception("No student found with studentId: " + studentId);
+            // Alert alert = new Alert(Alert.AlertType.WARNING);
+            // alert.setTitle("Warning");
+            // alert.setHeaderText("No student found with studentId: " + studentId);
+            // alert.setContentText("Please enter a valid studentId.");
+            // alert.showAndWait();
+            // throw new Exception("No student found with studentId: " + studentId);
             // }
             // Validate status selection
             if (status == null) {
@@ -177,9 +181,9 @@ public class AttendanceFormController {
             stage.close();
 
         } catch (NumberFormatException e) {
-            System.err.println("Invalid student ID.");
+            appLogger.error("Invalid student ID.");
         } catch (Exception e) {
-            System.err.println("Error creating record: " + e.getMessage());
+            appLogger.error("Error creating record: " + e.getMessage());
         }
     }
 
