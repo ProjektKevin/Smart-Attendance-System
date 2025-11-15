@@ -21,7 +21,7 @@ public class ConfigValidator {
 
     validateDatabasePath(databasePath, result);
 
-    return null;
+    return result;
   }
 
   public static void validateCameraIndex(String cameraIndex, ValidationResult result) {

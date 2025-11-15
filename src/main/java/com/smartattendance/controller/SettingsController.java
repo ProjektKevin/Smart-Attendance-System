@@ -159,6 +159,7 @@ public class SettingsController {
   }
 
   private void clearFieldStyles() {
+    cameraIndexChoiceBox.setStyle("");
     highThresholdField.setStyle("");
     lowThresholdField.setStyle("");
     cooldownField.setStyle("");
@@ -183,6 +184,10 @@ public class SettingsController {
   // Method to handle all the validation errors
   private void handleValidationErrors(ValidationResult result) {
     // Set border color for fields with errors
+    if (result.getFieldError("cameraIndex") != null) {
+      cameraIndexChoiceBox.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+    }
+    
     if (result.getFieldError("highThreshold") != null) {
       highThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
     }
