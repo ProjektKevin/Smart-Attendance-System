@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Session;
+import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
 // import com.smartattendance.util.ControllerRegistry;
@@ -34,13 +35,25 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
+// import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+/**
+ * Controller for managing attendance records in a session. Implements
+ * {@link AttendanceObserver} to show alert messages and update UI when
+ * attendance changes. Implements {@link TabRefreshable} to update UI when
+ * attendance changes.
+ *
+ * @author Lim Jia Hui
+ * @author Chue Wan Yan (modified openAttendancePage, added javadoc comments)
+ *
+ * @version 13:23 15 Nov 2025
+ *
+ */
 public class SessionController {
 
     @FXML
@@ -155,10 +168,9 @@ public class SessionController {
         autoSessionProcessor.play();
     }
 
-    public AttendanceController getAttendanceController() {
-        return attendanceController;
-    }
-
+    // public AttendanceController getAttendanceController() {
+    //     return attendanceController;
+    // }
     // Styles the info label based on message type
     // @param type "success", "error", "warning", or "normal"
     // @param message The text to display
@@ -171,24 +183,24 @@ public class SessionController {
         switch (type.toLowerCase()) {
             case "success":
                 sessionsInfo
-                        .setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; " +
-                                "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                        .setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
+                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "error":
                 sessionsInfo
-                        .setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; " +
-                                "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                        .setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
+                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "warning":
                 sessionsInfo
-                        .setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; " +
-                                "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                        .setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
+                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
             case "normal":
             default:
                 sessionsInfo
-                        .setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; " +
-                                "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
+                        .setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; "
+                                + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
                 break;
         }
     }
@@ -244,13 +256,20 @@ public class SessionController {
         });
     }
 
+    /**
+     * Open the student attendance page for the selected session.
+     *
+     * @param session The selected session
+     */
     private void openAttendancePage(Session session) {
         try {
             // Load the Attendance view fresh and get its controller
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceView.fxml"));
+            FXMLLoader loader
+                    = new FXMLLoader(getClass().getResource("/view/AttendanceView.fxml"));
             Parent attendanceRoot = loader.load();
             // F_MA: modified by felicia handling marking attendance
             attendanceController = loader.getController();
+            
             // AttendanceController attendanceCtrl = loader.getController();
             // Save globally for AutoAttendanceUpdater to access
             // ControllerRegistry.setAttendanceController(attendanceController);
@@ -512,8 +531,8 @@ public class SessionController {
         }
 
         // Check if all sessions are selected and none are open
-        boolean shouldDeleteAll = selectedSessions.size() == sessionList.size() &&
-                selectedSessions.stream().noneMatch(s -> "Open".equals(s.getStatus()));
+        boolean shouldDeleteAll = selectedSessions.size() == sessionList.size()
+                && selectedSessions.stream().noneMatch(s -> "Open".equals(s.getStatus()));
 
         if (shouldDeleteAll) {
             // Use deleteAll when all sessions are selected
