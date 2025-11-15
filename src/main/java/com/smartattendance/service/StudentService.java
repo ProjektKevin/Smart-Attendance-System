@@ -1,10 +1,10 @@
 package com.smartattendance.service;
 
-import com.smartattendance.model.Student;
-import com.smartattendance.repository.InMemoryStudentRepository;
-import com.smartattendance.repository.StudentRepository;
-
 import java.util.List;
+
+import com.smartattendance.model.entity.Session;
+import com.smartattendance.model.entity.Student;
+import com.smartattendance.repository.StudentRepository;
 
 /**
  * Simple service layer around the StudentRepository.
@@ -16,7 +16,7 @@ public class StudentService {
 
     /** Default: use in-memory repository. */
     public StudentService() {
-        this.repo = new InMemoryStudentRepository();
+        this.repo = new StudentRepository();
     }
 
     /** For DI/tests: pass any implementation of StudentRepository. */
@@ -30,9 +30,7 @@ public class StudentService {
     }
 
     /** Find a student by ID, or null if not found. */
-    public Student findById(String id) {
-        if (id == null || id.isBlank())
-            return null;
+    public Student findById(int id) {
         return repo.findById(id);
     }
 
@@ -41,5 +39,10 @@ public class StudentService {
         if (s == null)
             return;
         repo.save(s);
+    }
+
+    // Get Student information from a session
+    public List<Student> getStudentsBySessionId(Session session) {
+        return repo.findByCourse(session.getCourse());
     }
 }

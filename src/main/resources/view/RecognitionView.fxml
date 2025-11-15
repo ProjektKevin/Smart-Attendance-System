@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.smartattendance.controller.RecognitionController"
+            fitToWidth="true" fitToHeight="true"
+            styleClass="live-recognition"
+            stylesheets="@/view/styles/live-recognition.css">
+
+  <BorderPane>
+
+    <top>
+      <VBox spacing="10" styleClass="page-header" BorderPane.alignment="CENTER">
+        <Label text="Student Face Recognition System" styleClass="title-lg">
+          <font><Font name="System Bold" size="24"/></font>
+        </Label>
+        <Label fx:id="statusLabel" text="Status: Ready" styleClass="muted"/>
+        <!-- Show attendance marking related message -->
+        <Pane fx:id="toastPane" pickOnBounds="false" styleClass="toast-layer"/>
+      </VBox>
+    </top>
+
+    <center>
+      <VBox spacing="15" alignment="TOP_CENTER" styleClass="content-pane" BorderPane.alignment="CENTER">
+        <!-- Video Feed -->
+        <VBox alignment="CENTER" spacing="10">
+          <Label text="Live Camera Feed" styleClass="section-title"/>
+          <ImageView fx:id="videoFeed" fitHeight="480" fitWidth="640" preserveRatio="true"
+                     styleClass="camera-surface"/>
+        </VBox>
+
+        <!-- Controls -->
+        <HBox spacing="15" alignment="CENTER">
+          <Button fx:id="startButton" text="Start Recognition" onAction="#startRecognition" styleClass="button start"/>
+        </HBox>
+      </VBox>
+    </center>
+
+    <right>
+      <!-- Right sidebar -->
+      <VBox spacing="15" prefWidth="300" styleClass="side-panel" BorderPane.alignment="CENTER_RIGHT">
+
+        <Label text="Recognized Students" styleClass="section-title"/>
+
+        <Separator/>
+
+        <!-- Current Detection -->
+        <VBox spacing="10" styleClass="info-card">
+          <Label text="Current Detection:" styleClass="label-strong"/>
+          <Label fx:id="currentStudentLabel" text="No face detected" wrapText="true" styleClass="muted"/>
+          <Label fx:id="confidenceLabel" text="Confidence: N/A" styleClass="muted-sm"/>
+        </VBox>
+
+        <Separator/>
+
+        <!-- Statistics -->
+        <VBox spacing="8" styleClass="info-card">
+          <Label text="Statistics:" styleClass="label-strong"/>
+          <Label fx:id="totalDetectionsLabel" text="Detections: 0" styleClass="muted-sm"/>
+          <Label fx:id="uniqueStudentsLabel" text="Unique Students: 0" styleClass="muted-sm"/>
+          <Label fx:id="fpsLabel" text="FPS: 0.0" styleClass="muted-sm"/>
+        </VBox>
+
+        <Separator/>
+
+        <!-- History -->
+        <Label text="Recognition History:" styleClass="label-strong"/>
+        <ListView fx:id="recognitionListView" prefHeight="300" styleClass="history-list"/>
+
+        <Button fx:id="clearHistoryButton" text="Clear History" onAction="#clearHistory" styleClass="button secondary"/>
+      </VBox>
+    </right>
+
+    <bottom>
+      <HBox spacing="10" alignment="CENTER_LEFT" styleClass="status-bar" BorderPane.alignment="CENTER">
+        <Label fx:id="cameraStatusLabel" text="Camera: Disconnected" styleClass="muted-sm"/>
+        <Separator orientation="VERTICAL"/>
+        <Label fx:id="modelStatusLabel" text="Model: Not Loaded" styleClass="muted-sm"/>
+      </HBox>
+    </bottom>
+
+  </BorderPane>
+</ScrollPane>

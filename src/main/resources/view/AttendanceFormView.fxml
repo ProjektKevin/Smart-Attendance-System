@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.smartattendance.controller.AttendanceFormController"
+      spacing="10" alignment="CENTER">
+    
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="Create New Attendance Record" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+    <!-- Fields in AttendanceRecord creation form -->
+    <GridPane hgap="10" vgap="10">
+        <Label text="Student ID:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <!-- <TextField fx:id="txtStudentId" GridPane.rowIndex="0" GridPane.columnIndex="1"/> -->
+        <ComboBox fx:id="cmbStudentId" GridPane.rowIndex="0" GridPane.columnIndex="1" promptText="Select Student"/>
+
+        <Label text="Status:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="cmbStatus" GridPane.rowIndex="1" GridPane.columnIndex="1" promptText="Select Status"/>
+        <!-- <ComboBox fx:id="cmbStatus" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <items>
+                <FXCollections fx:factory="observableArrayList">
+                    <String fx:value="Present"/>
+                    <String fx:value="Absent"/>
+                    <String fx:value="Late"/>
+                    <String fx:value="Pending"/>
+                </FXCollections>
+            </items>
+        </ComboBox> -->
+
+        <Label text="Note:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="txtNote" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <!-- Buttons to create attendance record or cancel creation -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Create" onAction="#onCreate"/>
+        <Button text="Cancel" onAction="#onCancel"/>
+    </HBox>
+
+</VBox>

@@ -1,0 +1,173 @@
+/* ===============================
+   REPORTS PAGE: DARK MODE ONLY
+   =============================== */
+
+/* Page background and common containers stay dark */
+.root.dark .reports-page {
+  -fx-background-color: #0b1220;
+}
+.root.dark .reports-page .vbox,
+.root.dark .reports-page .hbox,
+.root.dark .reports-page .titled-pane > .content {
+  -fx-background-color: transparent;
+}
+
+/* Labels & text by default */
+.root.dark .reports-page .label { -fx-text-fill: #e5e7eb; }
+
+/* -------- ComboBox (editor) -------- */
+.root.dark .reports-page .combo-box {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+  -fx-text-fill: #e5e7eb;
+  -fx-background-radius: 10; -fx-border-radius: 10;
+  -fx-padding: 0.2em 0.6em 0.2em 0.6em;
+  -fx-mark-color: #cbd5e1;            /* arrow */
+}
+.root.dark .reports-page .combo-box .list-cell { -fx-text-fill: #e5e7eb; }
+
+/* ComboBox popup (the dropdown list) */
+.root.dark .reports-page .combo-box-popup > .list-view {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 10; -fx-border-radius: 10;
+}
+.root.dark .reports-page .combo-box-popup .list-cell {
+  -fx-background-color: transparent;
+  -fx-text-fill: #e5e7eb;
+  -fx-padding: 8 12;
+}
+.root.dark .reports-page .combo-box-popup .list-cell:hover,
+.root.dark .reports-page .combo-box-popup .list-cell:selected {
+  -fx-background-color: #0f2a46;      /* hover/selected row */
+}
+
+/* -------- DatePicker (editor) -------- */
+.root.dark .reports-page .date-picker {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 10; -fx-border-radius: 10;
+}
+.root.dark .reports-page .date-picker .text-field {
+  -fx-background-color: transparent;
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .reports-page .date-picker .arrow-button {
+  -fx-background-color: transparent;
+}
+.root.dark .reports-page .date-picker .arrow-button .arrow {
+  -fx-background-color: #cbd5e1;      /* calendar icon color */
+}
+
+/* DatePicker popup panel */
+.root.dark .reports-page .date-picker-popup {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 12; -fx-border-radius: 12;
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.28, 0, 4);
+}
+
+/* Month/year header row */
+.root.dark .reports-page .date-picker-popup > * > .month-year-pane {
+  -fx-background-color: #0f172a;
+  -fx-border-color: #1f2937;
+  -fx-border-width: 0 0 1 0;
+}
+.root.dark .reports-page .date-picker-popup .month-year-pane .label {
+  -fx-text-fill: #e5e7eb;
+  -fx-font-weight: 700;
+}
+.root.dark .reports-page .date-picker-popup .spinner > .button {
+  -fx-background-color: #111827;
+  -fx-background-radius: 10;
+}
+.root.dark .reports-page .date-picker-popup .spinner > .button .arrow {
+  -fx-background-color: #cbd5e1;
+}
+
+/* Day grid */
+.root.dark .reports-page .date-picker-popup > * > .day-cell {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+  -fx-background-insets: 0;
+}
+.root.dark .reports-page .date-picker-popup > * > .day-cell:hover {
+  -fx-background-color: #0f2a46;
+}
+.root.dark .reports-page .date-picker-popup > * > .day-cell:focused {
+  -fx-background-color: #0f2a46;
+}
+.root.dark .reports-page .date-picker-popup > * > .day-cell:selected {
+  -fx-background-color: #22c55e;      /* selected day */
+  -fx-text-fill: #0b1220;
+}
+.root.dark .reports-page .date-picker-popup > * > .day-cell:disabled {
+  -fx-background-color: #0b1220;
+  -fx-opacity: 0.45;
+}
+
+/* Weekday header (Sun, Mon, …) */
+.root.dark .reports-page .date-picker-popup > * > .label {
+  -fx-text-fill: #94a3b8;
+}
+
+/* -------- Buttons and inputs (for consistency) -------- */
+.root.dark .reports-page .button {
+  -fx-background-color: #111827; -fx-text-fill: #e5e7eb;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 10; -fx-border-radius: 10;
+}
+.root.dark .reports-page .button:hover { -fx-background-color: #1a243b; }
+
+.root.dark .reports-page .text-field,
+.root.dark .reports-page .text-area {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+  -fx-prompt-text-fill: #94a3b8;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 10; -fx-border-radius: 10;
+}
+.root.dark .reports-page .text-area .content { -fx-background-color: #0b1220; }
+
+/* ==== DatePicker popup: fix leftover light header strip ==== */
+.root.dark .reports-page .date-picker-popup,
+.root.dark .reports-page .date-picker-popup > * {
+  /* force the popup root and its immediate child to the dark bg */
+  -fx-background-color: #0b1220;
+}
+
+/* month/year header row container (ensures the entire band is dark) */
+.root.dark .reports-page .date-picker-popup > * > .month-year-pane {
+  -fx-background-color: #0f172a;
+  -fx-border-color: #1f2937;
+  -fx-border-width: 0 0 1 0;
+}
+
+/* header label & arrows stay visible */
+.root.dark .reports-page .date-picker-popup .month-year-pane .label { 
+  -fx-text-fill: #e5e7eb; 
+  -fx-font-weight: 700; 
+}
+.root.dark .reports-page .date-picker-popup .spinner > .button {
+  -fx-background-color: #111827;
+  -fx-background-radius: 10;
+}
+.root.dark .reports-page .date-picker-popup .spinner > .button:hover {
+  -fx-background-color: #1a243b;
+}
+.root.dark .reports-page .date-picker-popup .spinner > .button .arrow {
+  -fx-background-color: #cbd5e1;
+}
+
+/* weekday header row (Sun, Mon, …) */
+.root.dark .reports-page .date-picker-popup > * > .day-name-cell {
+  -fx-background-color: #0f172a;
+  -fx-text-fill: #94a3b8;
+  -fx-font-weight: 600;
+}
+
+/* calendar grid container (belt-and-suspenders) */
+.root.dark .reports-page .date-picker-popup > * > .calendar-grid,
+.root.dark .reports-page .date-picker-popup > * > .grid {
+  -fx-background-color: #0b1220;
+}

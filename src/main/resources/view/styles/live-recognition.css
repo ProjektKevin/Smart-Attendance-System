@@ -1,0 +1,94 @@
+/* ===============================
+   LIVE RECOGNITION PAGE STYLESHEET
+   =============================== */
+
+/* Base (light) */
+.live-recognition,
+.live-recognition .viewport { -fx-background-color: transparent; }
+.live-recognition .page-header { -fx-padding: 15; }
+.live-recognition .section-title { -fx-font-size: 16px; -fx-font-weight: 700; }
+.live-recognition .label-strong { -fx-font-weight: 700; }
+.live-recognition .muted { -fx-text-fill: #6b7280; }          /* gray-500 */
+.live-recognition .muted-sm { -fx-text-fill: #6b7280; -fx-font-size: 12px; }
+.live-recognition .button { -fx-background-radius: 10; -fx-border-radius: 10; }
+.live-recognition .button.start { -fx-background-color: #22c55e; -fx-text-fill: white; -fx-border-color: #16a34a; }
+.live-recognition .button.start:hover { -fx-background-color: #16a34a; }
+.live-recognition .button.secondary { -fx-background-color: #f3f4f6; -fx-border-color: #e5e7eb; }
+.live-recognition .status-bar { -fx-padding: 10; -fx-background-color: #f3f4f6; -fx-background-radius: 8; }
+.live-recognition .side-panel { -fx-padding: 20; -fx-background-color: #f5f7fb; -fx-background-radius: 14; }
+.live-recognition .info-card { -fx-background-color: white; -fx-padding: 15; -fx-background-radius: 12; }
+.live-recognition .history-list { -fx-background-radius: 8; }
+
+/* Camera surface subtle depth (both modes) */
+.live-recognition .camera-surface {
+  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.30), 10, 0, 0, 2);
+}
+
+/* ===== Dark mode ===== */
+.root.dark .live-recognition,
+.root.dark .live-recognition .scroll-pane,
+.root.dark .live-recognition .viewport { -fx-background-color: #0b1220; }
+
+.root.dark .live-recognition .page-header,
+.root.dark .live-recognition .content-pane { -fx-background-color: transparent; }
+
+.root.dark .live-recognition .title-lg,
+.root.dark .live-recognition .section-title,
+.root.dark .live-recognition .label-strong,
+.root.dark .live-recognition .label { -fx-text-fill: #e5e7eb; }
+
+.root.dark .live-recognition .muted,
+.root.dark .live-recognition .muted-sm { -fx-text-fill: #94a3b8; }
+
+.root.dark .live-recognition .content-pane,
+.root.dark .live-recognition .camera-surface {
+  -fx-background-color: transparent;
+}
+
+.root.dark .live-recognition .side-panel {
+  -fx-background-color: #131a2a;
+  -fx-border-color: rgba(255,255,255,0.10);
+  -fx-border-width: 1;
+  -fx-background-radius: 14; -fx-border-radius: 14;
+  -fx-padding: 20;
+}
+
+.root.dark .live-recognition .info-card {
+  -fx-background-color: #0f172a;
+  -fx-border-color: rgba(255,255,255,0.08);
+  -fx-border-width: 1;
+  -fx-background-radius: 12; -fx-border-radius: 12;
+}
+
+.root.dark .live-recognition .history-list {
+  -fx-background-color: #0f172a;
+  -fx-control-inner-background: #0f172a;
+  -fx-border-color: rgba(255,255,255,0.08);
+}
+
+.root.dark .live-recognition .list-cell { -fx-text-fill: #e5e7eb; }
+.root.dark .live-recognition .list-cell:filled:selected,
+.root.dark .live-recognition .list-cell:filled:hover { -fx-background-color: #16223b; }
+
+.root.dark .live-recognition .button {
+  -fx-background-color: #111827;
+  -fx-text-fill: #e5e7eb;
+  -fx-border-color: #1f2937;
+}
+.root.dark .live-recognition .button:hover { -fx-background-color: #1a243b; }
+
+.root.dark .live-recognition .button.secondary {
+  -fx-background-color: #0f172a;
+  -fx-border-color: #1f2937;
+}
+
+.root.dark .live-recognition .status-bar {
+  -fx-background-color: #0f172a;
+  -fx-border-color: #1f2937;
+  -fx-border-width: 1;
+  -fx-background-radius: 10; -fx-border-radius: 10;
+}
+
+/* Scroll bars (dark) */
+.root.dark .live-recognition .scroll-bar .track { -fx-background-color: #111827; }
+.root.dark .live-recognition .scroll-bar .thumb { -fx-background-color: #1f2937; }
