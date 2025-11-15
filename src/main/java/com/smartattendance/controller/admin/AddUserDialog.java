@@ -44,7 +44,7 @@ public class AddUserDialog {
 
     private void initializeDialog() {
         // Set up stage properties
-        stage.setTitle("Add Student");
+        stage.setTitle("Add User");
         stage.setWidth(450);
         stage.setHeight(350);
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -57,7 +57,7 @@ public class AddUserDialog {
         root.setFillWidth(true);
 
         // Create title
-        Label titleLabel = new Label("Add New Student");
+        Label titleLabel = new Label("Add New User");
         titleLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
 
         // Create form grid
