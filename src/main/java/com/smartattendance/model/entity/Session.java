@@ -4,7 +4,7 @@ import java.time.*;
 
 import com.smartattendance.util.security.log.ApplicationLogger;
 
-public class Session extends AbstractEntity {
+public class Session {
 
   private final String course, location;
   private final LocalDate sessionDate;
@@ -39,22 +39,6 @@ public class Session extends AbstractEntity {
     this.autoStart = autoStart;
     this.autoStop = autoStop;
   }
-
-  // Determine initial status based on current date/time
-  // public String determineStatus(LocalDate sessionDate, LocalTime startTime,
-  // LocalTime endTime) {
-  // LocalDateTime now = LocalDateTime.now();
-  // LocalDateTime start = LocalDateTime.of(sessionDate, startTime);
-  // LocalDateTime end = LocalDateTime.of(sessionDate, endTime);
-
-  // if (now.isBefore(start)) {
-  // return status = "Pending"; // not started yet
-  // } else if (now.isAfter(end) || now.isEqual(end)) {
-  // return status = "Closed"; // already ended
-  // } else {
-  // return status = "Open"; // currently active
-  // }
-  // }
 
   // Getters & utility methods
   public int getSessionId() {
@@ -93,14 +77,8 @@ public class Session extends AbstractEntity {
     this.sessionId = id;
   }
 
-  // public void open() {
-  // this.status = "Open";
-  // }
-
   public void open() {
-    appLogger.info("Session: open() called - changing status from " + this.status + " to Open");
     this.status = "Open";
-    appLogger.info("Session: Status is now: " + this.status);
   }
 
   public void close() {
