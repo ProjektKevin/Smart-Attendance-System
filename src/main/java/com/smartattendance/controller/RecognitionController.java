@@ -105,6 +105,9 @@ public class RecognitionController implements AttendanceObserver {
     // =======================================================================
     @FXML
     public void initialize() {
+        // Register this controller with ApplicationContext
+        ApplicationContext.setRecognitionController(this);
+        
         // Add this controller to Attendance Service's observer
         attendanceService.addObserver(this);
         // Get services from ApplicationContext
@@ -274,7 +277,7 @@ public class RecognitionController implements AttendanceObserver {
         return frame;
     }
 
-    private void stopAcquisition() {
+    public void stopAcquisition() {
         if (this.timer != null && !this.timer.isShutdown()) {
             try {
                 // stop the timer
