@@ -22,6 +22,7 @@ import java.util.Map;
 /**
  * Modal dialog for adding a new student
  * Takes email and role as inputs
+ * 
  * @author Thiha Swan Htet
  */
 public class AddUserDialog {
@@ -163,7 +164,7 @@ public class AddUserDialog {
     }
 
     private void handleAddStudent() {
-        String email = emailField.getText();
+        String email = emailField.getText().trim().toLowerCase();
         String role = roleComboBox.getValue();
 
         // Validate fields

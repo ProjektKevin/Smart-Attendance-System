@@ -258,7 +258,7 @@ public class AuthValidator {
 
     /**
      * Validates first name for registration
-     * Checks: not empty, min length (2), max length (50), only letters and
+     * Checks: not empty, min length (3), max length (25), only letters and
      * whitespace
      *
      * @param firstName the first name to validate
@@ -274,14 +274,14 @@ public class AuthValidator {
         String trimmed = firstName.trim();
 
         // Check minimum length
-        if (!Validator.validateStringMinChar(2, trimmed)) {
-            result.addFieldError("firstName", "First name must be at least 2 characters");
+        if (!Validator.validateStringMinChar(3, trimmed)) {
+            result.addFieldError("firstName", "First name must be at least 3 characters");
             return;
         }
 
         // Check maximum length
-        if (!Validator.validateStringMaxChar(50, trimmed)) {
-            result.addFieldError("firstName", "First name must not exceed 50 characters");
+        if (!Validator.validateStringMaxChar(25, trimmed)) {
+            result.addFieldError("firstName", "First name must not exceed 25 characters");
             return;
         }
 
@@ -294,7 +294,7 @@ public class AuthValidator {
 
     /**
      * Validates last name for registration
-     * Checks: not empty, min length (2), max length (50), only letters and
+     * Checks: not empty, min length (3), max length (25), only letters and
      * whitespace
      *
      * @param lastName the last name to validate
@@ -310,14 +310,14 @@ public class AuthValidator {
         String trimmed = lastName.trim();
 
         // Check minimum length
-        if (!Validator.validateStringMinChar(2, trimmed)) {
-            result.addFieldError("lastName", "Last name must be at least 2 characters");
+        if (!Validator.validateStringMinChar(3, trimmed)) {
+            result.addFieldError("lastName", "Last name must be at least 3 characters");
             return;
         }
 
         // Check maximum length
-        if (!Validator.validateStringMaxChar(50, trimmed)) {
-            result.addFieldError("lastName", "Last name must not exceed 50 characters");
+        if (!Validator.validateStringMaxChar(25, trimmed)) {
+            result.addFieldError("lastName", "Last name must not exceed 25 characters");
             return;
         }
 
