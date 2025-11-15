@@ -444,7 +444,7 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
         // Configure marked_at column with proper formatting
         colMarkedAt.setCellValueFactory(cellData -> {
             if (cellData.getValue().getTimestamp() != null) {
-                return new SimpleStringProperty(cellData.getValue().getTimestamp().format(formatter));
+                return new SimpleStringProperty(formatter.format(cellData.getValue().getTimestamp()));
             } else {
                 return new SimpleStringProperty("-");
             }
@@ -453,7 +453,7 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
         // Configure last_seen column with proper formatting
         colLastSeen.setCellValueFactory(cellData -> {
             if (cellData.getValue().getLastSeen() != null) {
-                return new SimpleStringProperty(cellData.getValue().getLastSeen().format(formatter));
+                return new SimpleStringProperty(formatter.format(cellData.getValue().getLastSeen()));
             } else {
                 return new SimpleStringProperty("-");
             }
