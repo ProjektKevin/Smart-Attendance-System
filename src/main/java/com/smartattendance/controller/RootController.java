@@ -28,7 +28,7 @@ import javafx.stage.Stage;
  * Manages navigation between tabs, theme switching, user authentication, and access control
  * Handles both admin and student views with role-based tab visibility
  * 
- * @author Ernest Lun, Min Thet Khine
+ * @author Ernest Lun, Min Thet Khine, Thiha Swan Htet
  */
 public class RootController {
     @FXML
