@@ -1,10 +1,14 @@
 package com.smartattendance.model.dto.student;
 
+/**
+ * DTO for Student display
+ * 
+ * @author Thiha Swan Htet
+ */
 public class StudentDTO {
     private Integer id;
     private String fullName;
     private String courseName;
-    
 
     /**
      * Constructor for StudentDTO

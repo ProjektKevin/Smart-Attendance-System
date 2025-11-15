@@ -12,15 +12,28 @@ import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.dto.student.StudentDTO;
 import com.smartattendance.model.entity.Course;
 
+/**
+ * Course Repository
+ * Performs DB operations for all courses in general
+ * Finding courses by id, all courses, and enrollment operations
+ * 
+ * @author Thiha Swan Htet
+ */
 public class CourseRepository {
 
-    public Course findCourseById(Integer id) {
+    /**
+     * Find all courses by course id
+     *
+     * @param courseId The course ID to filter by
+     * @return Course
+     */
+    public Course findCourseById(Integer courseId) {
         String sql = "SELECT * FROM courses WHERE course_id = ?";
 
         try (Connection conn = DatabaseUtil.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, id);
+            ps.setInt(1, courseId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -38,6 +51,11 @@ public class CourseRepository {
         return null;
     }
 
+    /**
+     * Find all courses
+     *
+     * @return List<Course> list of courses
+     */
     public List<Course> findAllCourses() {
         List<Course> courses = new ArrayList<>();
         String sql = "SELECT * FROM courses";
@@ -68,18 +86,18 @@ public class CourseRepository {
     public List<StudentDTO> findStudentsByCourseId(Integer courseId) {
         List<StudentDTO> students = new ArrayList<>();
         String sql = "SELECT " +
-                     "    u.user_id as studentId, " +
-                     "    CONCAT(p.first_name, ' ', p.last_name) as fullName, " +
-                     "    c.course_name as courseName " +
-                     "FROM users u " +
-                     "JOIN profile p ON u.user_id = p.user_id " +
-                     "JOIN enrollments e ON u.user_id = e.user_id " +
-                     "JOIN courses c ON e.course_id = c.course_id " +
-                     "WHERE u.role = 'STUDENT' AND c.course_id = ? " +
-                     "ORDER BY u.user_id";
+                "    u.user_id as studentId, " +
+                "    CONCAT(p.first_name, ' ', p.last_name) as fullName, " +
+                "    c.course_name as courseName " +
+                "FROM users u " +
+                "JOIN profile p ON u.user_id = p.user_id " +
+                "JOIN enrollments e ON u.user_id = e.user_id " +
+                "JOIN courses c ON e.course_id = c.course_id " +
+                "WHERE u.role = 'STUDENT' AND c.course_id = ? " +
+                "ORDER BY u.user_id";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, courseId);
 
@@ -88,8 +106,7 @@ public class CourseRepository {
                     students.add(new StudentDTO(
                             rs.getInt("studentId"),
                             rs.getString("fullName"),
-                            rs.getString("courseName")
-                    ));
+                            rs.getString("courseName")));
                 }
             }
 
@@ -108,18 +125,18 @@ public class CourseRepository {
     public List<StudentDTO> findStudentsByCourseName(String courseName) {
         List<StudentDTO> students = new ArrayList<>();
         String sql = "SELECT " +
-                     "    u.user_id as studentId, " +
-                     "    CONCAT(p.first_name, ' ', p.last_name) as fullName, " +
-                     "    c.course_name as courseName " +
-                     "FROM users u " +
-                     "JOIN profile p ON u.user_id = p.user_id " +
-                     "JOIN enrollments e ON u.user_id = e.user_id " +
-                     "JOIN courses c ON e.course_id = c.course_id " +
-                     "WHERE u.role = 'STUDENT' AND c.course_name = ? " +
-                     "ORDER BY u.user_id";
+                "    u.user_id as studentId, " +
+                "    CONCAT(p.first_name, ' ', p.last_name) as fullName, " +
+                "    c.course_name as courseName " +
+                "FROM users u " +
+                "JOIN profile p ON u.user_id = p.user_id " +
+                "JOIN enrollments e ON u.user_id = e.user_id " +
+                "JOIN courses c ON e.course_id = c.course_id " +
+                "WHERE u.role = 'STUDENT' AND c.course_name = ? " +
+                "ORDER BY u.user_id";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, courseName);
 
@@ -128,8 +145,7 @@ public class CourseRepository {
                     students.add(new StudentDTO(
                             rs.getInt("studentId"),
                             rs.getString("fullName"),
-                            rs.getString("courseName")
-                    ));
+                            rs.getString("courseName")));
                 }
             }
 
@@ -147,26 +163,25 @@ public class CourseRepository {
     public List<StudentDTO> findAllStudents() {
         List<StudentDTO> students = new ArrayList<>();
         String sql = "SELECT " +
-                     "    u.user_id as studentId, " +
-                     "    CONCAT(p.first_name, ' ', p.last_name) as fullName, " +
-                     "    c.course_name as courseName " +
-                     "FROM users u " +
-                     "JOIN profile p ON u.user_id = p.user_id " +
-                     "JOIN enrollments e ON u.user_id = e.user_id " +
-                     "JOIN courses c ON e.course_id = c.course_id " +
-                     "WHERE u.role = 'STUDENT' " +
-                     "ORDER BY u.user_id";
+                "    u.user_id as studentId, " +
+                "    CONCAT(p.first_name, ' ', p.last_name) as fullName, " +
+                "    c.course_name as courseName " +
+                "FROM users u " +
+                "JOIN profile p ON u.user_id = p.user_id " +
+                "JOIN enrollments e ON u.user_id = e.user_id " +
+                "JOIN courses c ON e.course_id = c.course_id " +
+                "WHERE u.role = 'STUDENT' " +
+                "ORDER BY u.user_id";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 students.add(new StudentDTO(
                         rs.getInt("studentId"),
                         rs.getString("fullName"),
-                        rs.getString("courseName")
-                ));
+                        rs.getString("courseName")));
             }
 
         } catch (SQLException e) {
@@ -186,7 +201,7 @@ public class CourseRepository {
         String sql = "INSERT INTO enrollments (user_id, course_id) VALUES (?, ?)";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
             ps.setInt(2, courseId);
@@ -233,7 +248,7 @@ public class CourseRepository {
         String sql = "DELETE FROM enrollments WHERE user_id = ? AND course_id = ?";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
             ps.setInt(2, courseId);
@@ -256,13 +271,13 @@ public class CourseRepository {
     public List<Course> getCoursesByStudentId(Integer userId) {
         List<Course> courses = new ArrayList<>();
         String sql = "SELECT c.course_id, c.course_name, c.course_code " +
-                     "FROM courses c " +
-                     "JOIN enrollments e ON c.course_id = e.course_id " +
-                     "WHERE e.user_id = ? " +
-                     "ORDER BY c.course_code";
+                "FROM courses c " +
+                "JOIN enrollments e ON c.course_id = e.course_id " +
+                "WHERE e.user_id = ? " +
+                "ORDER BY c.course_code";
 
         try (Connection conn = DatabaseUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, userId);
 

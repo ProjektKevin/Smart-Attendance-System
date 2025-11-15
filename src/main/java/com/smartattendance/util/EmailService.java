@@ -16,6 +16,13 @@ import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 
+/**
+ * SMTP mail service to send email
+ * Performs operations such as sending reports, verification mails and forget
+ * password
+ * 
+ * @author Ernest Lun
+ */
 public class EmailService {
     private final EmailSettings settings;
 

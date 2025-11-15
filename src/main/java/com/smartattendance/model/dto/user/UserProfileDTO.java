@@ -4,6 +4,11 @@ import com.smartattendance.model.entity.Profile;
 import com.smartattendance.model.entity.User;
 import com.smartattendance.model.enums.Role;
 
+/**
+ * DTO for user profile display
+ * 
+ * @author Thiha Swan Htet
+ */
 public class UserProfileDTO {
     private Integer id;
     private String firstName;

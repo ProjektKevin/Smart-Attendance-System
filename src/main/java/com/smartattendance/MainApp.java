@@ -25,6 +25,8 @@ import javafx.stage.Stage;
  *     <li>{@link #start(Stage)} once with the primary stage</li>
  *     <li>{@link #stop()} when the application is about to exit</li>
  * </ul>
+ * 
+ * @author Chue Wan Yan, Ernest Lun, Lim Jia Hui, Min Thet Khine, Thiha Swan Htet
  */
 public class MainApp extends Application {
 

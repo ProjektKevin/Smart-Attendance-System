@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * DTO for Student Profile display
+ * 
+ * @author Thiha Swan Htet
  */
 public class StudentProfileDTO extends UserProfileDTO {
     private List<Course> enrolledCourses;
