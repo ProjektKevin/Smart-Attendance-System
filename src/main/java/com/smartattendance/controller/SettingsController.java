@@ -14,6 +14,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 
+/**
+ * Settings Controller
+ * Manages the settings view for configuring application parameters
+ * Handles camera selection, recognition thresholds, algorithms, and database
+ * settings
+ * Validates and saves user configurations
+ * 
+ * @author Min Thet Khine
+ */
+
 public class SettingsController {
   @FXML
   private TextField highThresholdField, lowThresholdField, cooldownField, dbPathField;
@@ -32,6 +42,12 @@ public class SettingsController {
 
   private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
+  /**
+   * Initialize the settings view
+   * Called automatically after FXML loading
+   * Sets up camera detection, loads current configuration, and initializes UI
+   * controls
+   */
   @FXML
   public void initialize() {
     // Detect available camera indexs
@@ -98,6 +114,12 @@ public class SettingsController {
 
   }
 
+  /**
+   * Save settings when user clicks the Save button
+   * Validates all inputs, updates configuration, and applies changes to
+   * recognizers
+   * Shows success or error status to the user
+   */
   @FXML
   private void onSaveSettings() {
     try {
@@ -158,6 +180,10 @@ public class SettingsController {
     }
   }
 
+  /**
+   * Clear all error styling from input fields
+   * Resets border colors to default
+   */
   private void clearFieldStyles() {
     cameraIndexChoiceBox.setStyle("");
     highThresholdField.setStyle("");
@@ -166,6 +192,12 @@ public class SettingsController {
     imageAmountSlider.setStyle("");
   }
 
+  /**
+   * Set up event handlers to clear status label when user interacts with controls
+   * Provides better UX by removing old messages when user makes changes
+   * 
+   * @param control The control to attach status-clearing behavior to
+   */
   private void setupStatusClear(Control control) {
     Runnable clearStatus = () -> statusLabel.setText("");
 
@@ -181,13 +213,21 @@ public class SettingsController {
     }
   }
 
+  /**
+   * Handle validation errors by highlighting invalid fields and displaying error
+   * messages
+   * Sets red borders on fields with errors and shows the first error in status
+   * label
+   * 
+   * @param result The validation result containing all field errors
+   */
   // Method to handle all the validation errors
   private void handleValidationErrors(ValidationResult result) {
     // Set border color for fields with errors
     if (result.getFieldError("cameraIndex") != null) {
       cameraIndexChoiceBox.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
     }
-    
+
     if (result.getFieldError("highThreshold") != null) {
       highThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
     }

@@ -9,7 +9,6 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
-import org.opencv.imgproc.Imgproc;
 
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.entity.FaceData;
@@ -17,6 +16,16 @@ import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.log.ApplicationLogger;
 import com.smartattendance.util.security.log.AttendanceLogger;
+
+/**
+ * OpenFace Recognizer
+ * Implements face recognition using deep neural network (DNN) based OpenFace
+ * model
+ * Generates 128-dimensional face embeddings for accurate face matching
+ * Uses cosine similarity for face comparison
+ * 
+ * @author Min Thet Khine
+ */
 
 public class OpenFaceRecognizer extends Recognizer {
     private final FaceProcessingService faceProcessingService;
@@ -96,6 +105,12 @@ public class OpenFaceRecognizer extends Recognizer {
     }
 
     // ----- Recoginzer classes -----
+    /**
+     * Train the recognizer by computing average face embeddings for each student
+     * Processes all enrolled students and generates 128-dimensional embeddings
+     * 
+     * @param students List of students to train the recognizer with
+     */
     @Override
     public void train(List<Student> students) {
         if (faceNet == null || faceNet.empty()) {
@@ -182,6 +197,14 @@ public class OpenFaceRecognizer extends Recognizer {
                 failureCount + " failed");
     }
 
+    /**
+     * Recognize a face by comparing its embedding with stored student embeddings
+     * Uses cosine similarity to find the best match among enrolled students
+     * 
+     * @param faceImage        The face image to recognize
+     * @param enrolledStudents List of students to compare against
+     * @return RecognitionResult containing the matched student and confidence score
+     */
     @Override
     public RecognitionResult recognize(Mat faceImage, List<Student> enrolledStudents) {
         if (faceNet == null || faceNet.empty()) {

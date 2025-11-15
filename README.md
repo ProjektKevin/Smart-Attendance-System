@@ -9,6 +9,7 @@ A comprehensive JavaFX-based attendance management system with facial recognitio
 - **Build Tool**: Maven (with `javafx-maven-plugin` 0.0.8)
 - **Database**: PostgreSQL (JDBC driver `org.postgresql:postgresql:42.6.0`)
 - **Computer Vision**: OpenCV 4.9.0 (`org.openpnp:opencv:4.9.0-0`)
+- **Algorithm models**: Histogram, OpenFace v1 (`nn4.small2.v1.t7`)
 - **PDF Generation**: Apache PDFBox 2.0.30 + iText 5.5.13.3
 - **Excel Export**: Apache POI (poi-ooxml 5.2.5)
 - **Email Service**: Jakarta Mail 2.0.1 + Jakarta Activation 2.0.1

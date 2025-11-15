@@ -78,6 +78,12 @@ public final class OpenCVUtils {
 		return image;
 	}
 
+	/**
+	 * Convert Histogram's mat to Bytes to store in database
+	 * 
+	 * @param histogram
+	 * @return the byte list to be stored
+	 */
 	public static byte[] matHistogramToBytes(Mat histogram) {
 		if (histogram == null || histogram.empty()) {
 			return null;
@@ -113,6 +119,12 @@ public final class OpenCVUtils {
 		}
 	}
 
+	/**
+	 * Connvert Byte list to mat to be used in recognition
+	 * 
+	 * @param bytes
+	 * @return mat of the byte list
+	 */
 	public static Mat bytesToMatHistogram(byte[] bytes) {
 		if (bytes == null || bytes.length == 0) {
 			return new Mat();
