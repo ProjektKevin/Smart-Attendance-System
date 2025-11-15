@@ -17,6 +17,8 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  * environment variables or an external configuration source. This matches
  * the project requirement to externalize configuration instead of hard-coding
  * database settings in the source code.
+ * 
+ * @author Lim Jia Hui, Ernest Lun
  */
 public class DatabaseUtil {
 

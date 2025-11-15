@@ -22,6 +22,7 @@ import java.util.Map;
 /**
  * Modal dialog for adding a new student
  * Takes email and role as inputs
+ * 
  * @author Thiha Swan Htet
  */
 public class AddUserDialog {
@@ -44,7 +45,7 @@ public class AddUserDialog {
 
     private void initializeDialog() {
         // Set up stage properties
-        stage.setTitle("Add Student");
+        stage.setTitle("Add User");
         stage.setWidth(450);
         stage.setHeight(350);
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -57,7 +58,7 @@ public class AddUserDialog {
         root.setFillWidth(true);
 
         // Create title
-        Label titleLabel = new Label("Add New Student");
+        Label titleLabel = new Label("Add New User");
         titleLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
 
         // Create form grid
@@ -163,7 +164,7 @@ public class AddUserDialog {
     }
 
     private void handleAddStudent() {
-        String email = emailField.getText();
+        String email = emailField.getText().trim().toLowerCase();
         String role = roleComboBox.getValue();
 
         // Validate fields

@@ -52,13 +52,13 @@ public class ProfileValidator {
 
         // Check minimum length using base Validator
         if (!Validator.validateStringMinChar(3, trimmed)) {
-            result.addFieldError("firstName", "First name must be at least 2 characters");
+            result.addFieldError("firstName", "First name must be at least 3 characters");
             return;
         }
 
         // Check maximum length using base Validator
         if (!Validator.validateStringMaxChar(25, trimmed)) {
-            result.addFieldError("firstName", "First name cannot exceed 50 characters");
+            result.addFieldError("firstName", "First name cannot exceed 25 characters");
             return;
         }
 
@@ -86,13 +86,13 @@ public class ProfileValidator {
 
         // Check minimum length
         if (!Validator.validateStringMinChar(3, trimmed)) {
-            result.addFieldError("lastName", "Last name must be at least 2 characters");
+            result.addFieldError("lastName", "Last name must be at least 3 characters");
             return;
         }
 
         // Check maximum length
         if (!Validator.validateStringMaxChar(25, trimmed)) {
-            result.addFieldError("lastName", "Last name cannot exceed 50 characters");
+            result.addFieldError("lastName", "Last name cannot exceed 25 characters");
             return;
         }
 

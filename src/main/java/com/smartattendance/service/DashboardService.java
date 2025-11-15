@@ -20,6 +20,8 @@ import com.smartattendance.repository.DashboardRepository;
  *
  * <p>This class does not perform heavy business logic; it mainly passes
  * {@link DashboardFilter} to the repository and returns DTOs for the UI.
+ * 
+ * @author Ernest Lun
  */
 public class DashboardService {
 

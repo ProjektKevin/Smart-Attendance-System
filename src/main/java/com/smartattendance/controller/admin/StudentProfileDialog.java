@@ -18,6 +18,10 @@ import javafx.stage.Stage;
 /**
  * Modal dialog for displaying student profile information
  * Uses UserProfileDTO for displaying student data
+ * Displays first name, last name, email, role, email_verified
+ * Phone number and enrolled courses
+ * 
+ * @author Thiha Swan Htet
  */
 public class StudentProfileDialog {
     private final Stage stage;

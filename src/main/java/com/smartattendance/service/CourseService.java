@@ -6,6 +6,13 @@ import com.smartattendance.model.dto.student.StudentDTO;
 import com.smartattendance.model.entity.Course;
 import com.smartattendance.repository.CourseRepository;
 
+/**
+ * Course Service
+ * Controls business logic and interact with db repository for courses
+ * enrollments and loading
+ * 
+ * @author Lim Jia Hui, Thiha Swan Htet
+ */
 public class CourseService {
     public final CourseRepository courseRepo;
 
@@ -63,41 +70,6 @@ public class CourseService {
      */
     public List<StudentDTO> getAllStudents() {
         return courseRepo.findAllStudents();
-    }
-
-    // ==================== Enrollment Methods ====================
-
-    /**
-     * Enroll a student in a course
-     *
-     * @param userId   The user ID to enroll
-     * @param courseId The course ID to enroll in
-     * @return true if enrollment was successful, false otherwise
-     */
-    public boolean enrollStudentInCourse(Integer userId, Integer courseId) {
-        return courseRepo.enrollStudentInCourse(userId, courseId);
-    }
-
-    /**
-     * Enroll a student in multiple courses
-     *
-     * @param userId    The user ID to enroll
-     * @param courseIds List of course IDs to enroll in
-     * @return true if all enrollments were successful, false if any failed
-     */
-    public boolean enrollStudentInCourses(Integer userId, List<Integer> courseIds) {
-        return courseRepo.enrollStudentInCourses(userId, courseIds);
-    }
-
-    /**
-     * Unenroll a student from a course
-     *
-     * @param userId   The user ID to unenroll
-     * @param courseId The course ID to unenroll from
-     * @return true if unenrollment was successful, false otherwise
-     */
-    public boolean unenrollStudentFromCourse(Integer userId, Integer courseId) {
-        return courseRepo.unenrollStudentFromCourse(userId, courseId);
     }
 
     /**

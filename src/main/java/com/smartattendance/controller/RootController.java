@@ -28,9 +28,8 @@ import javafx.stage.Stage;
  * Manages navigation between tabs, theme switching, user authentication, and access control
  * Handles both admin and student views with role-based tab visibility
  * 
- * @author Thiha Swan Htet, Min Thet Khine, Ernest Lun
+ * @author Ernest Lun, Min Thet Khine
  */
-
 public class RootController {
     @FXML
     private BorderPane root;

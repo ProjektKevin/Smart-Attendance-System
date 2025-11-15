@@ -17,6 +17,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * Dialog box to ask for token verification
+ * 
+ * @author Thiha Swan Htet
+ */
 public class VerificationDialog {
     private final Stage stage;
     private boolean submitted = false;

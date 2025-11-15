@@ -13,6 +13,8 @@ import io.github.cdimascio.dotenv.Dotenv;
  * By centralizing access here, we keep sensitive values (e.g. passwords)
  * out of the source code and externalize them into environment variables,
  * which aligns with good security and configuration practices.
+ * 
+ * @author Thiha Swan Htet, Ernest Lun
  */
 public class ENV {
 
@@ -47,7 +49,8 @@ public class ENV {
     }
 
     /**
-     * @return the SMTP host name for outgoing mail (SMTP_HOST), or null if not defined.
+     * @return the SMTP host name for outgoing mail (SMTP_HOST), or null if not
+     *         defined.
      */
     public static String getSMTPHost() {
         return dotenv.get("SMTP_HOST");
