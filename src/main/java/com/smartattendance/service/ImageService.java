@@ -61,7 +61,7 @@ public class ImageService {
         appLogger.info("Running Capture and Save Image Function for Student: " + studentId);
 
         if (frame == null || frame.empty()) {
-            System.err.println("Frame is null or empty");
+            appLogger.error("Frame is null or empty");
             return false;
         }
 
@@ -94,18 +94,18 @@ public class ImageService {
         Integer studentId = session.getCurrentUser().getId();
         String studentName = session.getCurrentUser().getUserName();
         try {
-            attendanceLogger
+            appLogger
                     .info("Starting Enrollment Training for Student: " + studentName + " (ID: " + studentId + ")");
 
             // Load all images from disk
             List<Mat> enrollmentImages = loadImagesFromDisk(studentId);
 
             if (enrollmentImages.isEmpty()) {
-                attendanceLogger.error("No Images Found to Train for Student " + studentId);
+                appLogger.error("No Images Found to Train for Student " + studentId);
                 return false;
             }
 
-            attendanceLogger.info("Loaded " + enrollmentImages.size() + " Images");
+            appLogger.info("Loaded " + enrollmentImages.size() + " Images");
 
             // Create Student and FaceData objects for training
             Student student = new Student(studentId, studentName, "");
@@ -122,10 +122,10 @@ public class ImageService {
             studentList.add(student);
 
             // Train using HistogramRecognizer
-            attendanceLogger.info("Computing Average Histogram");
+            appLogger.info("Computing Average Histogram");
             histogramRecognizer.train(studentList);
             // Train using Embedding
-            attendanceLogger.info("Computing Average Embedding");
+            appLogger.info("Computing Average Embedding");
             openFaceRecognizer.train(studentList);
 
             // Get the trained average histogram
@@ -133,7 +133,7 @@ public class ImageService {
             Mat averageEmbedding = student.getFaceData().getFaceEmbedding();
 
             if (averageHistogram == null || averageHistogram.empty()) {
-                attendanceLogger
+                appLogger
                         .error("Failed to compute average histogram for student " + studentId);
                 // Cleanup on failure
                 cleanupCapturedImages(studentId);
@@ -141,31 +141,31 @@ public class ImageService {
             }
 
             if (averageEmbedding == null || averageEmbedding.empty()) {
-                attendanceLogger
+                appLogger
                         .error("Failed to compute average embedding for student " + studentId);
                 // Cleanup on failure
                 cleanupCapturedImages(studentId);
                 return false;
             }
 
-            attendanceLogger.info("Average Histogram Computed Successfully");
-            attendanceLogger.info("Average Embedding Computed Successfully");
+            appLogger.info("Average Histogram Computed Successfully");
+            appLogger.info("Average Embedding Computed Successfully");
 
             // Persist to database
-            attendanceLogger.info("Persisting Average Histogram and Embedding to Database");
+            appLogger.info("Persisting Average Histogram and Embedding to Database");
             byte[] histogramBytes = OpenCVUtils.matHistogramToBytes(averageHistogram);
             String embeddingString = OpenCVUtils.matToPostgresVector(averageEmbedding);
 
             boolean persistSuccess = imageRepository.insertFaceData(studentId, histogramBytes, embeddingString);
 
             if (!persistSuccess) {
-                attendanceLogger.error("Failed to Persist Histogram and Embedding to Database");
+                appLogger.error("Failed to Persist Histogram and Embedding to Database");
                 // Cleanup on failure
                 cleanupCapturedImages(studentId);
                 return false;
             }
 
-            attendanceLogger.info("Histogram and Embedding Persisted to Database");
+            appLogger.info("Histogram and Embedding Persisted to Database");
 
             // Cleanup captured images
             appLogger.info("Cleaning Up Captured Images");
@@ -197,7 +197,7 @@ public class ImageService {
     private List<Mat> loadImagesFromDisk(Integer studentId) {
         List<Mat> images = new ArrayList<>();
 
-        String studentDir = CAPTURE_DIR + File.separator + studentId;
+        String studentDir = CAPTURE_DIR + File.separator + "student_" + studentId;
         File dir = new File(studentDir);
 
         if (!dir.exists() || !dir.isDirectory()) {
@@ -239,7 +239,7 @@ public class ImageService {
      * @param studentId the student ID
      */
     private void cleanupCapturedImages(Integer studentId) {
-        String studentDir = CAPTURE_DIR + File.separator + studentId;
+        String studentDir = CAPTURE_DIR + File.separator + "student_" + studentId;
         Path path = Paths.get(studentDir);
 
         try {
@@ -272,7 +272,7 @@ public class ImageService {
      */
     private String saveImageToDisk(int studentId, Mat frame) {
         // Create student-specific directory
-        String studentDir = CAPTURE_DIR + File.separator + studentId;
+        String studentDir = CAPTURE_DIR + File.separator + "student_" + studentId;
         File dir = new File(studentDir);
         appLogger.info("Student directory: " + studentDir);
 

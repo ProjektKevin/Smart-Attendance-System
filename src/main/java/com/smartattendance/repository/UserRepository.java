@@ -12,8 +12,23 @@ import com.smartattendance.model.enums.Role;
 import com.smartattendance.config.DatabaseUtil;
 import com.smartattendance.model.entity.User;
 
+/**
+ * User Repository
+ * Performs DB operations for all users in general
+ * Finding user, Deletion, and retriving role-based user
+ * 
+ * @author Thiha Swan Htet
+ */
 public class UserRepository {
 
+    /**
+     * Retrieve User by the id
+     * Used for displaying basic user info
+     *
+     * @param id The id of the user
+     *
+     * @return User object
+     */
     public User findUserById(Integer id) {
         String sql = "SELECT user_id, username, email, role, is_email_verified FROM users WHERE user_id = ?";
         try (Connection conn = DatabaseUtil.getConnection();
@@ -39,6 +54,16 @@ public class UserRepository {
         return null;
     }
 
+    /**
+     * Retrieve User by the role
+     * Used for table display under admin
+     * Reusable if an app expands to allow filter between different roles: Student,
+     * Manager, Instructor...etc
+     * 
+     * @param role The role needed to be filtered
+     *
+     * @return List<User> List of all User object
+     */
     public List<User> findUsersByRole(String role) {
         List<User> filteredUsersByRole = new ArrayList<>();
         String sql = "SELECT user_id, username, email, role, is_email_verified FROM users WHERE role = ?";
@@ -65,6 +90,14 @@ public class UserRepository {
         return filteredUsersByRole;
     }
 
+    /**
+     * Delete the user
+     * Used for admin to delete student
+     *
+     * @param id The id of the user
+     *
+     * @return boolean: true if created, else -> false
+     */
     public boolean deleteUserById(Integer userId) {
         String sql = "DELETE FROM users WHERE user_id = ?";
         int rowsAffected = 0;

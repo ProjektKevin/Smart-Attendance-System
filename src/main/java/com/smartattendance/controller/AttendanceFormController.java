@@ -11,6 +11,7 @@ import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.StudentService;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -30,6 +31,7 @@ public class AttendanceFormController {
     private AttendanceService attendanceService = new AttendanceService();
     private StudentService studentService = new StudentService();
     private Session currentSession;
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     private AttendanceRecord newRecord;
 
@@ -65,11 +67,11 @@ public class AttendanceFormController {
             // 4. Add only students who are not yet marked
             allStudents.stream()
                     .filter(student -> !existingStudentIds.contains(student.getStudentId()))
-                    .forEach(student
-                            -> cmbStudentId.getItems().add(student.getStudentId() + " - " + student.getName())
-                    );
+                    .forEach(
+                            student -> cmbStudentId.getItems().add(student.getStudentId() + " - " + student.getName()));
             // studentService.getStudentsBySessionId(currentSession).forEach(student
-            //         -> cmbStudentId.getItems().add(String.valueOf(student.getStudentId() + " - " + student.getName()))
+            // -> cmbStudentId.getItems().add(String.valueOf(student.getStudentId() + " - "
+            // + student.getName()))
             // );
         }
     }
@@ -77,7 +79,8 @@ public class AttendanceFormController {
     @FXML
     private void onCreate() {
         try {
-            // System.out.println("|" + cmbStatus.getValue().toUpperCase() + "|"); // for testing
+            // System.out.println("|" + cmbStatus.getValue().toUpperCase() + "|"); // for
+            // testing
             int studentId = 0;
             Student student = null;
             String status = cmbStatus.getValue();
@@ -96,15 +99,13 @@ public class AttendanceFormController {
                 student = studentService.findById(studentId);
             }
 
-            
-
             // if (student == null) {
-            //     Alert alert = new Alert(Alert.AlertType.WARNING);
-            //     alert.setTitle("Warning");
-            //     alert.setHeaderText("No student found with studentId: " + studentId);
-            //     alert.setContentText("Please enter a valid studentId.");
-            //     alert.showAndWait();
-            //     throw new Exception("No student found with studentId: " + studentId);
+            // Alert alert = new Alert(Alert.AlertType.WARNING);
+            // alert.setTitle("Warning");
+            // alert.setHeaderText("No student found with studentId: " + studentId);
+            // alert.setContentText("Please enter a valid studentId.");
+            // alert.showAndWait();
+            // throw new Exception("No student found with studentId: " + studentId);
             // }
 
             if (status == null) {
@@ -116,7 +117,8 @@ public class AttendanceFormController {
                 throw new Exception("No status selected");
             }
 
-            AttendanceRecord record = new AttendanceRecord(student, currentSession, AttendanceStatus.valueOf(status.toUpperCase()), 0.0, MarkMethod.MANUAL, LocalDateTime.now());
+            AttendanceRecord record = new AttendanceRecord(student, currentSession,
+                    AttendanceStatus.valueOf(status.toUpperCase()), 0.0, MarkMethod.MANUAL, LocalDateTime.now());
             // record.setStudent(student);
             // record.setSession(currentSession);
             // record.setStatus(cmbStatus.getValue());
@@ -134,9 +136,9 @@ public class AttendanceFormController {
             stage.close();
 
         } catch (NumberFormatException e) {
-            System.err.println("Invalid student ID.");
+            appLogger.error("Invalid student ID.");
         } catch (Exception e) {
-            System.err.println("Error creating record: " + e.getMessage());
+            appLogger.error("Error creating record: " + e.getMessage());
         }
     }
 

@@ -15,9 +15,6 @@ public class ControllerRegistry {
     private static final ControllerRegistry instance = new ControllerRegistry();
     private final Map<String, TabRefreshable> controllers = new HashMap<>();
 
-    private ControllerRegistry() {
-    }
-
     public static ControllerRegistry getInstance() {
         return instance;
     }

@@ -3,6 +3,17 @@ package com.smartattendance.model.entity;
 import java.time.LocalDateTime;
 import com.smartattendance.model.enums.AuthVerification;
 
+/**
+ * Verification Entity
+ * Reflects DB: verification
+ * Entity object with getters and setters for the auth verification
+ * Stores temp tokens: Random string from @util/security/RandomUtil
+ * 
+ * Verification types: FORGOT_PASSWORD, VERIFICATION 
+ * @see @models/enums/AuthVerification
+ * 
+ * @author Thiha Swan Htet
+ */
 public class Verification {
 
     private Integer id;
@@ -14,11 +25,12 @@ public class Verification {
     /**
      * Custom default constructor
      * 
-     * @param id      The id of the verification service
-     * @param identifier    The identifier of the verification from AuthVerification ENUM
-     * @param token   The random generated string to check against
-     * @param expTime The expiration time of the token
-     * @param userId  The user id of the user who requested
+     * @param id         The id of the verification service
+     * @param identifier The identifier of the verification from AuthVerification
+     *                   ENUM
+     * @param token      The random generated string to check against
+     * @param expTime    The expiration time of the token
+     * @param userId     The user id of the user who requested
      * 
      */
     public Verification(Integer id, AuthVerification identifier, String token, LocalDateTime expTime, Integer userId) {
@@ -32,10 +44,10 @@ public class Verification {
     /**
      * Custom default constructor
      * 
-     * @param identifier    The identifier of the request from AuthVerification ENUM
-     * @param token   The random generated string to check against
-     * @param expTime The expiration time of the token
-     * @param userId  The user id of the user who requested
+     * @param identifier The identifier of the request from AuthVerification ENUM
+     * @param token      The random generated string to check against
+     * @param expTime    The expiration time of the token
+     * @param userId     The user id of the user who requested
      * 
      */
     public Verification(AuthVerification identifier, String token, LocalDateTime expTime, Integer userId) {

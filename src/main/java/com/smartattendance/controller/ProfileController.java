@@ -32,7 +32,7 @@ import java.util.Map;
  * 
  * @author Thiha Swan Htet
  */
-public class ProfileController {
+public class ProfileController implements TabRefreshable {
 
     // ====== FXML Components ======
 
@@ -108,6 +108,7 @@ public class ProfileController {
     private final CourseService courseService = ApplicationContext.getCourseService();
     private final AuthSession session = ApplicationContext.getAuthSession();
     private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+    private final ControllerRegistry registry = ControllerRegistry.getInstance();
 
     // ====== State ======
     private User currentUser;
@@ -123,17 +124,16 @@ public class ProfileController {
         // Get current logged-in user
         currentUser = session.getCurrentUser();
 
-        if (currentUser == null) {
-            showError("No user logged in");
-            return;
-        }
-
         // Load profile for current user
         loadProfile();
 
         // Clear messages
         statusLabel.setText("");
         errorLabel.setText("");
+
+        // Register controller for tab refresh functionality
+        // If the admin enroll courses, it should be updated for student view
+        registry.register("userProfile", this);
     }
 
     /**
@@ -527,5 +527,14 @@ public class ProfileController {
     private void showError(String message) {
         errorLabel.setText(message);
         statusLabel.setText("");
+    }
+
+    /**
+     * Refresh the profile when the tab is selected.
+     * Implements TabRefreshable interface for automatic refresh on tab selection.
+     */
+    @Override
+    public void refresh() {
+        loadProfile();
     }
 }

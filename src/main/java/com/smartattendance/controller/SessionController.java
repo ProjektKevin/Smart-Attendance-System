@@ -15,6 +15,7 @@ import com.smartattendance.model.entity.Session;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
 import com.smartattendance.util.ControllerRegistry;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -89,6 +90,9 @@ public class SessionController {
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
     // F_MA: added by felicia handling marking attendance
     private AttendanceController attendanceController; // store reference
+
+    // Logger
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     @FXML
     public void initialize() {
@@ -661,7 +665,7 @@ public class SessionController {
     }
 
     private void setupAutoStopColumn() {
-        System.out.println("SessionController: Setting up Auto Stop column");
+        appLogger.info("SessionController: Setting up Auto Stop column");
         colAutoStop.setCellFactory(column -> new TableCell<Session, Boolean>() {
             private final ToggleButton toggleButton = new ToggleButton();
             private boolean initializing = true;

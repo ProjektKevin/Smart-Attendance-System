@@ -9,9 +9,4 @@
             <TableColumn fx:id="colCourse" text="Course" prefWidth="100"/>
         </columns>
     </TableView>
-
-    <!-- chore(): Update the onAddStudent method -->
-    <!-- <HBox spacing="10">
-        <Button text="Add" onAction="#onAddStudent"/>
-    </HBox> -->
 </VBox>

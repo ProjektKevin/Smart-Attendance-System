@@ -7,6 +7,8 @@ import java.nio.ByteBuffer;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
+import com.smartattendance.util.security.log.ApplicationLogger;
+
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
@@ -17,6 +19,7 @@ import javafx.scene.image.Image;
  * 
  */
 public final class OpenCVUtils {
+	private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
 	/**
 	 * Convert a Mat object (OpenCV) in the corresponding Image for JavaFX
@@ -29,7 +32,7 @@ public final class OpenCVUtils {
 		try {
 			return SwingFXUtils.toFXImage(matToBufferedImage(frame), null);
 		} catch (Exception e) {
-			System.err.println("Cannot convert the Mat obejct: " + e);
+			appLogger.error("Cannot convert the Mat obejct: " + e);
 			return null;
 		}
 	}
@@ -104,7 +107,7 @@ public final class OpenCVUtils {
 			return buffer.array();
 
 		} catch (Exception e) {
-			System.err.println("Error converting histogram to bytes: " + e.getMessage());
+			appLogger.error("Error converting histogram to bytes: " + e.getMessage());
 			return null;
 		}
 	}
@@ -118,7 +121,7 @@ public final class OpenCVUtils {
 			int numElements = bytes.length / 4;
 
 			if (numElements != 256) {
-				System.err.println("Warning: Expected 256 histogram bins, got " + numElements);
+				appLogger.error("Warning: Expected 256 histogram bins, got " + numElements);
 			}
 
 			Mat histogram = new Mat(256, 1, CvType.CV_32F);
@@ -134,7 +137,7 @@ public final class OpenCVUtils {
 			return histogram;
 
 		} catch (Exception e) {
-			System.err.println("Error converting bytes to histogram: " + e.getMessage());
+			appLogger.error("Error converting bytes to histogram: " + e.getMessage());
 			return new Mat();
 		}
 	}

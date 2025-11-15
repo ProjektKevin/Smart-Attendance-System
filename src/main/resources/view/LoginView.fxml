@@ -65,9 +65,9 @@
         <HBox spacing="12" alignment="CENTER_RIGHT"
               GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="2">
 
-            <!-- Forget Password Link Button -->
+            <!-- Forgot Password Link Button -->
             <Button fx:id="forgetPasswordButton"
-                    text="Forget Password?"
+                    text="Forgot Password?"
                     onAction="#handleForgetPassword"
                     style="-fx-background-color: transparent; -fx-text-fill: #3b82f6; -fx-font-size: 13px; -fx-cursor: hand; -fx-underline: true;"/>
 
