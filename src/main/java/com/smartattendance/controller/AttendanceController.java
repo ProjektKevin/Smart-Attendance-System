@@ -62,9 +62,11 @@ import javafx.stage.Stage;
  * attendance changes. Implements {@link TabRefreshable} to update UI when
  * attendance changes.
  *
- * @author Chue Wan Yan (modify existing methods and create rest of the methods)
+ * @author Chue Wan Yan (modify existing methods and create rest of the methods,
+ * add comments and organize the codes)
  * @author Lim Jia Hui (setSession, onBack, saveChanges, setBackHandler,
  * initialize, loadAttendanceRecords)
+ *
  * @version 14:58 15 Nov 2025
  *
  */
@@ -102,25 +104,34 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
     @FXML
     private TableColumn<AttendanceRecord, Boolean> colSelect; // Selection checkbox for an attendance record
 
-    // ======= Util, Services and Data =======
-    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+    // ======= Services =======
+    // private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
     private final AttendanceService service = new AttendanceService(); // Local service instance
-    private final StudentService studentService = new StudentService(); // Service to fetch student info
-    private final ObservableList<AttendanceRecord> attendanceList = FXCollections.observableArrayList(); // Observable list of attendance records
-    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService(); // Shared attendance service
-    private Session currentSession; // Currently selected session
-    private Runnable backHandler; // Custom back button handler
-    private boolean isEditing = false; // Flag to track edit mode
-    private boolean hasUnsavedChanges = false; // Flag to track unsaved changes
+    private final AttendanceService attendanceService
+            = ApplicationContext.getAttendanceService(); // Shared attendance service
+    private final StudentService studentService = new StudentService(); // Fetch student info
 
-    // Track original valuees to detect changes for manual marking
+    // ======= Data =======
+    private final ObservableList<AttendanceRecord> attendanceList
+            = FXCollections.observableArrayList(); // Observable list of attendance records
+    private Session currentSession; // Currently selected session
+
+    // ======= Handlers =======
+    private Runnable backHandler; // Custom back button handler
+
+    // ======= Flags =======
+    private boolean isEditing = false; // Track edit mode
+    private boolean hasUnsavedChanges = false; // Track unsaved changes
+
+    // ======= Track original values for manual marking =======
     private final Map<Integer, String> originalStatuses = new HashMap<>();
     private final Map<Integer, String> originalNotes = new HashMap<>();
 
-    // Formatter for timestamp display
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(Config.get("datetime.format"));
+    // ======= Formatter for timestamp display =======
+    private final DateTimeFormatter formatter
+            = DateTimeFormatter.ofPattern(Config.get("datetime.format"));
 
-    // Track selections of attendance records in table
+    // ======= Track selections of attendance records in the table =======
     private final Map<Integer, SimpleBooleanProperty> selectionMap = new HashMap<>();
 
     // ======= AttendanceObserver Methods =======
@@ -469,7 +480,6 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
                         // if (selected != null) {
                         record.setStatus(AttendanceStatus.valueOf(combo.getValue().toUpperCase()));
                         markUnsaved();
-                        // }
                     }
                 });
             }
@@ -488,28 +498,24 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
             }
         });
 
-        // F_MA: added by felicia handling marking attendance //
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+        // F_MA: added by felicia handling marking attendance (change to use externalized parameter)
+        // DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         colMarkedAt.setCellValueFactory(cellData -> {
             LocalDateTime markedAt = cellData.getValue().getTimestamp();
-            String formatted = markedAt != null ? dtf.format(markedAt) : "";
+            String formatted = markedAt != null ? formatter.format(markedAt) : "";
             return new SimpleStringProperty(formatted);
         });
 
         colLastSeen.setCellValueFactory(cellData -> {
             LocalDateTime lastSeen = cellData.getValue().getLastSeen();
-            String formatted = lastSeen != null ? dtf.format(lastSeen) : "";
+            String formatted = lastSeen != null ? formatter.format(lastSeen) : "";
             return new SimpleStringProperty(formatted);
         });
 
         clearEditButton.setOnAction(e -> onClearEdit());
-
         attendanceTable.setFixedCellSize(-1); // allows dynamic height
-
-        // Make table editable if you want to edit notes or status
-        attendanceTable.setEditable(true);
-        attendanceService.addObserver(this);
+        attendanceTable.setEditable(true); // Make table editable to edit notes or status
+        attendanceService.addObserver(this); // add observers
 
         // Register this controller for global access
         ControllerRegistry.getInstance().register("attendance", this);
@@ -529,14 +535,15 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
             List<AttendanceRecord> records = service.findBySessionId(currentSession.getSessionId());
             attendanceList.setAll(records);
             attendanceTable.setItems(attendanceList);
-            updateAttendanceSummary();
-            initSelectionMap();
-            updateButtonStates();
+            updateAttendanceSummary(); // update count of student who present, late and total students
+            initSelectionMap(); // initialize selections
+            updateButtonStates(); // update button states
 
             // Store the original statuses for change detection
             originalStatuses.clear();
             originalNotes.clear();
 
+            // Store original values for status and notes
             for (AttendanceRecord record : records) {
                 originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
                 originalNotes.put(record.getStudent().getStudentId(), record.getNote());
@@ -570,38 +577,41 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
      */
     @FXML
     private void onCreateRecord() {
-        if (getSelectedRecords().size() > 0) {
-            return; // disable if selection exists
+        if (!getSelectedRecords().isEmpty()) {
+            return; // return if selection exists
         }
         try {
-            // 1️. Get all students in this session
+            // Get all students in this session
             List<Student> allStudents = studentService.getStudentsBySessionId(currentSession);
 
-            // 2. Get all existing attendance records
-            List<AttendanceRecord> existingRecords = attendanceService.findBySessionId(currentSession.getSessionId());
+            //Get all existing attendance records
+            List<AttendanceRecord> existingRecords
+                    = attendanceService.findBySessionId(currentSession.getSessionId());
 
-            // 3. Extract student IDs that already have records
+            // Extract student IDs that already have records
             Set<Integer> existingStudentIds = existingRecords.stream()
                     .map(r -> r.getStudent().getStudentId())
                     .collect(java.util.stream.Collectors.toSet());
 
-            // 4. Filter for students not yet added
+            // Filter for students not yet added
             List<Student> remainingStudents = allStudents.stream()
                     .filter(s -> !existingStudentIds.contains(s.getStudentId()))
                     .toList();
 
-            // 5. If no remaining students, show info and return
+            // If no remaining students, show info and return
             if (remainingStudents.isEmpty()) {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("No New Records");
                 alert.setHeaderText(null);
-                alert.setContentText("All students enrolled in this session have attendance records.\nNo new record can be created.");
+                alert.setContentText("All students enrolled in this session have attendance records."
+                        + "\nNo new record can be created.");
                 alert.showAndWait();
-                return; // stop here
+                return;
             }
 
-            // 6. Otherwise open the form    
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/AttendanceFormView.fxml"));
+            // Otherwise open the attendance form to for attendance record creation    
+            FXMLLoader loader
+                    = new FXMLLoader(getClass().getResource("/view/AttendanceFormView.fxml"));
 
             Parent root = loader.load();
 
@@ -618,7 +628,8 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
             AttendanceRecord newRecord = formController.getNewRecord();
             if (newRecord != null) {
                 loadAttendanceRecords();
-                showSuccess("Added record for student " + newRecord.getStudent().getStudentId() + " - " + newRecord.getStudent().getName() + " successfully.");
+                showSuccess("Added record for student " + newRecord.getStudent().getStudentId()
+                        + " - " + newRecord.getStudent().getName() + " successfully.");
             }
 
         } catch (Exception e) {
@@ -646,14 +657,17 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
         String studentNames = selectedRecords.stream()
                 .map(r -> r.getStudent().getName())
                 .collect(Collectors.joining(", "));
-        alert.setContentText("Are you sure you want to delete the selected record(s)?\n" + studentNames);
+        alert.setContentText("Are you sure you want to delete the selected record(s)?\n"
+                + studentNames);
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             for (AttendanceRecord r : selectedRecords) {
                 service.deleteRecord(r);  // implement deleteRecord() in AttendanceService
             }
-            loadAttendanceRecords();
+            loadAttendanceRecords(); // refresh UI page and load attendance record
+
+            // show success message
             showSuccess("Deleted " + selectedRecords.size() + " record(s) successfully.");
         }
     }
@@ -662,9 +676,9 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
      * Updates the enabled/disabled state of buttons based on selection.
      */
     private void updateButtonStates() {
-        boolean hasSelection = getSelectedRecords().size() > 0;
+        boolean hasSelection = !getSelectedRecords().isEmpty();
 
-        deleteButton.setDisable(!hasSelection);
+        deleteButton.setDisable(!hasSelection); // disable delete when no records selected
         createButton.setDisable(hasSelection); // disable create when records selected
     }
 
@@ -687,26 +701,29 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
         try {
             int updatedCount = 0;
 
-            // Create marker (polymorphism)
+            // Create manual attendanace marker (polymorphism)
             AttendanceMarker marker = new ManualAttendanceMarker(service);
             // List<AttendanceObserver> observers = List.of();
 
             for (AttendanceRecord record : attendanceList) {
-                String originalStatus = originalStatuses.get(record.getStudent().getStudentId());
+                String originalStatus
+                        = originalStatuses.get(record.getStudent().getStudentId());
                 String currentStatus = record.getStatus().toString();
                 String originalNote = originalNotes.get(record.getStudent().getStudentId());
                 String currentNote = record.getNote();
 
+                // Set original values
                 record.setOriginalStatus(AttendanceStatus.valueOf(originalStatus));
                 record.setOriginalNote(originalNote);
 
                 // Call manual marker
                 marker.markAttendance(record);
                 if (record.isStatusChanged() || record.isNoteChanged()) {
-                    updatedCount++;
+                    updatedCount++; // update count for number of records modified
 
                     // Update original maps for future edits
-                    originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
+                    originalStatuses.put(record.getStudent().getStudentId(),
+                            record.getStatus().toString());
                     originalNotes.put(record.getStudent().getStudentId(), record.getNote());
                 }
 
@@ -741,7 +758,7 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
 
             // Clear unsaved changes flag after save
             clearUnsaved();
-            
+
             // Exit edit mode (hide clear edit button)
             exitEditMode();
 
@@ -760,6 +777,9 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
         }
     }
 
+    /**
+     * Return to SessionView page. 
+     */
     @FXML
     private void onBack() {
         // Block leaving if user is editing a cell
@@ -769,7 +789,7 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
         // }
 
         if (backHandler != null) {
-            backHandler.run();
+            backHandler.run(); // Run backHandler if it is not null
         } else {
             try {
                 Parent sessionRoot = FXMLLoader.load(getClass().getResource("/view/SessionView.fxml"));
@@ -780,14 +800,19 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
         }
     }
 
+    /**
+     * Hide clear edit button and refresh attendance UI page.
+     */
     @FXML
     private void onClearEdit() {
-        // reload original from database
-        loadAttendanceRecords();
-        exitEditMode();
+        loadAttendanceRecords(); // Refresh UI page and load attendance from database
+        exitEditMode(); // Hide edit button
         showInfo("Edits cleared.");
     }
 
+    /**
+     * Show clear edit button.
+     */
     private void enterEditMode() {
         if (!isEditing) {
             isEditing = true;
@@ -796,20 +821,35 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
         }
     }
 
+    /**
+     * Hide clear edit button.
+     */
     private void exitEditMode() {
         isEditing = false;
         clearEditButton.setVisible(false);
         clearEditButton.setManaged(false);
     }
 
+    /**
+     * Get the hasUnsavedChanges.
+     *
+     * @return hasUnsavedChanges
+     * 
+     */
     public boolean getHasUnsavedChanges() {
         return hasUnsavedChanges;
     }
 
+    /**
+     * Set hasUnsavedChanges to true.
+     */
     public void markUnsaved() {
         hasUnsavedChanges = true;
     }
 
+    /**
+     * Set hasUnsavedChanges to false.
+     */
     public void clearUnsaved() {
         hasUnsavedChanges = false;
     }
@@ -819,7 +859,7 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
      */
     @Override
     public void refresh() {
-        loadAttendanceRecords();
+        loadAttendanceRecords(); // refresh UI
     }
 
     /**
