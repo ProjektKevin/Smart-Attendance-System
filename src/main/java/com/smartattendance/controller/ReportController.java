@@ -7,6 +7,7 @@ import java.util.List;
 import com.smartattendance.service.AttendanceReportService;
 import com.smartattendance.util.report.AttendanceReportRow;
 import com.smartattendance.util.report.ReportSpec;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -21,53 +22,78 @@ import javafx.stage.FileChooser;
 /**
  * Controller for the Attendance Report screen.
  *
- * <p>Responsibilities:
+ * <p>
+ * Responsibilities:
  * <ul>
- *     <li>Read filter / column selections from the UI</li>
- *     <li>Call {@link AttendanceReportService} to fetch data and generate reports</li>
- *     <li>Trigger exports (PDF, Excel, CSV) and email sending</li>
- *     <li>Update the status label with user-friendly messages</li>
+ * <li>Read filter / column selections from the UI</li>
+ * <li>Call {@link AttendanceReportService} to fetch data and generate
+ * reports</li>
+ * <li>Trigger exports (PDF, Excel, CSV) and email sending</li>
+ * <li>Update the status label with user-friendly messages</li>
  * </ul>
  *
- * <p>All heavy lifting (DB queries, report generation, email sending) is delegated
- * to {@link AttendanceReportService}; this class stays as a thin orchestration layer.
+ * <p>
+ * All heavy lifting (DB queries, report generation, email sending) is delegated
+ * to {@link AttendanceReportService}; this class stays as a thin orchestration
+ * layer.
  */
 public class ReportController {
 
     // ===== Date range controls =====
 
-    @FXML private DatePicker fromDate;
-    @FXML private DatePicker toDate;
+    @FXML
+    private DatePicker fromDate;
+    @FXML
+    private DatePicker toDate;
 
     // ===== Filter dropdowns =====
 
-    @FXML private ComboBox<String> sessionFilter;
-    @FXML private ComboBox<String> courseFilter;
-    @FXML private ComboBox<String> statusFilter;
-    @FXML private ComboBox<String> methodFilter;
-    @FXML private ComboBox<String> confidenceFilter;
+    @FXML
+    private ComboBox<String> sessionFilter;
+    @FXML
+    private ComboBox<String> courseFilter;
+    @FXML
+    private ComboBox<String> statusFilter;
+    @FXML
+    private ComboBox<String> methodFilter;
+    @FXML
+    private ComboBox<String> confidenceFilter;
 
     // ===== Column selection checkboxes =====
 
-    @FXML private CheckBox selectAllFieldsCheck;
-    @FXML private CheckBox includeDateTimeCheck;
-    @FXML private CheckBox includeSessionIdCheck;
-    @FXML private CheckBox includeCourseCodeCheck;
-    @FXML private CheckBox includeStudentIdCheck;
-    @FXML private CheckBox includeStudentNameCheck;
-    @FXML private CheckBox includeStatusCheck;
-    @FXML private CheckBox includeMethodCheck;
-    @FXML private CheckBox includeConfidenceCheck;
-    @FXML private CheckBox includeNoteCheck;
+    @FXML
+    private CheckBox selectAllFieldsCheck;
+    @FXML
+    private CheckBox includeDateTimeCheck;
+    @FXML
+    private CheckBox includeSessionIdCheck;
+    @FXML
+    private CheckBox includeCourseCodeCheck;
+    @FXML
+    private CheckBox includeStudentIdCheck;
+    @FXML
+    private CheckBox includeStudentNameCheck;
+    @FXML
+    private CheckBox includeStatusCheck;
+    @FXML
+    private CheckBox includeMethodCheck;
+    @FXML
+    private CheckBox includeConfidenceCheck;
+    @FXML
+    private CheckBox includeNoteCheck;
 
     // ===== Email controls =====
 
-    @FXML private TextField emailTo;
-    @FXML private TextField emailSubject;
-    @FXML private TextArea  emailBody;
+    @FXML
+    private TextField emailTo;
+    @FXML
+    private TextField emailSubject;
+    @FXML
+    private TextArea emailBody;
 
     // Label used to show status messages (export/email result, errors, etc.)
-    @FXML private Label reportStatus;
+    @FXML
+    private Label reportStatus;
 
     /**
      * Service that encapsulates all report-related logic:
@@ -90,6 +116,11 @@ public class ReportController {
     private boolean updatingSelectAll = false;
 
     /**
+     * Application Logger to show on terminal and write file to refer back to
+     */
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
+    /**
      * Called automatically by JavaFX after FXML fields are injected.
      * Sets up default values, wiring for the "Select All" behaviour,
      * and loads dropdown options from the service.
@@ -98,8 +129,10 @@ public class ReportController {
     public void initialize() {
         // Default the date range to today's date, if controls exist in this view.
         LocalDate today = LocalDate.now();
-        if (fromDate != null) fromDate.setValue(today);
-        if (toDate   != null) toDate.setValue(today);
+        if (fromDate != null)
+            fromDate.setValue(today);
+        if (toDate != null)
+            toDate.setValue(today);
 
         // Initial status text for the report screen.
         if (reportStatus != null) {
@@ -120,7 +153,8 @@ public class ReportController {
             selectAllFieldsCheck.setSelected(true);
             // When "Select All" changes → update all individual checkboxes.
             selectAllFieldsCheck.selectedProperty().addListener((obs, ov, nv) -> {
-                if (updatingSelectAll) return;
+                if (updatingSelectAll)
+                    return;
                 updatingSelectAll = true;
                 setColumnChecks(nv);
                 updatingSelectAll = false;
@@ -195,12 +229,15 @@ public class ReportController {
 
     /**
      * Register a checkbox so its changes keep the "Select All" checkbox in sync.
-     * If any child is unchecked, "Select All" is unchecked. If all are checked, it re-checks "Select All".
+     * If any child is unchecked, "Select All" is unchecked. If all are checked, it
+     * re-checks "Select All".
      */
     private void registerColumnForSelectAll(CheckBox cb) {
-        if (cb == null) return;
+        if (cb == null)
+            return;
         cb.selectedProperty().addListener((obs, ov, nv) -> {
-            if (updatingSelectAll) return;
+            if (updatingSelectAll)
+                return;
             if (!nv && selectAllFieldsCheck != null) {
                 // A column got unchecked → uncheck "Select All".
                 selectAllFieldsCheck.setSelected(false);
@@ -237,7 +274,8 @@ public class ReportController {
      * Null-safe setter for a checkbox.
      */
     private void safeSet(CheckBox cb, boolean v) {
-        if (cb != null) cb.setSelected(v);
+        if (cb != null)
+            cb.setSelected(v);
     }
 
     /* =================== button handlers: filters =================== */
@@ -245,9 +283,10 @@ public class ReportController {
     /**
      * Handler for the "Latest Session" button.
      * <ul>
-     *     <li>Asks the service for the latest session</li>
-     *     <li>Updates session/course dropdowns and date range to match that session</li>
-     *     <li>Updates the status label</li>
+     * <li>Asks the service for the latest session</li>
+     * <li>Updates session/course dropdowns and date range to match that
+     * session</li>
+     * <li>Updates the status label</li>
      * </ul>
      */
     @FXML
@@ -269,21 +308,26 @@ public class ReportController {
         }
 
         // Restrict date range to that session's date.
-        if (fromDate != null) fromDate.setValue(latest.date);
-        if (toDate   != null) toDate.setValue(latest.date);
+        if (fromDate != null)
+            fromDate.setValue(latest.date);
+        if (toDate != null)
+            toDate.setValue(latest.date);
 
         setStatus("Latest session selected.");
     }
 
     /**
      * Handler for the "Reset Filters" button.
-     * Resets date range to today, and sets all dropdowns back to their first option.
+     * Resets date range to today, and sets all dropdowns back to their first
+     * option.
      */
     @FXML
     private void onResetFilters() {
         LocalDate today = LocalDate.now();
-        if (fromDate != null) fromDate.setValue(today);
-        if (toDate   != null) toDate.setValue(today);
+        if (fromDate != null)
+            fromDate.setValue(today);
+        if (toDate != null)
+            toDate.setValue(today);
 
         if (sessionFilter != null && !sessionFilter.getItems().isEmpty())
             sessionFilter.getSelectionModel().selectFirst();
@@ -313,7 +357,7 @@ public class ReportController {
             return;
         }
         var filter = buildFilter();
-        var spec   = buildReportSpec();
+        var spec = buildReportSpec();
 
         List<AttendanceReportRow> rows = reportService.getAttendance(filter);
         if (rows.isEmpty()) {
@@ -347,7 +391,7 @@ public class ReportController {
             return;
         }
         var filter = buildFilter();
-        var spec   = buildReportSpec();
+        var spec = buildReportSpec();
 
         List<AttendanceReportRow> rows = reportService.getAttendance(filter);
         if (rows.isEmpty()) {
@@ -381,7 +425,7 @@ public class ReportController {
             return;
         }
         var filter = buildFilter();
-        var spec   = buildReportSpec();
+        var spec = buildReportSpec();
 
         List<AttendanceReportRow> rows = reportService.getAttendance(filter);
         if (rows.isEmpty()) {
@@ -480,7 +524,7 @@ public class ReportController {
 
     /**
      * @return {@code true} if at least one column checkbox is selected.
-     * Used to prevent generating empty reports.
+     *         Used to prevent generating empty reports.
      */
     private boolean atLeastOneColumnSelected() {
         return isChecked(includeDateTimeCheck)
@@ -495,17 +539,18 @@ public class ReportController {
     }
 
     /**
-     * Build a report filter object (inner type defined in {@link AttendanceReportService})
+     * Build a report filter object (inner type defined in
+     * {@link AttendanceReportService})
      * from the current UI selections.
      */
     private AttendanceReportService.ReportFilter buildFilter() {
         AttendanceReportService.ReportFilter f = new AttendanceReportService.ReportFilter();
-        f.fromDate       = fromDate != null ? fromDate.getValue() : null;
-        f.toDate         = toDate   != null ? toDate.getValue()   : null;
+        f.fromDate = fromDate != null ? fromDate.getValue() : null;
+        f.toDate = toDate != null ? toDate.getValue() : null;
         f.sessionDisplay = sessionFilter != null ? sessionFilter.getValue() : null;
-        f.courseDisplay  = courseFilter  != null ? courseFilter.getValue()  : null;
-        f.status         = statusFilter  != null ? statusFilter.getValue()  : null;
-        f.method         = methodFilter  != null ? methodFilter.getValue()  : null;
+        f.courseDisplay = courseFilter != null ? courseFilter.getValue() : null;
+        f.status = statusFilter != null ? statusFilter.getValue() : null;
+        f.method = methodFilter != null ? methodFilter.getValue() : null;
         f.confidenceExpr = confidenceFilter != null ? confidenceFilter.getValue() : null;
         return f;
     }
@@ -552,6 +597,6 @@ public class ReportController {
         if (reportStatus != null) {
             reportStatus.setText(msg);
         }
-        System.out.println("[ReportController] " + msg);
+        appLogger.info("[ReportController] " + msg);
     }
 }

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.User;
 import com.smartattendance.service.StudentAttendanceService;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -54,10 +55,11 @@ public class StudentAttendanceController {
     private final ObservableList<StudentCourseSummary> summary    = FXCollections.observableArrayList();
 
     private final StudentAttendanceService service = new StudentAttendanceService();
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     @FXML
     private void initialize() {
-        System.out.println("[StudentAttendance] init");
+        appLogger.info("[StudentAttendance] init");
 
         // ---- detail table setup ----
         if (colDate != null)   colDate.setCellValueFactory(new PropertyValueFactory<>("date"));

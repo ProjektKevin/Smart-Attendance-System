@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CompletableFuture;
 
 import com.smartattendance.ApplicationContext;
+import com.smartattendance.config.Config;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.model.entity.Student;
@@ -43,8 +44,6 @@ import com.smartattendance.service.FaceRecognitionService;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
-// F_MA: modified by felicia handling marking attendance ##for testing
-import com.smartattendance.service.RecognitionServiceTest;
 
 public class RecognitionController implements AttendanceObserver {
     @FXML
@@ -96,7 +95,7 @@ public class RecognitionController implements AttendanceObserver {
     // Recognition cooldown to avoid spam
     private long lastRecognitionTime = 0;
     private long lastAlertTime = 0;
-    private static final long RECOGNITION_COOLDOWN_MS = 10000; // 10 seconds
+    private static final long RECOGNITION_COOLDOWN_MS = Long.parseLong(Config.get("cooldown.seconds")) * 1000; // * 1000 to change into milliseconds
     private static final long ALERT_COOLDOWN_MS = 5000; // 5 seconds
 
     // Time formatter for logs
@@ -107,9 +106,6 @@ public class RecognitionController implements AttendanceObserver {
 
     private static final double LOW_CONFIDENCE_THRESHOLD = 30.0;
 
-    // F_MA: modified by felicia handling marking attendance ##for testing
-    private RecognitionServiceTest testService;
-
     // =======================================================================
     @FXML
     public void initialize() {
@@ -118,6 +114,10 @@ public class RecognitionController implements AttendanceObserver {
         // Get services from ApplicationContext
         faceDetectionService = ApplicationContext.getFaceDetectionService();
         faceRecognitionService = ApplicationContext.getFaceRecognitionService();
+
+        this.startButton.setText("Start Recognition");
+        this.startButton.setStyle(
+                    "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
 
         statusLabel.setText("Status: Loading...");
         cameraStatusLabel.setText("Camera: Disconnected");

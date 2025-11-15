@@ -2,6 +2,10 @@ package com.smartattendance.controller;
 
 import com.smartattendance.ApplicationContext;
 import com.smartattendance.config.Config;
+import com.smartattendance.util.CameraUtils;
+import com.smartattendance.util.security.log.ApplicationLogger;
+import com.smartattendance.util.validation.ConfigValidator;
+import com.smartattendance.util.validation.ValidationResult;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.ChoiceBox;
@@ -12,10 +16,13 @@ import javafx.scene.control.TextField;
 
 public class SettingsController {
   @FXML
-  private TextField cameraIndexField, highThresholdField, lowThresholdField, cooldownField, dbPathField;
+  private TextField highThresholdField, lowThresholdField, cooldownField, dbPathField;
 
   @FXML
   private ChoiceBox<String> algorithmChoiceBox;
+
+  @FXML
+  private ChoiceBox<Integer> cameraIndexChoiceBox;
 
   @FXML
   private Label statusLabel, imageAmountLabel;
@@ -23,9 +30,40 @@ public class SettingsController {
   @FXML
   private Slider imageAmountSlider;
 
+  private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
   @FXML
   public void initialize() {
-    cameraIndexField.setText(String.valueOf(Config.get("camera.index")));
+    // Detect available camera indexs
+    int[] availableCameras = CameraUtils.getAvailableCameras();
+    for (int cameraIndex : availableCameras) {
+      cameraIndexChoiceBox.getItems().add(cameraIndex);
+    }
+
+    // Set current camera index from config
+    String currentCameraIndexStr = Config.get("camera.index");
+    if (currentCameraIndexStr != null) {
+      try {
+        int currentCameraIndex = Integer.parseInt(currentCameraIndexStr);
+        cameraIndexChoiceBox.setValue(currentCameraIndex);
+      } catch (NumberFormatException e) {
+        // If parsing fails or camera not in list, select first available camera
+        if (availableCameras.length != 0) {
+          cameraIndexChoiceBox.setValue(availableCameras[0]);
+        }
+      }
+    } else if (availableCameras.length > 0) {
+      // Default to first available camera if no config exists
+      cameraIndexChoiceBox.setValue(availableCameras[0]);
+    }
+
+    // If no cameras detected, add a placeholder
+    if (availableCameras.length == 0) {
+      cameraIndexChoiceBox.getItems().add(-1);
+      cameraIndexChoiceBox.setValue(-1);
+      appLogger.warn("No cameras detected!");
+    }
+
     highThresholdField.setText(String.valueOf(Config.get("recognition.high.threshold")));
     lowThresholdField.setText(String.valueOf(Config.get("recognition.low.threshold")));
     cooldownField.setText(String.valueOf(Config.get("cooldown.seconds")));
@@ -50,7 +88,7 @@ public class SettingsController {
       algorithmChoiceBox.setValue("HISTOGRAM");
     }
 
-    setupStatusClear(cameraIndexField);
+    setupStatusClear(cameraIndexChoiceBox);
     setupStatusClear(highThresholdField);
     setupStatusClear(lowThresholdField);
     setupStatusClear(cooldownField);
@@ -63,64 +101,43 @@ public class SettingsController {
   @FXML
   private void onSaveSettings() {
     try {
-      // Validate and save threshold
-      double highThreshold = Double.parseDouble(highThresholdField.getText());
-      double lowThreshold = Double.parseDouble(lowThresholdField.getText());
-      int cooldown = Integer.parseInt(cooldownField.getText());
-      int imageAmount = (int) imageAmountSlider.getValue();
+      // Clear all field styles first, just in case
+      clearFieldStyles();
 
-      if (highThreshold < 0 || highThreshold > 100) {
-        highThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-        statusLabel.setText("Error: High threshold must be between 0 and 100 (You entered: " + highThreshold + ")");
-        statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
-        return;
-      }
+      // Get field values
+      String cameraIndex = String.valueOf(cameraIndexChoiceBox.getValue());
+      String highThreshold = highThresholdField.getText();
+      String lowThreshold = lowThresholdField.getText();
+      String cooldown = cooldownField.getText();
+      String databasePath = dbPathField.getText();
+      String imageAmount = String.valueOf((int) imageAmountSlider.getValue());
 
-      if (lowThreshold < 0 || lowThreshold > 100) {
-        lowThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-        statusLabel.setText("Error: Low threshold must be between 0 and 100 (You entered: " + lowThreshold + ")");
-        statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
-        return;
-      }
+      // Validate using ConfigValidator
+      ValidationResult validationResult = ConfigValidator.validateConfig(
+          cameraIndex,
+          highThreshold,
+          lowThreshold,
+          cooldown,
+          databasePath);
 
-      if (highThreshold <= lowThreshold || highThreshold - lowThreshold < 1.0) {
-        highThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-        lowThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-        statusLabel
-            .setText("Error: High threshold must be greater than low threshold and must be at least one point apart!");
-        statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+      // Check if validation passed
+      if (!validationResult.isValid()) {
+        handleValidationErrors(validationResult);
         return;
-      }
-
-      if (cooldown < 0) {
-        cooldownField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-        statusLabel.setText("Error: Cooldown must be 0 or greater (You entered: " + cooldown + ")");
-        statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
-        return;
-      }
-
-      if (imageAmount < 10 || imageAmount > 25) {
-        imageAmountSlider.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-        statusLabel
-            .setText("Error: Enrollment image amount must be between 10 and 25 (You entered: " + imageAmount + ")");
-        statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
-        return;
-      } else {
-        imageAmountSlider.setStyle(""); // reset style
       }
 
       // Save settings to config (except algorithm - handled by switchAlgorithm)
-      Config.set("camera.index", cameraIndexField.getText());
+      Config.set("camera.index", cameraIndex);
       Config.set("recognition.high.threshold", String.valueOf(highThreshold));
       Config.set("recognition.low.threshold", String.valueOf(lowThreshold));
-      Config.set("cooldown.seconds", String.valueOf(cooldown));
+      Config.set("cooldown.seconds", cooldown);
       Config.set("database.path", dbPathField.getText());
       Config.set("enrollment.image.amount", String.valueOf(imageAmount));
 
       // Update threshold dynamically
-      ApplicationContext.getHistogramRecognizer().setConfidenceThreshold(highThreshold);
+      ApplicationContext.getHistogramRecognizer().setConfidenceThreshold(Double.parseDouble(highThreshold));
       if (ApplicationContext.getOpenFaceRecognizer() != null) {
-        ApplicationContext.getOpenFaceRecognizer().setConfidenceThreshold(highThreshold);
+        ApplicationContext.getOpenFaceRecognizer().setConfidenceThreshold(Double.parseDouble(highThreshold));
       }
 
       // Switch algorithm (this also saves to config)
@@ -128,19 +145,10 @@ public class SettingsController {
       ApplicationContext.getFaceRecognitionService().switchAlgorithm(selectedAlgorithm);
 
       // Show sucessfull
-      System.out.println("Settings saved successfully");
+      appLogger.info("Settings saved successfully");
 
       statusLabel.setText("New Settings saved! ");
       statusLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
-    } catch (NumberFormatException e) {
-      // Handle invalid number format
-      System.err.println("Error: Invalid number format");
-      highThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-      lowThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
-
-      statusLabel.setText("Error: Please enter valid numbers for thresholds (0-100)");
-      statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
-
     } catch (Exception e) {
       System.err.println("Error: " + e.getMessage());
       e.printStackTrace();
@@ -148,6 +156,13 @@ public class SettingsController {
       statusLabel.setText("Error: Failed to save settings");
       statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
     }
+  }
+
+  private void clearFieldStyles() {
+    highThresholdField.setStyle("");
+    lowThresholdField.setStyle("");
+    cooldownField.setStyle("");
+    imageAmountSlider.setStyle("");
   }
 
   private void setupStatusClear(Control control) {
@@ -165,4 +180,33 @@ public class SettingsController {
     }
   }
 
+  // Method to handle all the validation errors
+  private void handleValidationErrors(ValidationResult result) {
+    // Set border color for fields with errors
+    if (result.getFieldError("highThreshold") != null) {
+      highThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+    }
+
+    if (result.getFieldError("lowThreshold") != null) {
+      lowThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+    }
+
+    if (result.getFieldError("thresholds") != null) {
+      highThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+      lowThresholdField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+    }
+
+    if (result.getFieldError("cooldown") != null) {
+      cooldownField.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+    }
+
+    if (result.getFieldError("imageAmount") != null) {
+      imageAmountSlider.setStyle("-fx-border-color: red; -fx-border-width: 2px;");
+    }
+
+    // Display the first error message in status label
+    String firstError = result.getAllFieldErrors().values().iterator().next();
+    statusLabel.setText("Error: " + firstError);
+    statusLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold;");
+  }
 }

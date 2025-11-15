@@ -46,11 +46,14 @@ public class RootController {
     private Label moonGlyph;
     private Label sunGlyph;
 
-    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
-
     private static final String VS16 = "\uFE0F";
 
     private SessionService sessionService;
+
+    /**
+     * Application Logger to show on terminal and write file to refer back to
+     */
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
     @FXML
     public void initialize() {
@@ -206,9 +209,9 @@ public class RootController {
                         });
                     });
 
-                    System.out.println("Live Recognition access blocked - no active session");
+                    appLogger.info("Live Recognition access blocked - no active session");
                 } else {
-                    System.out.println("Live Recognition access granted - session is open");
+                    appLogger.info("Live Recognition access granted - session is open");
                 }
             }
         });

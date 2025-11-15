@@ -15,7 +15,7 @@
                   styleClass="settings-surface">
 
             <Label text="Camera Index:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-            <TextField fx:id="cameraIndexField" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+            <ChoiceBox fx:id="cameraIndexChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
             <Label text="Recognition Algorithm:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
             <ChoiceBox fx:id="algorithmChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200.0" />
