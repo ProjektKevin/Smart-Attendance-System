@@ -1,6 +1,13 @@
 package com.smartattendance.model.entity;
 
-public class Profile extends AbstractEntity {
+/**
+ * Profile Entity
+ * Reflects DB: profile
+ * Entity object with getters and setters for the user profile
+ * 
+ * @author Thiha Swan Htet
+ */
+public class Profile {
     private Integer profileId;
     private String userId;
     private String firstName;
@@ -10,7 +17,7 @@ public class Profile extends AbstractEntity {
     /**
      * Custom constructor which sets student profile
      * 
-     * @param profileId The id of the profile 
+     * @param profileId The id of the profile
      * @param firstName The first name of the user
      * @param lastName  the last name of the user
      * @param phoneNo   The phone number of the user

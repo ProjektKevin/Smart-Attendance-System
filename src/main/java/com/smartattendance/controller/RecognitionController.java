@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
@@ -19,10 +20,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
 
 import com.smartattendance.ApplicationContext;
@@ -37,47 +40,70 @@ import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
+import com.smartattendance.service.RecognitionObserver;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
+// // F_MA: modified by felicia handling marking attendance ##for testing
+// import com.smartattendance.service.RecognitionServiceTest;
+import com.smartattendance.util.security.log.ApplicationLogger;
+import com.smartattendance.util.security.log.AttendanceLogger;
 
-public class RecognitionController implements AttendanceObserver {
+/**
+ * Controller for managing face recognition and attendance logging and update.
+ *
+ * This controller handles:
+ *      1. Opening camera and displaying live video.
+ *      2. Detecting faces using selected model.
+ *      3. Recognizing students, logging and update attendance automatically.
+ *      4. Displaying UI updates, alerts and toast messages.
+ * 
+ * @author Min Thet Khine
+ * @author Chue Wan Yan (create showToast, onAttendanceMarked, onAttenedanceNotMarked, 
+ *         onAttendanceSkipped, requestUserCongirmationAsync. Added javadoc comments.)
+ *
+ * @version 13:23 15 Nov 2025
+ *
+ */
+public class RecognitionController implements RecognitionObserver {
     @FXML
-    private ImageView videoFeed;
+    private ImageView videoFeed; // Video feed display
     @FXML
-    private Button startButton;
+    private Button startButton; // Start recognition button
     @FXML
-    private Button captureButton;
+    private Button captureButton; // Capture frame button
     @FXML
-    private Button clearHistoryButton;
+    private Button clearHistoryButton; // Clear recognition history button
     @FXML
-    private Label statusLabel;
+    private Label statusLabel; // Label showing current status
     @FXML
-    private Label currentStudentLabel;
+    private Label currentStudentLabel; // Label showing current recognized student
     @FXML
-    private Label confidenceLabel;
+    private Label confidenceLabel; // Label showing confidence score
     @FXML
-    private Label cameraStatusLabel;
+    private Label cameraStatusLabel; // Label showing camera connection status
     @FXML
-    private Label modelStatusLabel;
+    private Label modelStatusLabel; // Label showing model load status
     @FXML
-    private Label totalDetectionsLabel;
+    private Label totalDetectionsLabel; // Label showing total detections
     @FXML
-    private Label uniqueStudentsLabel;
+    private Label uniqueStudentsLabel; // Label showing unique students detected
     @FXML
-    private Label fpsLabel;
+    private Label fpsLabel; // Label showing FPS of the video feed
     // F_MA: added by felicia handling marking attendance
     @FXML
-    private Pane toastPane;
+    private Pane toastPane; // Pane for displaying toast messages
     @FXML
-    private ListView<String> recognitionListView;
-    // =======================================================================
-    private FaceDetectionService faceDetectionService;
-    private FaceRecognitionService faceRecognitionService;
-    private final CameraUtils cameraUtils = ApplicationContext.getCameraUtils();
-    // F_MA: added by felicia handling marking attendance
-    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService();
+    private ListView<String> recognitionListView; // List view showing recognition logs
 
+    // ======= Services =======
+    private FaceDetectionService faceDetectionService; // Service for face detection
+    private FaceRecognitionService faceRecognitionService; // Service for face recognition
+    private final CameraUtils cameraUtils = ApplicationContext.getCameraUtils(); // Camera utils
+    // F_MA: added by felicia handling marking attendance
+    private final AttendanceService attendanceService = ApplicationContext.getAttendanceService(); // Service for student attendance
+
+    // ======= FXML UI Components =======
     // OpenCV objects
     private boolean cameraActive = false;
     private ScheduledExecutorService timer;
@@ -91,7 +117,9 @@ public class RecognitionController implements AttendanceObserver {
     // Recognition cooldown to avoid spam
     private long lastRecognitionTime = 0;
     private long lastAlertTime = 0;
-    private static final long RECOGNITION_COOLDOWN_MS = Long.parseLong(Config.get("cooldown.seconds")) * 1000; // * 1000 to change into milliseconds
+    private static final long RECOGNITION_COOLDOWN_MS = Long.parseLong(Config.get("cooldown.seconds")) * 1000; // * 1000
+                                                                                                               // //
+                                                                                                               // milliseconds
     private static final long ALERT_COOLDOWN_MS = 5000; // 5 seconds
 
     // Time formatter for logs
@@ -100,9 +128,19 @@ public class RecognitionController implements AttendanceObserver {
     // Loading state
     private boolean studentsLoaded = false;
 
+    // Confidence threshold
     private static final double LOW_CONFIDENCE_THRESHOLD = 30.0;
 
+    // F_MA: modified by felicia handling marking attendance ##for testing
+    // private RecognitionServiceTest testService;
+    // Logger
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+    private final AttendanceLogger attendanceLogger = AttendanceLogger.getInstance();
+
     // =======================================================================
+    /**
+     * Initializes the controller and sets up services and observers.
+     */
     @FXML
     public void initialize() {
         // Register this controller with ApplicationContext
@@ -116,18 +154,21 @@ public class RecognitionController implements AttendanceObserver {
 
         this.startButton.setText("Start Recognition");
         this.startButton.setStyle(
-                    "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
+                "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 14; -fx-padding: 10 20;");
 
         statusLabel.setText("Status: Loading...");
         cameraStatusLabel.setText("Camera: Disconnected");
         modelStatusLabel.setText("Model: Not Loaded");
     }
 
+     /**
+     * Starts or stops face recognition when the start button is clicked.
+     */
     @FXML
     private void startRecognition() {
-        System.out.println("started loading student list");
+        appLogger.info("started loading student list");
         loadSessionStudentsAsync();
-        System.out.println("Loading done!");
+        appLogger.info("Loading done!");
 
         // Check parametes
 
@@ -181,7 +222,7 @@ public class RecognitionController implements AttendanceObserver {
 
             } else {
                 // Camera failed to open
-                System.err.println("Camera Connection Failed");
+                appLogger.error("Camera Connection Failed");
                 statusLabel.setText("Status: Camera Error");
             }
 
@@ -197,6 +238,9 @@ public class RecognitionController implements AttendanceObserver {
         }
     }
 
+    /**
+     * Stops recognition, releases the camera, and updates the UI.
+     */
     @FXML
     private void stopRecognition() {
         statusLabel.setText("Status: Stopped");
@@ -221,14 +265,23 @@ public class RecognitionController implements AttendanceObserver {
         startButton.setDisable(false);
     }
 
+    /**
+     * Clears the recognition history displayed in the list view.
+     */
     @FXML
     private void clearHistory() {
         // Empty method stub for FXML
         recognitionListView.getItems().clear();
-        System.out.println("Clear history button clicked");
+        appLogger.info("Clear history button clicked");
     }
 
-    // ----- Helper Functions -----
+    // ======= Helper Functions =======
+    /**
+     * Grabs a frame from the camera, detects and recognizes faces,
+     * and updates the UI accordingly.
+     *
+     * @return OpenCV {@link Mat} frame
+     */
     private Mat grabFrame() {
         Mat frame = new Mat();
 
@@ -270,13 +323,16 @@ public class RecognitionController implements AttendanceObserver {
 
             } catch (Exception e) {
                 // log the error
-                System.err.println("Exception during the image elaboration: " + e);
+                appLogger.error("Exception during the image elaboration: " + e);
             }
         }
 
         return frame;
     }
 
+    /**
+     * Stops the frame acquisition and releases camera.
+     */
     public void stopAcquisition() {
         if (this.timer != null && !this.timer.isShutdown()) {
             try {
@@ -285,7 +341,7 @@ public class RecognitionController implements AttendanceObserver {
                 this.timer.awaitTermination(33, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 // log any exception
-                System.err.println("Exception in stopping the frame capture, trying to release the camera now... " + e);
+                appLogger.error("Exception in stopping the frame capture, trying to release the camera now... " + e);
             }
         }
 
@@ -293,10 +349,21 @@ public class RecognitionController implements AttendanceObserver {
         this.cameraUtils.releaseCamera();
     }
 
+    /**
+     * Updates the given ImageView with the provided image on the JavaFX thread.
+     *
+     * @param view  The ImageView to update
+     * @param image The image to display
+     */
     private void updateImageView(ImageView view, Image image) {
         OpenCVUtils.onFXThread(view.imageProperty(), image);
     }
 
+    /**
+     * Processes the recognition results for detected faces.
+     *
+     * @param results List of {@link RecognitionResult} objects
+     */
     private void processRecognitionResults(List<RecognitionResult> results) {
         long currentTime = System.currentTimeMillis();
 
@@ -335,12 +402,17 @@ public class RecognitionController implements AttendanceObserver {
 
     }
 
-    // Show attendance log in the UI
+    /**
+     * Logs a recognized student's attendance and updates the UI.
+     *
+     * @param student    The recognized {@link Student}
+     * @param confidence The recognition confidence
+     */
     private void logAttendance(Student student, double confidence) {
         // Check if there's an active session
         Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
         if (sessionId == null) {
-            System.out.println("No active session - cannot mark attendance");
+            appLogger.info("No active session - cannot mark attendance");
             return;
         }
 
@@ -375,9 +447,9 @@ public class RecognitionController implements AttendanceObserver {
 
         // Console log
         if (isNewStudent) {
-            System.out.println("NEW STUDENT RECOGNIZED: " + logEntry);
+            appLogger.info("NEW STUDENT RECOGNIZED: " + logEntry);
         } else {
-            System.out.println("STUDENT RE-DETECTED: " + logEntry);
+            appLogger.info("STUDENT RE-DETECTED: " + logEntry);
         }
 
         CompletableFuture.runAsync(() -> {
@@ -385,7 +457,7 @@ public class RecognitionController implements AttendanceObserver {
                 // Get full session object
                 Session session = ApplicationContext.getSessionService().findById(sessionId);
                 if (session == null) {
-                    System.out.println("Session not found - cannot mark attendance");
+                    appLogger.info("Session not found - cannot mark attendance");
                     return;
                 }
 
@@ -398,18 +470,23 @@ public class RecognitionController implements AttendanceObserver {
                         LocalDateTime.now());
 
                 // Pass to attendance service
-                System.out.println("calling mark attendance now");
+                appLogger.info("calling mark attendance now");
                 ApplicationContext.getAttendanceService().markAttendance(record);
 
-                System.out.println("Attendance record created for: " + studentName);
+                attendanceLogger.info("Attendance record created for: " + studentName);
             } catch (Exception e) {
-                System.err.println("Error creating attendance record: " + e.getMessage());
+                appLogger.error("Error creating attendance record: " + e.getMessage());
             }
         });
     }
 
+    /**
+     * Logs an unknown face detection and shows alerts.
+     *
+     * @param confidence The recognition confidence
+     */
     private void logUnknownFace(double confidence) {
-        System.out.println("Unknown face detected with confidence: " + confidence);
+        appLogger.info("Unknown face detected with confidence: " + confidence);
 
         totalDetections++;
 
@@ -440,10 +517,12 @@ public class RecognitionController implements AttendanceObserver {
             }
         });
 
-        System.out.println("UNKNOWN FACE: " + logEntry);
+        appLogger.info("UNKNOWN FACE: " + logEntry);
     }
 
-    // Update FPS display
+    /**
+     * Updates FPS display in the UI.
+     */
     private void updateFPS() {
         long currentTime = System.currentTimeMillis();
 
@@ -463,14 +542,16 @@ public class RecognitionController implements AttendanceObserver {
         lastFrameTime = currentTime;
     }
 
-    // load enrolled students from session (if any)
+     /**
+     * Loads enrolled students for the current session asynchronously if any.
+     */
     private void loadSessionStudentsAsync() {
-        System.out.println("Start loading session students asynchronously");
+        appLogger.info("Start loading session students asynchronously");
         new Thread(() -> {
             try {
                 // Check if there's an active session
                 if (!ApplicationContext.getAuthSession().hasActiveSession()) {
-                    System.out.println("No active session");
+                    appLogger.info("No active session");
                     Platform.runLater(() -> {
                         modelStatusLabel.setText("Model: No Active Session");
                         statusLabel.setText("Status: Please start a session first");
@@ -480,7 +561,7 @@ public class RecognitionController implements AttendanceObserver {
 
                 // Get the active session ID
                 Integer sessionId = ApplicationContext.getAuthSession().getActiveSessionId();
-                System.out.println("Active session ID: " + sessionId);
+                appLogger.info("Active session ID: " + sessionId);
 
                 // Load students from database
                 int studentCount = faceRecognitionService.loadEnrolledStudentsBySessionId(sessionId);
@@ -496,17 +577,17 @@ public class RecognitionController implements AttendanceObserver {
                             startButton.setDisable(false);
                         }
 
-                        System.out.println("Successfully loaded " + studentCount + " students");
+                        appLogger.info("Successfully loaded " + studentCount + " students");
                     } else {
                         modelStatusLabel.setText("Model: No Students Found");
                         statusLabel.setText("Status: No enrolled students");
 
-                        System.out.println("No enrolled students found in database");
+                        appLogger.info("No enrolled students found in database");
                     }
                 });
 
             } catch (Exception e) {
-                System.err.println("Error loading students: " + e.getMessage());
+                appLogger.error("Error loading students: " + e.getMessage());
                 e.printStackTrace();
 
                 // Update UI on JavaFX thread
@@ -514,12 +595,18 @@ public class RecognitionController implements AttendanceObserver {
                     modelStatusLabel.setText("Model: Error");
                     statusLabel.setText("Status: Database Error");
 
-                    System.out.println("Failed to load session students from database");
+                    appLogger.info("Failed to load session students from database");
                 });
             }
         }).start();
     }
 
+    /**
+     * Displays a toast message in the UI.
+     *
+     * @param message The message to display
+     * @param type    The {@link ToastType} (SUCCESS, ERROR, WARNING)
+     */
     public void showToast(String message, ToastType type) {
         Platform.runLater(() -> {
             // Create a label for the toast
@@ -558,6 +645,7 @@ public class RecognitionController implements AttendanceObserver {
             // toast.setLayoutX((toastPane.getWidth() - toast.getWidth()) / 2);
             // toast.setLayoutY(10);
             // });
+
             toastPane.getChildren().add(toast);
 
             // Animate fade out after 2 seconds
@@ -589,30 +677,34 @@ public class RecognitionController implements AttendanceObserver {
             // fadeOut.setOnFinished(e -> root.getChildren().remove(toast));
         });
     }
-
+    
+    // ======= RecognitionObserver Methods =======
+    /**
+     * Called when an attendance record is marked. Implementation required by
+     * {@link RecognitionObserver}.
+     *
+     * @param message Optional message describing the marking
+     */
     @Override
-    public void onAttendanceMarked(AttendanceRecord r, String message) {
-        // Platform.runLater(() -> statusLabel.setText("Marked: " +
-        // r.getStudent().getName() + " (" + r.getStatus() + ")"));
-        // Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        // alert.setTitle("Confirm Delete All");
-        // alert.setHeaderText("Delete ALL Sessions");
-        // alert.setContentText("WARNING: This will permanently delete ALL " +
-        // sessionList.size() + " sessions!\n\n" +
-        // "This action cannot be undone. Are you absolutely sure?");
-
+    public void onAttendanceMarked(String message) {
         // showToast("Marked: " + r.getStudent().getName() + " (" + r.getStatus() + ")",
         // ToastType.SUCCESS);
         showToast(message, ToastType.SUCCESS);
     }
 
     // F_MA: modified by felicia handling marking attendance ##
-    @Override
-    public void onAttendanceAutoUpdated() {
-        // return;
-    }
+    // @Override
+    // public void onAttendanceAutoUpdated() {
+    //     // return;
+    // }
 
-    // F_MA: modified by felicia handling marking attendance
+    /**
+     * Called when an attendance record not marked. Implementation required by
+     * {@link RecognitionObserver}.
+     *
+     * @param message Optional message describing the marking
+     */
+    @Override
     public void onAttendanceNotMarked(AttendanceRecord r) {
         // Platform.runLater(() -> statusLabel.setText("Error marking attendance for " +
         // r.getStudent().getName() + ". Please try again."));
@@ -620,10 +712,44 @@ public class RecognitionController implements AttendanceObserver {
                 + r.getStudent().getStudentId() + ")", ToastType.ERROR);
     }
 
-    public void onAttendanceSkipped(AttendanceRecord r, String message) {
+    /**
+     * Called when skipping remark for attendance. Implementation required by
+     * {@link RecognitionObserver}.
+     *
+     * @param message Optional message describing the marking
+     */
+    @Override
+    public void onAttendanceSkipped(String message) {
         // Platform.runLater(() -> statusLabel.setText("Error marking attendance for " +
         // r.getStudent().getName() + ". Please try again."));
         showToast(message, ToastType.WARNING);
+    }
+
+    /**
+     * Shows a confirmation dialog asynchronously for low-confidence recognition.
+     *
+     * @param record   The attendance record requiring confirmation
+     * @param callback Consumer<Boolean> that receives true if confirmed, false otherwise
+     */
+    // Added by F_MA: felicia handling attendance marking
+    public void requestUserConfirmationAsync(AttendanceRecord record, Consumer<Boolean> callback) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Student Identity");
+            alert.setHeaderText("Low Confidence Detection");
+            alert.setContentText(String.format(
+                    "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
+                    record.getStudent().getName(),
+                    record.getStudent().getStudentId()
+            ));
+
+            ButtonType yesButton = new ButtonType("Yes");
+            ButtonType noButton = new ButtonType("No");
+            alert.getButtonTypes().setAll(yesButton, noButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            callback.accept(result.isPresent() && result.get() == yesButton);
+        });
     }
 
 }

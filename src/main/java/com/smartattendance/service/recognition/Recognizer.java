@@ -5,9 +5,11 @@ import java.util.List;
 import org.opencv.core.Mat;
 
 import com.smartattendance.model.entity.Student;
+import com.smartattendance.util.security.log.ApplicationLogger;
 
 public abstract class Recognizer {
   private double confidenceThreshold;
+  private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
   public Recognizer() {
     this.confidenceThreshold = 70.0; // default threshold
@@ -23,7 +25,7 @@ public abstract class Recognizer {
 
   public void setConfidenceThreshold(double confidenceThreshold) {
     if (confidenceThreshold < 0 || confidenceThreshold > 100) {
-      System.err.println("Invalid threshold: " + confidenceThreshold);
+      appLogger.error("Invalid threshold: " + confidenceThreshold);
       return;
     }
     this.confidenceThreshold = confidenceThreshold;

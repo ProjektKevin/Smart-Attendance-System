@@ -1,7 +1,7 @@
 package com.smartattendance;
 
 import com.smartattendance.config.Config;
-import com.smartattendance.controller.AttendanceController;
+// import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.controller.RecognitionController;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.AttendanceService;
@@ -28,6 +28,9 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  * usage
  * 
  * Skeleton by @author Thiha Swan Htet
+ * Attendance related logics by @author Chue Wan Yan
+ * 
+ * @version 13:23 15 Nov 2025
  */
 public final class ApplicationContext {
 
@@ -44,10 +47,9 @@ public final class ApplicationContext {
     private static CourseService courseService;
     private static ImageService imageService;
 
-    // Busines Utils & Controller
+    // Busines Util
     // F_MA: added by felicia handling marking attendance
     private static AutoAttendanceUpdater autoAttendanceUpdater;
-    private static AttendanceController attendanceController;
 
     // OpenCV Services
     private static FaceDetectionService faceDetectionService;
@@ -112,17 +114,20 @@ public final class ApplicationContext {
         // F_MA: added by felicia handling marking attendance
         // Start auto-attendance updater every 60 seconds
         autoAttendanceUpdater = new AutoAttendanceUpdater(attendanceService);
-        autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
+        // autoAttendanceUpdater.addObserver(ApplicationContext.getAttendanceController());
         autoAttendanceUpdater.startAutoUpdate(60);
 
         // Apply recognition algorithm from the config
         applyRecognitionAlgorithm();
     }
 
-    public static AttendanceController getAttendanceController() {
-        return attendanceController;
-    }
+    // public static AttendanceController getAttendanceController() {
+    //     return attendanceController;
+    // }
 
+    /**
+     * Load OpenCV-related services
+     */
     public static void loadOpenCV() {
         try {
             // Load opencv locally
@@ -161,8 +166,7 @@ public final class ApplicationContext {
             faceRecognitionService = new FaceRecognitionService(faceDetectionService);
             appLogger.info("Face Recognition Service Initialized");
             if (!openFaceRecognizer.isModelLoaded()) {
-                appLogger.warn("OpenFace Model Failed to Load! Recognition Will Not Work.");
-                System.err.println("WARNING: OpenFace Model Not Loaded. Check Model File Path.");
+                appLogger.warn("OpenFace Model Not Loaded. Check Model File Path.");
                 throw new IllegalStateException("OpenFace Model Required But Failed to Load");
             }
             appLogger.info("Face Recognition Service Initialized");

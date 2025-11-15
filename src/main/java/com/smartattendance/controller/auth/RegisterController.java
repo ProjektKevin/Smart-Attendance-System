@@ -6,6 +6,7 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.User;
 import com.smartattendance.service.AuthService;
 import com.smartattendance.util.security.PasswordUtil;
+import com.smartattendance.util.security.log.ApplicationLogger;
 import com.smartattendance.util.validation.AuthValidator;
 import com.smartattendance.util.validation.ValidationResult;
 
@@ -64,6 +65,7 @@ public class RegisterController {
     private Button submitButton;
 
     private final AuthService authService = ApplicationContext.getAuthService();
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
     private User user;
 
     /**
@@ -164,7 +166,8 @@ public class RegisterController {
             stage.setTitle("Smart Attendance System - Login");
         } catch (Exception e) {
             errorLabel.setText("Error returning to login: " + e.getMessage());
-            e.printStackTrace();
+            appLogger.error("Error Redirecting Login", e);
+            return;
         }
     }
 

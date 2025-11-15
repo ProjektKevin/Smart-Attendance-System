@@ -10,7 +10,7 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  * Created since camera did not get released unless manually closed and had to
  * end task from task manager
  *
- * @author Thiha Swan Htet
+ * @author Thiha Swan Htet, Min Thet Khine
  */
 public class CameraUtils {
 

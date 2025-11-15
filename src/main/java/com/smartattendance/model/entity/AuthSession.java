@@ -1,5 +1,12 @@
 package com.smartattendance.model.entity;
 
+/**
+ * AuthSession
+ * Tracks current user session
+ * Returns user object and their credentials to be reused across the application
+ * 
+ * @author Thiha Swan Htet
+ */
 public class AuthSession {
     private User currentUser;
     private boolean isActive;

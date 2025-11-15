@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import com.smartattendance.util.security.log.ApplicationLogger;
+
 /**
  * Utility class for creating JDBC connections to the application database.
  *
@@ -36,14 +38,19 @@ public class DatabaseUtil {
     private static final String PASSWORD = ENV.getDatabasePassword();
 
     /**
+     * Database password used for authentication.
+     */
+    private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
+
+    /**
      * Obtains a new JDBC {@link Connection} to the configured database.
      *
      * This method:
      * <ol>
-     *   <li>Checks that URL, user, and password are available.</li>
-     *   <li>Uses {@link DriverManager#getConnection(String, String, String)}
-     *       to create a connection.</li>
-     *   <li>Logs and returns {@code null} if any error occurs.</li>
+     * <li>Checks that URL, user, and password are available.</li>
+     * <li>Uses {@link DriverManager#getConnection(String, String, String)}
+     * to create a connection.</li>
+     * <li>Logs and returns {@code null} if any error occurs.</li>
      * </ol>
      *
      * Callers must always check for {@code null} before using the returned
@@ -61,8 +68,7 @@ public class DatabaseUtil {
             }
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException e) {
-            System.err.println("Failed to connect to database: " + e.getMessage());
-            e.printStackTrace();
+            appLogger.error("Failed to connect to database", e);
             // Returning null signals that the connection could not be established.
             return null;
         }

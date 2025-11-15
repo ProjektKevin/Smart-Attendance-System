@@ -423,11 +423,11 @@ public class LoginController {
             stage.setScene(new Scene(registerRoot));
             stage.setTitle("Complete Registration");
 
-            appLogger.info("Loaded registration portal successfully for user: " + user.getUserName());
+            appLogger.info("Loaded registration portal successfully for user: " + user.getEmail());
         } catch (Exception e) {
             setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "Registration Error",
                     "Unable to load registration portal", e.getMessage());
-            appLogger.error("Error loading registration portal for user: " + user.getUserName(), e);
+            appLogger.error("Error loading registration portal for user: " + user.getEmail(), e);
             return;
         }
     }
