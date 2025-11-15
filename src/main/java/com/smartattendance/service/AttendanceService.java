@@ -65,6 +65,7 @@ public class AttendanceService {
     public void notifyMarked(String message) {
         for (AttendanceObserver observer : observers) {
             observer.onAttendanceMarked(message);
+            
             // notify the recognitionService that the attendance of a particular student is marked
             // if (observer instanceof RecognitionObserver recognitionObserver) {
             //     recognitionObserver.onAttendanceMarked(message);

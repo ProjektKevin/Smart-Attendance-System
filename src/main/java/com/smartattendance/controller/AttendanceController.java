@@ -383,7 +383,10 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
                 editButton.setGraphic(pencilIcon);
                 editButton.setText("");
                 editButton.setStyle("-fx-background-color: transparent;");
-                editButton.setOnAction(e -> startEdit());
+                editButton.setOnAction(e -> {
+                    enterEditMode(); // only called when user clicks pencil
+                    startEdit();
+                });
 
                 // StackPane overlays button on top-right
                 StackPane.setAlignment(editButton, Pos.TOP_RIGHT);
@@ -395,7 +398,7 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
                 super.startEdit();
 
                 // notify controller to enter edit mode and show clear edit button
-                enterEditMode();
+                // enterEditMode();
 
                 TextField textField = new TextField(getItem());
                 textField.setOnAction(e -> commitEdit(textField.getText()));
@@ -474,12 +477,18 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
                 combo.setOnAction(event -> {
                     AttendanceRecord record = getTableView().getItems().get(getIndex());
                     if (record != null) {
-                        enterEditMode(); // notify controller to enter edit mode and show clear edit button
-                        // F_MA: modified by felicia handling marking attendance
-                        // String selected = combo.getValue();
-                        // if (selected != null) {
-                        record.setStatus(AttendanceStatus.valueOf(combo.getValue().toUpperCase()));
-                        markUnsaved();
+                        // enterEditMode(); // notify controller to enter edit mode and show clear edit button
+                        // // F_MA: modified by felicia handling marking attendance
+                        // // String selected = combo.getValue();
+                        // // if (selected != null) {
+                        // record.setStatus(AttendanceStatus.valueOf(combo.getValue().toUpperCase()));
+                        // markUnsaved();
+                        
+                        if (!record.getStatus().name().equalsIgnoreCase(combo.getValue())) {
+                            record.setStatus(AttendanceStatus.valueOf(combo.getValue().toUpperCase()));
+                            markUnsaved();
+                            enterEditMode(); // notify controller to enter edit mode and show clear edit button
+                        }
                     }
                 });
             }
@@ -522,6 +531,9 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
 
         // Reload attendance records
         loadAttendanceRecords();
+
+        // Hide clear edit button first
+        exitEditMode();
     }
 
     /**
@@ -533,21 +545,24 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
     public void loadAttendanceRecords() {
         if (currentSession != null) {
             List<AttendanceRecord> records = service.findBySessionId(currentSession.getSessionId());
-            attendanceList.setAll(records);
-            attendanceTable.setItems(attendanceList);
-            updateAttendanceSummary(); // update count of student who present, late and total students
-            initSelectionMap(); // initialize selections
-            updateButtonStates(); // update button states
 
-            // Store the original statuses for change detection
-            originalStatuses.clear();
-            originalNotes.clear();
+            Platform.runLater(() -> {
+                attendanceList.setAll(records);
+                attendanceTable.setItems(attendanceList);
+                updateAttendanceSummary(); // update count of student who present, late and total students
+                initSelectionMap(); // initialize selections
+                updateButtonStates(); // update button states
 
-            // Store original values for status and notes
-            for (AttendanceRecord record : records) {
-                originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
-                originalNotes.put(record.getStudent().getStudentId(), record.getNote());
-            }
+                // Store the original statuses for change detection
+                originalStatuses.clear();
+                originalNotes.clear();
+
+                // Store original values for status and notes
+                for (AttendanceRecord record : records) {
+                    originalStatuses.put(record.getStudent().getStudentId(), record.getStatus().toString());
+                    originalNotes.put(record.getStudent().getStudentId(), record.getNote());
+                }
+            });
         }
     }
 
