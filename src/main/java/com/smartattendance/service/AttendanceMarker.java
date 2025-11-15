@@ -16,7 +16,7 @@ import com.smartattendance.service.AttendanceObserver;
  */
 public interface AttendanceMarker {
     // void markAttendance(Session session, AttendanceRecord record, LocalDateTime currentTime, float confidence, float threshold);
-    void markAttendance(List<AttendanceObserver> observers, AttendanceRecord record) throws Exception;
+    void markAttendance( AttendanceRecord record) throws Exception;
 
 
     // void registerObserver(AttendanceObserver observer);

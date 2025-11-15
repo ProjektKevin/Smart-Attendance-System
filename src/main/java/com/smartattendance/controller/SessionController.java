@@ -14,7 +14,7 @@ import com.smartattendance.ApplicationContext;
 import com.smartattendance.model.entity.Session;
 import com.smartattendance.service.SessionService;
 import com.smartattendance.util.CheckBoxTableCell;
-import com.smartattendance.util.ControllerRegistry;
+// import com.smartattendance.util.ControllerRegistry;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -253,7 +253,7 @@ public class SessionController {
             attendanceController = loader.getController();
             // AttendanceController attendanceCtrl = loader.getController();
             // Save globally for AutoAttendanceUpdater to access
-            ControllerRegistry.setAttendanceController(attendanceController);
+            // ControllerRegistry.setAttendanceController(attendanceController);
 
             // Pass session to the attendance controller
             attendanceController.setSession(session);

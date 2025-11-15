@@ -12,14 +12,14 @@ import com.smartattendance.service.AutoAttendanceMarker;
 
 /**
  * Automatically update attendance records
- * @author Sarah Smith
+ * @author Chue Wan Yan
  */
 
 public class AutoAttendanceUpdater {
 
     private final SessionRepository sessionRepository;
     // private final AttendanceService attendanceService;
-    private final List<AttendanceObserver> observers = new ArrayList<>();
+    // private final List<AttendanceObserver> observers = new ArrayList<>();
     private final Timer timer;
     private final AutoAttendanceMarker autoAttendanceMarker;
 
@@ -30,9 +30,9 @@ public class AutoAttendanceUpdater {
     }
 
     // Allow controllers to register for updates
-    public void addObserver(AttendanceObserver observer) {
-        observers.add(observer);
-    }
+    // public void addObserver(AttendanceObserver observer) {
+    //     observers.add(observer);
+    // }
 
     // private void notifyAutoUpdate() {
     // for (AttendanceObserver obs : observers) {

@@ -5,7 +5,6 @@
 */
 
 package com.smartattendance.service;
-import com.smartattendance.model.entity.AttendanceRecord;
 
 /**
  * Observer interface for updating UI or logs when attendance changes.
@@ -14,9 +13,11 @@ import com.smartattendance.model.entity.AttendanceRecord;
 public interface AttendanceObserver {
     // F_MA: added by felicia handling marking attendance
 
-    void onAttendanceMarked(AttendanceRecord record, String message);
+    // void onAttendanceMarked(AttendanceRecord record, String message);
+    void onAttendanceMarked(String message);
 
-    void onAttendanceAutoUpdated();
+
+    // void onAttendanceAutoUpdated();
 
     // void attendanceUpdated(AttendanceRecord record);
 }

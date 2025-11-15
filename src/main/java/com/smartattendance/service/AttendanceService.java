@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
-import com.smartattendance.controller.RecognitionController;
+// import com.smartattendance.controller.RecognitionController;
 import com.smartattendance.model.entity.AttendanceRecord;
 import com.smartattendance.repository.AttendanceRecordRepository;
 
@@ -40,37 +40,39 @@ public class AttendanceService {
         return autoAttendanceMarker;
     }
 
-    public void addObserver(AttendanceObserver o) {
-        observers.add(o);
+    public void addObserver(AttendanceObserver observer) {
+        observers.add(observer);
     }
 
-    public void notifyMarked(List<AttendanceObserver> observers, AttendanceRecord record, String message) {
-        for (AttendanceObserver o : observers) {
+    public void notifyMarked(String message) {
+        for (AttendanceObserver observer : observers) {
             // notify the recognitionService that the attendance of a particular student is marked
-            if (o instanceof RecognitionController rc) {
-                rc.onAttendanceMarked(record, message);
-            }
+            // if (observer instanceof RecognitionObserver recognitionObserver) {
+            //     recognitionObserver.onAttendanceMarked(message);
+            // }
 
             // refresh the attendancceRecords page
-            if (o instanceof AttendanceController ac) {
-                ac.loadAttendanceRecords();
-            }
+            // if (observer instanceof AttendanceObserver attendanceObserver) {
+            //     attendanceObserver.onAttendanceMarked(message);
+            // }
+
+            observer.onAttendanceMarked(message);
         }
     }
 
-    public void notifySkipped(List<AttendanceObserver> observers, AttendanceRecord record, String reason) {
-        for (AttendanceObserver o : observers) {
+    public void notifySkipped(String reason) {
+        for (AttendanceObserver observer : observers) {
             // notify the recognitionService that the attendance of a particular student is skipping remark
-            if (o instanceof RecognitionController rc) {
-                rc.onAttendanceSkipped(record, reason);
+            if (observer instanceof RecognitionObserver recognitionObserver) {
+                recognitionObserver.onAttendanceSkipped(reason);
             }
         }
     }
 
-    private void notifyAttendanceNotMarked(AttendanceRecord r) {
-        for (AttendanceObserver o : observers) {
-            if (o instanceof RecognitionController) {
-                ((RecognitionController) o).onAttendanceNotMarked(r);
+    private void notifyAttendanceNotMarked(AttendanceRecord record) {
+        for (AttendanceObserver observer : observers) {
+            if (observer instanceof RecognitionObserver recognitionObserver) {
+                recognitionObserver.onAttendanceNotMarked(record);
             }
         }
     }
@@ -89,13 +91,18 @@ public class AttendanceService {
             }
 
             // Low confidence → ask for user confirmation asynchronously
-            AttendanceController.requestUserConfirmationAsync(record, confirmed -> {
-                if (confirmed) {
-                    saveAttendanceRecord(record);
-                } else {
-                    notifyAttendanceNotMarked(record);
+            for (AttendanceObserver observer : observers) {
+                if (observer instanceof RecognitionObserver recognitionObserver) {
+                    recognitionObserver.requestUserConfirmationAsync(record, confirmed -> {
+                        if (confirmed) {
+                            saveAttendanceRecord(record);
+                        } else {
+                            notifyAttendanceNotMarked(record);
+                        }
+                    });
+                    break;
                 }
-            });
+            }
         } catch (Exception e) {
             notifyAttendanceNotMarked(record);
         }
@@ -105,7 +112,7 @@ public class AttendanceService {
         try {
             // attendanceRecords.add(r);
             // record.mark(observers);
-            autoAttendanceMarker.markAttendance(observers, record);
+            autoAttendanceMarker.markAttendance(record);
             // System.out.println("Tehse are the observers:" + observers);// F_MA: for testing
         } catch (Exception e) {
             notifyAttendanceNotMarked(record);

@@ -13,7 +13,7 @@ public class ManualAttendanceMarker implements AttendanceMarker {
     }
 
     @Override
-    public void markAttendance(List<AttendanceObserver> observers, AttendanceRecord record) throws Exception {
+    public void markAttendance(AttendanceRecord record) throws Exception {
         // Actual update logic
         if (record.isStatusChanged()) {
             record.setTimestamp(java.time.LocalDateTime.now());

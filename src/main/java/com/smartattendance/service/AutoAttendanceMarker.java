@@ -3,7 +3,6 @@ package com.smartattendance.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.smartattendance.ApplicationContext;
 import com.smartattendance.config.Config;
 import com.smartattendance.controller.AttendanceController;
 import com.smartattendance.model.entity.AttendanceRecord;
@@ -14,7 +13,7 @@ import com.smartattendance.model.enums.MarkMethod;
 import com.smartattendance.repository.AttendanceRecordRepository;
 import com.smartattendance.repository.SessionRepository;
 import com.smartattendance.util.AttendanceTimeUtils;
-import com.smartattendance.util.ControllerRegistry;
+import com.smartattendance.controller.ControllerRegistry;
 
 import javafx.application.Platform;
 
@@ -36,7 +35,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
     }
 
     @Override
-    public void markAttendance(List<AttendanceObserver> observers, AttendanceRecord record) throws Exception {
+    public void markAttendance(AttendanceRecord record) throws Exception {
         try {
             // face recognition will only predict faces based on the roster, so no need to check again
             // if (!isInRoster(record.getSession(), record.getStudent().getStudentId())) {
@@ -71,7 +70,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 record.setNote("Auto-marked via face recognition");
 
                 attendanceService.updateRecord(record);
-                attendanceService.notifyMarked(observers, record, message);
+                attendanceService.notifyMarked(message);
 
                 // student already marked then update last seen
             } else if (existingRecord.getStatus() == AttendanceStatus.PRESENT || existingRecord.getStatus() == AttendanceStatus.LATE) {
@@ -80,12 +79,12 @@ public class AutoAttendanceMarker implements AttendanceMarker {
                 if (secondsSinceLastSeen >= cooldownSeconds) {
                     existingRecord.setLastSeen(now);
                     attendanceService.updateLastSeen(record);
-                    attendanceService.notifyMarked(observers, record, lastSeenMessage);
+                    attendanceService.notifyMarked(lastSeenMessage);
                 } else {
-                    attendanceService.notifyMarked(observers, record, coolDownMessage);
+                    attendanceService.notifyMarked(coolDownMessage);
                 }
             } else {
-                attendanceService.notifySkipped(observers, record, skippingMessage);
+                attendanceService.notifySkipped(skippingMessage);
             }
         } catch (Exception e) {
             throw new Exception("Failed to mark attendance: ", e);
@@ -149,7 +148,7 @@ public class AutoAttendanceMarker implements AttendanceMarker {
      * Refreshes the AttendanceController UI after updating attendance records.
      */
     private void refreshAttendanceUI() {
-        AttendanceController attendanceController = ControllerRegistry.getAttendanceController();
+        AttendanceController attendanceController = (AttendanceController) ControllerRegistry.getInstance().getController("attendance");
         if (attendanceController != null) {
             Platform.runLater(attendanceController::loadAttendanceRecords);
         }

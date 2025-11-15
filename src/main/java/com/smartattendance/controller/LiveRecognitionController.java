@@ -121,7 +121,7 @@ public class LiveRecognitionController implements AttendanceObserver {
     }
 
     @Override
-    public void onAttendanceMarked(AttendanceRecord r, String message) {
+    public void onAttendanceMarked(String message) {
         // Platform.runLater(() -> statusLabel.setText("Marked: " + r.getStudent().getName() + " (" + r.getStatus() + ")"));
         // Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         // alert.setTitle("Confirm Delete All");
@@ -134,10 +134,10 @@ public class LiveRecognitionController implements AttendanceObserver {
     }
 
     // F_MA: modified by felicia handling marking attendance ##
-    @Override
-    public void onAttendanceAutoUpdated() {
-        // return;
-    }
+    // @Override
+    // public void onAttendanceAutoUpdated() {
+    //     // return;
+    // }
 
     // F_MA: modified by felicia handling marking attendance
     public void onAttendanceNotMarked(AttendanceRecord r) {

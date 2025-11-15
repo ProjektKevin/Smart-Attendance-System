@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
@@ -23,10 +24,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.concurrent.CompletableFuture;
 
 import com.smartattendance.ApplicationContext;
@@ -40,13 +43,14 @@ import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.FaceDetectionService;
 import com.smartattendance.service.FaceRecognitionService;
+import com.smartattendance.service.RecognitionObserver;
 import com.smartattendance.service.recognition.RecognitionResult;
 import com.smartattendance.util.CameraUtils;
 import com.smartattendance.util.OpenCVUtils;
 // F_MA: modified by felicia handling marking attendance ##for testing
 import com.smartattendance.service.RecognitionServiceTest;
 
-public class RecognitionController implements AttendanceObserver {
+public class RecognitionController implements RecognitionObserver {
     @FXML
     private ImageView videoFeed;
     @FXML
@@ -592,7 +596,7 @@ public class RecognitionController implements AttendanceObserver {
     }
 
     @Override
-    public void onAttendanceMarked(AttendanceRecord r, String message) {
+    public void onAttendanceMarked(String message) {
         // Platform.runLater(() -> statusLabel.setText("Marked: " +
         // r.getStudent().getName() + " (" + r.getStatus() + ")"));
         // Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -608,11 +612,12 @@ public class RecognitionController implements AttendanceObserver {
     }
 
     // F_MA: modified by felicia handling marking attendance ##
-    @Override
-    public void onAttendanceAutoUpdated() {
-        // return;
-    }
+    // @Override
+    // public void onAttendanceAutoUpdated() {
+    //     // return;
+    // }
 
+    @Override
     // F_MA: modified by felicia handling marking attendance
     public void onAttendanceNotMarked(AttendanceRecord r) {
         // Platform.runLater(() -> statusLabel.setText("Error marking attendance for " +
@@ -621,10 +626,38 @@ public class RecognitionController implements AttendanceObserver {
                 + r.getStudent().getStudentId() + ")", ToastType.ERROR);
     }
 
-    public void onAttendanceSkipped(AttendanceRecord r, String message) {
+    @Override
+    public void onAttendanceSkipped(String message) {
         // Platform.runLater(() -> statusLabel.setText("Error marking attendance for " +
         // r.getStudent().getName() + ". Please try again."));
         showToast(message, ToastType.WARNING);
+    }
+
+    /**
+     * Shows a confirmation dialog asynchronously for low-confidence recognition.
+     *
+     * @param record   The attendance record requiring confirmation
+     * @param callback Consumer<Boolean> that receives true if confirmed, false otherwise
+     */
+    // Added by F_MA: felicia handling attendance marking
+    public void requestUserConfirmationAsync(AttendanceRecord record, Consumer<Boolean> callback) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirm Student Identity");
+            alert.setHeaderText("Low Confidence Detection");
+            alert.setContentText(String.format(
+                    "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
+                    record.getStudent().getName(),
+                    record.getStudent().getStudentId()
+            ));
+
+            ButtonType yesButton = new ButtonType("Yes");
+            ButtonType noButton = new ButtonType("No");
+            alert.getButtonTypes().setAll(yesButton, noButton);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            callback.accept(result.isPresent() && result.get() == yesButton);
+        });
     }
 
 }

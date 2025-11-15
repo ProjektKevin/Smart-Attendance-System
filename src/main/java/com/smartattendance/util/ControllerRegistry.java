@@ -1,15 +1,15 @@
-package com.smartattendance.util;
+// package com.smartattendance.util;
 
-import com.smartattendance.controller.AttendanceController;
+// import com.smartattendance.controller.AttendanceController;
 
-public class ControllerRegistry {
-    private static AttendanceController attendanceController;
+// public class ControllerRegistry {
+//     private static AttendanceController attendanceController;
 
-    public static void setAttendanceController(AttendanceController controller) {
-        attendanceController = controller;
-    }
+//     public static void setAttendanceController(AttendanceController controller) {
+//         attendanceController = controller;
+//     }
 
-    public static AttendanceController getAttendanceController() {
-        return attendanceController;
-    }
-}
+//     public static AttendanceController getAttendanceController() {
+//         return attendanceController;
+//     }
+// }

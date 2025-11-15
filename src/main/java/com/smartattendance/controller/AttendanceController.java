@@ -1,11 +1,13 @@
 package com.smartattendance.controller;
 
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -29,6 +31,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -58,7 +61,7 @@ import javafx.stage.Stage;
  * @author Chue Wan Yan
 */
 
-public class AttendanceController implements AttendanceObserver {
+public class AttendanceController implements AttendanceObserver, TabRefreshable {
 
     // ======= FXML UI Components =======
     @FXML
@@ -117,16 +120,15 @@ public class AttendanceController implements AttendanceObserver {
      * @param message Optional message describing the marking
      */
     @Override
-    public void onAttendanceMarked(AttendanceRecord record, String message) {
+    public void onAttendanceMarked(String message) {
         // Callback when a single attendance record is marked
-        // Currently empty as we update table separately
+        loadAttendanceRecords();
     }
 
     /**
      * Called when auto-updated attendance occurs.
      * Reloads the attendance table on the JavaFX thread.
      */
-    @Override
     public void onAttendanceAutoUpdated() {
         // Called when auto-marking updates multiple records
         // Update the table on the JavaFX UI thread
@@ -272,31 +274,32 @@ public class AttendanceController implements AttendanceObserver {
         });
     }
 
-    /**
-     * Shows a confirmation dialog asynchronously for low-confidence recognition.
-     *
-     * @param record   The attendance record requiring confirmation
-     * @param callback Consumer<Boolean> that receives true if confirmed, false otherwise
-     */
-    public static void requestUserConfirmationAsync(AttendanceRecord record, Consumer<Boolean> callback) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Confirm Student Identity");
-            alert.setHeaderText("Low Confidence Detection");
-            alert.setContentText(String.format(
-                    "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
-                    record.getStudent().getName(),
-                    record.getStudent().getStudentId()
-            ));
 
-            ButtonType yesButton = new ButtonType("Yes");
-            ButtonType noButton = new ButtonType("No");
-            alert.getButtonTypes().setAll(yesButton, noButton);
+    // /**
+    //  * Shows a confirmation dialog asynchronously for low-confidence recognition. (being moved to RecognitionController)
+    //  *
+    //  * @param record   The attendance record requiring confirmation
+    //  * @param callback Consumer<Boolean> that receives true if confirmed, false otherwise
+    //  */
+    // public void requestUserConfirmationAsync(AttendanceRecord record, Consumer<Boolean> callback) {
+    //     Platform.runLater(() -> {
+    //         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    //         alert.setTitle("Confirm Student Identity");
+    //         alert.setHeaderText("Low Confidence Detection");
+    //         alert.setContentText(String.format(
+    //                 "Detected student:\n\nName: %s\nID: %d\n\nIs this correct?",
+    //                 record.getStudent().getName(),
+    //                 record.getStudent().getStudentId()
+    //         ));
 
-            Optional<ButtonType> result = alert.showAndWait();
-            callback.accept(result.isPresent() && result.get() == yesButton);
-        });
-    }
+    //         ButtonType yesButton = new ButtonType("Yes");
+    //         ButtonType noButton = new ButtonType("No");
+    //         alert.getButtonTypes().setAll(yesButton, noButton);
+
+    //         Optional<ButtonType> result = alert.showAndWait();
+    //         callback.accept(result.isPresent() && result.get() == yesButton);
+    //     });
+    // }
 
     /**
      * Initializes the controller and sets up table columns, buttons, and observers.
@@ -492,6 +495,9 @@ public class AttendanceController implements AttendanceObserver {
         // Make table editable if you want to edit notes or status
         attendanceTable.setEditable(true);
         attendanceService.addObserver(this);
+        
+        // Register this controller for global access
+        ControllerRegistry.getInstance().register("attendance", this);
     }
 
      /**
@@ -666,7 +672,7 @@ public class AttendanceController implements AttendanceObserver {
 
             // Create marker (polymorphism)
             AttendanceMarker marker = new ManualAttendanceMarker(service);
-            List<AttendanceObserver> observers = List.of();
+            // List<AttendanceObserver> observers = List.of();
 
             for (AttendanceRecord record : attendanceList) {
                 String originalStatus = originalStatuses.get(record.getStudent().getStudentId());
@@ -678,7 +684,7 @@ public class AttendanceController implements AttendanceObserver {
                 record.setOriginalNote(originalNote);
 
                 // Call manual marker
-                marker.markAttendance(observers, record);
+                marker.markAttendance(record);
                 if (record.isStatusChanged() || record.isNoteChanged()) {
                     updatedCount++;
 
@@ -743,6 +749,14 @@ public class AttendanceController implements AttendanceObserver {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Override TabRefreshable refresh method
+     */
+    @Override
+    public void refresh() {
+        loadAttendanceRecords();
     }
 
 }
