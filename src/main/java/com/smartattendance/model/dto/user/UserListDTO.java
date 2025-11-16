@@ -5,6 +5,8 @@ import com.smartattendance.model.enums.Role;
 
 /**
  * DTO for Student List table display
+ * 
+ * @author Thiha Swan Htet
  */
 public class UserListDTO {
     private Integer id;

@@ -24,6 +24,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  *
  * <p>This implementation uses Apache POI's XSSF API (XSSFWorkbook) to produce
  * modern .xlsx files.
+ * 
+ * @author Ernest Lun
  */
 public class XlsxReportGenerator implements ReportGenerator {
 

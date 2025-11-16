@@ -22,6 +22,14 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+/**
+ * Root Controller
+ * Main controller for the application's root layout
+ * Manages navigation between tabs, theme switching, user authentication, and access control
+ * Handles both admin and student views with role-based tab visibility
+ * 
+ * @author Ernest Lun, Min Thet Khine, Thiha Swan Htet
+ */
 public class RootController {
     @FXML
     private BorderPane root;
@@ -197,7 +205,7 @@ public class RootController {
     }
 
     /**
-     * ADDED: Set up the Live Recognition tab access control
+     * Set up the Live Recognition tab access control
      */
     private void initializeTabBlocking() {
         // Only set up if we're in admin view (tabLive exists)

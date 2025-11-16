@@ -28,6 +28,8 @@ import javafx.stage.Window;
  *     void export(Node node, String suggestedName, boolean ignoreLegend);
  * </pre>
  * The {@code ignoreLegend} flag is not used here; the entire node is exported as-is.
+ * 
+ * @author Ernest Lun
  */
 public class PngChartExporter implements ChartExporter {
 

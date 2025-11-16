@@ -4,6 +4,7 @@ package com.smartattendance.util;
  * Email template utility class
  * Provides pre-formatted email templates for various authentication flows
  *
+ * @author Thiha Swan Htet
  */
 public class EmailTemplates {
 

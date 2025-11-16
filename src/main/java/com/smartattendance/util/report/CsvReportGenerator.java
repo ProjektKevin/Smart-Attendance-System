@@ -21,6 +21,8 @@ import java.util.List;
  *     ReportGenerator generator = new CsvReportGenerator();
  *     generator.generate(spec, rows, targetFile);
  * </pre>
+ * 
+ * @author Ernest Lun
  */
 public class CsvReportGenerator implements ReportGenerator {
 

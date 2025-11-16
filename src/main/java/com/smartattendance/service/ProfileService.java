@@ -3,6 +3,13 @@ package com.smartattendance.service;
 import com.smartattendance.model.entity.Profile;
 import com.smartattendance.repository.ProfileRepository;
 
+/**
+ * Profile Service
+ * Controls auth business logic and interact with db repository for profile
+ * creation, update, delete and loading
+ * 
+ * @author Thiha Swan Htet
+ */
 public class ProfileService {
     private final ProfileRepository profileRepository;
 

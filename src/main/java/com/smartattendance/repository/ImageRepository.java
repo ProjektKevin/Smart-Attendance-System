@@ -15,6 +15,8 @@ import com.smartattendance.util.security.log.ApplicationLogger;
 /**
  * Repository for face data persistence to Supabase
  * Handles all database operations for face_data table
+ * 
+ * @author Thiha Swan Htet
  */
 public class ImageRepository {
     private final ApplicationLogger appLogger = ApplicationLogger.getInstance();

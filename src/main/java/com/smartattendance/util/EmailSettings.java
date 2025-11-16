@@ -2,6 +2,11 @@ package com.smartattendance.util;
 
 import com.smartattendance.config.ENV;
 
+/**
+ * Loads email settings to be passsed into the constructor of the email service
+ * 
+ * @author Ernest Lun
+ */
 public record EmailSettings(
         String host, int port, String username, String password, boolean startTls) {
 

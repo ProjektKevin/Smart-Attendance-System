@@ -2,6 +2,7 @@ package com.smartattendance;
 
 import com.smartattendance.config.Config;
 // import com.smartattendance.controller.AttendanceController;
+import com.smartattendance.controller.RecognitionController;
 import com.smartattendance.model.entity.AuthSession;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.AuthService;
@@ -28,6 +29,7 @@ import com.smartattendance.util.security.log.ApplicationLogger;
  * 
  * Skeleton by @author Thiha Swan Htet
  * Attendance related logics by @author Chue Wan Yan
+ * Recognition, OpenCV related models by @author Min Thet Khine
  * 
  * @version 13:23 15 Nov 2025
  */
@@ -57,6 +59,8 @@ public final class ApplicationContext {
 
     private static HistogramRecognizer histogramRecognizer;
     private static OpenFaceRecognizer openFaceRecognizer;
+
+    private static RecognitionController recognitionController;
 
     // Logger
     private static final ApplicationLogger appLogger = ApplicationLogger.getInstance();
@@ -303,6 +307,26 @@ public final class ApplicationContext {
     }
 
     /**
+     * Get the RecognitionController instance.
+     * 
+     * @return RecognitionController
+     * @throws IllegalStateException if not initialized
+     */
+    public static RecognitionController getRecognitionController() {
+        checkInitialized();
+        return recognitionController;
+    }
+
+    /**
+     * Set the RecognitionController instance.
+     *
+     * @param controller the RecognitionController instance
+     */
+    public static void setRecognitionController(RecognitionController controller) {
+        recognitionController = controller;
+    }
+
+    /**
      * Get the ImageService instance.
      *
      * @return ImageService
@@ -382,6 +406,11 @@ public final class ApplicationContext {
         // Stop auto attendance updater
         if (autoAttendanceUpdater != null) {
             autoAttendanceUpdater.stopAutoUpdate();
+        }
+
+        // Stop recognition if active
+        if (recognitionController != null) {
+            recognitionController.stopAcquisition();
         }
 
         // Release camera resources

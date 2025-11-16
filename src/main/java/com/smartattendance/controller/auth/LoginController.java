@@ -187,7 +187,7 @@ public class LoginController {
                 return;
             }
 
-            String email = dialog.getEmail();
+            String email = dialog.getEmail().trim().toLowerCase();
 
             // Check if user exists
             User user = authService.getUserByEmail(email);

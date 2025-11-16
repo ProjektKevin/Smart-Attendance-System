@@ -9,7 +9,10 @@ package com.smartattendance.model.dto.dashboard;
  *     <li>Dashboard service computes these aggregate counts</li>
  *     <li>Controller binds them to UI "summary cards" (e.g. total students, sessions)</li>
  * </ul>
+ *
+ * @author Ernest Lun
  */
+
 public class DashboardTopCards {
 
     /**

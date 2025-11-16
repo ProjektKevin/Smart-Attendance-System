@@ -16,6 +16,8 @@ import java.time.format.DateTimeFormatter;
  *     <li>Provides a formatted timestamp string for report output</li>
  *     <li>Uses plain getters and setters for easy mapping from JDBC or ORM results</li>
  * </ul>
+ * 
+ * @author Ernest Lun
  */
 public class AttendanceReportRow {
 

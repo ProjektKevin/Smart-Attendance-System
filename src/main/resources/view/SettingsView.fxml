@@ -1,49 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Settings View
+  Configuration interface for application settings
+  Allows users to adjust camera, recognition algorithms, thresholds, and database settings
+  
+  Author: Min Thet Khine
+-->
+
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <ScrollPane xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.smartattendance.controller.SettingsController"
-            fitToWidth="true"
-            styleClass="settings-page"
-            stylesheets="@/view/styles/settings.css">
+    fx:controller="com.smartattendance.controller.SettingsController"
+    fitToWidth="true"
+    styleClass="settings-page"
+    stylesheets="@/view/styles/settings.css">
 
     <content>
-        <!-- give the content a class so CSS can theme it -->
+        <!-- Main settings grid container -->
         <GridPane hgap="10" vgap="10"
-                  style="-fx-padding: 20;"
-                  styleClass="settings-surface">
+            style="-fx-padding: 20;"
+            styleClass="settings-surface">
 
+            <!-- Camera Index Selection -->
             <Label text="Camera Index:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
             <ChoiceBox fx:id="cameraIndexChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
+            <!-- Recognition Algorithm Selection -->
             <Label text="Recognition Algorithm:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-            <ChoiceBox fx:id="algorithmChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="200.0" />
+            <ChoiceBox fx:id="algorithmChoiceBox" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                prefWidth="200.0" />
 
+            <!-- High Recognition Threshold Configuration -->
             <Label text="High Recognition Threshold:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
             <TextField fx:id="highThresholdField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
+            <!-- Low Recognition Threshold Configuration -->
             <Label text="Low Recognition Threshold:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
             <TextField fx:id="lowThresholdField" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
+            <!-- Cooldown Time Configuration -->
             <Label text="Cooldown Time (sec):" GridPane.columnIndex="0" GridPane.rowIndex="4" />
             <TextField fx:id="cooldownField" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
+            <!-- Database Path Configuration -->
             <Label text="Database Path:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
             <TextField fx:id="dbPathField" GridPane.columnIndex="1" GridPane.rowIndex="5" />
 
+            <!-- Enrollment Image Amount Slider -->
             <Label text="Enrollment Image Amount:" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+            <!-- Slider to select number of images for enrollment (10-25) -->
             <Slider fx:id="imageAmountSlider" GridPane.columnIndex="1" GridPane.rowIndex="6"
-                    min="10" max="25" blockIncrement="1" majorTickUnit="1" minorTickCount="0"
-                    showTickLabels="true" showTickMarks="true" />
+                min="10" max="25" blockIncrement="1" majorTickUnit="1" minorTickCount="0"
+                showTickLabels="true" showTickMarks="true" />
+            <!-- Label displaying current slider value -->
             <Label fx:id="imageAmountLabel" GridPane.columnIndex="1" GridPane.rowIndex="7" />
 
+            <!-- Status Message Label -->
             <Label fx:id="statusLabel" GridPane.columnIndex="0" GridPane.rowIndex="8"
-                   GridPane.columnSpan="2"
-                   style="-fx-text-fill: red; -fx-font-weight: bold;" />
+                GridPane.columnSpan="2"
+                style="-fx-text-fill: red; -fx-font-weight: bold;" />
 
+            <!-- Save Settings Button -->
             <Button text="Save" GridPane.columnIndex="1" GridPane.rowIndex="9"
-                    onAction="#onSaveSettings" />
+                onAction="#onSaveSettings" />
 
         </GridPane>
     </content>

@@ -11,9 +11,13 @@ import java.time.LocalDate;
  *     <li>Report controller/popups collect user-selected filter values</li>
  *     <li>Those values are stored in an {@code AttendanceReportFilter}</li>
  *     <li>The repository/service layer reads this object and applies the filters
- *         in SQL or in-memory filtering before building {@link com.smartattendance.util.report.AttendanceReportRow} instances</li>
+ *         in SQL or in-memory filtering before building
+ *         {@link com.smartattendance.util.report.AttendanceReportRow} instances</li>
  * </ul>
+ *
+ * @author Ernest Lun
  */
+
 public class AttendanceReportFilter {
 
     /**

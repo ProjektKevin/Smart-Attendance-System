@@ -24,6 +24,8 @@ import javafx.scene.chart.XYChart;
  *     List&lt;Node&gt; nodes = legendBuilder.buildLegendNodes(pieChart.getData());
  *     legendContainer.getChildren().setAll(nodes);
  * </pre>
+ * 
+ * @author Ernest Lun
  */
 public interface LegendBuilder {
 

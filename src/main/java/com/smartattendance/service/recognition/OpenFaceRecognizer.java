@@ -9,7 +9,6 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
-import org.opencv.imgproc.Imgproc;
 
 import com.smartattendance.model.entity.Student;
 import com.smartattendance.model.entity.FaceData;
@@ -17,6 +16,16 @@ import com.smartattendance.service.FaceProcessingService;
 import com.smartattendance.util.FileLoader;
 import com.smartattendance.util.security.log.ApplicationLogger;
 import com.smartattendance.util.security.log.AttendanceLogger;
+
+/**
+ * OpenFace Recognizer
+ * Implements face recognition using deep neural network (DNN) based OpenFace
+ * model
+ * Generates 128-dimensional face embeddings for accurate face matching
+ * Uses cosine similarity for face comparison
+ * 
+ * @author Min Thet Khine
+ */
 
 public class OpenFaceRecognizer extends Recognizer {
     private final FaceProcessingService faceProcessingService;
@@ -96,6 +105,12 @@ public class OpenFaceRecognizer extends Recognizer {
     }
 
     // ----- Recoginzer classes -----
+    /**
+     * Train the recognizer by computing average face embeddings for each student
+     * Processes all enrolled students and generates 128-dimensional embeddings
+     * 
+     * @param students List of students to train the recognizer with
+     */
     @Override
     public void train(List<Student> students) {
         if (faceNet == null || faceNet.empty()) {
@@ -182,6 +197,14 @@ public class OpenFaceRecognizer extends Recognizer {
                 failureCount + " failed");
     }
 
+    /**
+     * Recognize a face by comparing its embedding with stored student embeddings
+     * Uses cosine similarity to find the best match among enrolled students
+     * 
+     * @param faceImage        The face image to recognize
+     * @param enrolledStudents List of students to compare against
+     * @return RecognitionResult containing the matched student and confidence score
+     */
     @Override
     public RecognitionResult recognize(Mat faceImage, List<Student> enrolledStudents) {
         if (faceNet == null || faceNet.empty()) {
@@ -267,14 +290,14 @@ public class OpenFaceRecognizer extends Recognizer {
                 // Convert similarity to percentage (cosine similarity is -1 to 1)
 
                 // Mapping Formula for OpenFace embeddings:
-                // - similarity 0.7+ → 70%+ confidence (good match)
-                // - similarity 0.6 → 50% confidence (uncertain)
-                // - similarity 0.4 → 30% confidence (likely wrong)
-                // - similarity 0.2 → 10% confidence (definitely wrong)
+                // - similarity 0.5+ → 50%+ confidence (good match)
+                // - similarity 0.4 → 30% confidence (uncertain)
+                // - similarity 0.2 → 10% confidence (likely wrong)
+                // - similarity 0.0 → 10% confidence (definitely wrong)
                 double confidence;
                 if (bestSimilarity >= 0.5) {
-                    // Good match range: 0.6-1.0 maps to 50%-100%
-                    confidence = 50.0 + (bestSimilarity - 0.6) / 0.4 * 50.0;
+                    // Good match range: 0.5-1.0 maps to 50%-100%
+                    confidence = 50.0 + (bestSimilarity - 0.5) / 0.5 * 50.0;
                 } else if (bestSimilarity >= 0.0) {
                     // Uncertain range: 0.0-0.6 maps to 10%-50%
                     confidence = 10.0 + (bestSimilarity / 0.6) * 40.0;
