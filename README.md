@@ -415,6 +415,20 @@ Copy `.env.example` file in the project root and change it to `.env`. Modify acc
 
 Copy `config.properties.example` file in the project root and change it to `config.properties`. Modify according to user or system requirements.
 
+### NOTE: Existing Database and Users
+
+#### Admin Credentials
+```
+username: kevin
+password: student123
+```
+
+#### Student Credentials
+```
+username: harry123
+password: passWord123
+```
+
 ## Architecture
 
 The application follows a three-layer architecture:
