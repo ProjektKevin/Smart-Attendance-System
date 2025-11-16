@@ -483,6 +483,7 @@ The admin interface contains multiple tabs: **Dashboard**, **Students**, **Enrol
 - Each chart has:
   - **Zoom button**: opens a close-up of the chart in a separate window.
   - **Download button**: saves the chart as an image file.
+  - **Tooltips**: shows numbers and categories when the chart is hovered upon.
 
 #### 3.2 Students Tab
 
