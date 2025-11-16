@@ -38,6 +38,8 @@ import javafx.scene.layout.HBox;
  *
  * <p>All methods are static and side-effect the charts passed in, which makes
  * this class easy to call from controllers without needing to instantiate it.
+ * 
+ * @author Ernest Lun
  */
 public final class DashboardCharts {
 

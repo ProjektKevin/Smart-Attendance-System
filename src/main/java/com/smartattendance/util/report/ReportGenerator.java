@@ -15,6 +15,8 @@ import java.util.List;
  *     ReportGenerator generator = new CsvReportGenerator();  // or PdfReportGenerator, etc.
  *     generator.generate(spec, rows, targetFile);
  * </pre>
+ * 
+ * @author Ernest Lun
  */
 public interface ReportGenerator {
 

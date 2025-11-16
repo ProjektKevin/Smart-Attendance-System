@@ -11,6 +11,8 @@ import javafx.scene.Node;
  *
  * By using this interface, the rest of the application can trigger chart
  * exports without depending on any specific export library or file format.
+ * 
+ * @author Ernest Lun
  */
 public interface ChartExporter {
 

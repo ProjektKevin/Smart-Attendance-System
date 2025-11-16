@@ -30,6 +30,8 @@ import com.itextpdf.text.pdf.PdfWriter;
  * </ul>
  *
  * <p>This class uses iText (com.itextpdf) for PDF generation.
+ * 
+ * @author Ernest Lun
  */
 public class PdfReportGenerator implements ReportGenerator {
 

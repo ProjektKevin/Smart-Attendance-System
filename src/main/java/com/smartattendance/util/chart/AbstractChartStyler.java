@@ -21,6 +21,8 @@ import javafx.scene.paint.Color;
  * By centralizing these utilities, we keep chart styling consistent across
  * the application and avoid duplicating color and axis configuration logic
  * in each individual chart class.
+ * 
+ * @author Ernest Lun
  */
 public abstract class AbstractChartStyler implements ChartStyler {
 

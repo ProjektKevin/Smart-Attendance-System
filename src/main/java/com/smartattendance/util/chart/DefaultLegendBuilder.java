@@ -23,6 +23,8 @@ import javafx.scene.layout.Region;
  *     <li>Apply consistent styling across different chart types</li>
  *     <li>Reuse the same color palette for pie charts and bar charts</li>
  * </ul>
+ * 
+ * @author Ernest Lun
  */
 public class DefaultLegendBuilder implements LegendBuilder {
 

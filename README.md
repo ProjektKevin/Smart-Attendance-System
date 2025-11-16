@@ -40,12 +40,14 @@ smart-attendance-system/
 │       │       │   └── rules/               # Business rules / validation services
 │       │       ├── util/                    # Utility classes
 │       │       │   ├── chart/               # Chart styling and export helpers
+│       │       │   ├── dashboard/           # Dashboard charts conffigurations
 │       │       │   ├── report/              # PDF/CSV/XLSX report utilities
 │       │       │   ├── security/            # Security-related utilities
 │       │       │   └── validation/          # Input validation utilities
 │       │       ├── ApplicationContext.java  # Dependency injection container
 │       │       └── MainApp.java             # Application entry point
 │       └── resources/
+│           ├── db/                          # Database Folder for postgresql scripts of schema and seeding
 │           ├── haarscascades/               # Haar cascade XMLs for face detection
 │           ├── icons/                       # Application icons
 │           ├── openFaceModels/              # OpenFace model files
@@ -53,6 +55,8 @@ smart-attendance-system/
 │               └── styles/                  # CSS stylesheets
 ├── .env.example                             # Sample environment configuration
 ├── .env                                     # Local environment configuration (gitignored)
+├── config.properties.example                # Sample configuration properties
+├── config.properties                        # Local configuration properties (gitignored)
 ├── compile.bat                              # Helper script to build via Maven wrapper
 ├── run.bat                                  # Helper script to launch the JavaFX app
 ├── pom.xml                                  # Maven configuration
@@ -95,10 +99,10 @@ Contains all JavaFX controllers for the user interface. Controllers handle user 
 
 Admin-only dialogs and supporting controllers.
 
-- **AddStudentDialog.java**: Dialog for adding a new student via the admin interface.
+- **AddUserDialog.java**: Dialog for adding a new user via the admin interface.
 - **EnrollCourseDialog.java**: Dialog for enrolling a student in one or more courses.
-- **StudentListController.java**: Admin controller for listing students with actions like view/edit.
-- **StudentProfileDialog.java**: Dialog for viewing and editing detailed student information.
+- **StudentListController.java**: Admin controller for listing students with actions like view/enroll/delete/search/add.
+- **StudentProfileDialog.java**: Dialog for viewing detailed student information.
 
 #### controller/auth/
 
@@ -115,7 +119,6 @@ Authentication- and verification-related controllers.
 Student-facing controllers and helper view models for the student portal.
 
 - **AttendanceRow.java**: Simple DTO-like helper representing a single attendance row for the student UI.
-- **DemoAttendanceData.java**: Demo data generator for populating the student attendance view during testing.
 - **EnrollmentController.java**: Student-side controller for viewing course enrolments.
 - **StudentAttendanceController.java**: Main student “My Attendance” controller (filters + table + summary).
 - **StudentAttendanceLegendBuilder.java**: Helper for building the legend explaining colours/statuses in the attendance view.
@@ -136,7 +139,7 @@ Core entity classes representing database tables.
 
 - **AbstractEntity.java**: Base class for entities (common id and audit fields).
 - **AttendanceRecord.java**: Entity mapping to an attendance record (student, session, status, method, timestamps, lastSeen, notes).
-- **AuthSession.java**: Entity for tracking active authentication sessions (e.g. user session tokens).
+- **AuthSession.java**: Entity for tracking active authentication sessions (e.g. user current session).
 - **Course.java**: Entity representing a course (code, name, group, etc.).
 - **FaceData.java**: Entity storing face-related data (e.g. embeddings or references to images).
 - **Image.java**: Entity for image metadata (paths, types, usage).
@@ -151,7 +154,7 @@ Core entity classes representing database tables.
 Enumerations for fixed states and types.
 
 - **AttendanceStatus.java**: Attendance statuses such as PRESENT, ABSENT, LATE, PENDING.
-- **AuthVerification.java**: Types of verification (e.g. REGISTRATION, PASSWORD_RESET).
+- **AuthVerification.java**: Types of verification (e.g. VERIFICATION, FORGOT_PASSWORD).
 - **MarkMethod.java**: Methods of marking attendance (AUTO, MANUAL, QR, NONE).
 - **RecognitionAlgorithm.java**: Available recognition algorithms (e.g. HISTOGRAM, OPEN_FACE).
 - **Role.java**: User roles such as ADMIN and STUDENT.
@@ -200,11 +203,10 @@ Data access layer implementing database operations using JDBC.
 - **DashboardRepository.java**: Queries for dashboard metrics and chart data.
 - **ImageRepository.java**: Data access for `Image` and face-related assets.
 - **JdbcDashboardRepository.java**: JDBC-based implementation of `DashboardRepository`.
-- **PostgresUserRepository.java**: PostgreSQL-specific implementation for user lookups and authentication.
 - **ProfileRepository.java**: Data access for `Profile` entities.
 - **SessionRepository.java**: CRUD and search operations for `Session` entities.
 - **StudentRepository.java**: CRUD and query operations for `Student` entities.
-- **UserRepository.java**: Generic user data access (used by higher-level services).
+- **UserRepository.java**: CRUD and query operations for `User` entities.
 - **VerificationRepository.java**: Data access for verification tokens.
 
 ---
@@ -228,7 +230,6 @@ Business logic layer providing services to controllers. Services handle validati
 - **ImageService.java**: Manages image data (saving/loading/associating with students and face data).
 - **ManualAttendanceMarker.java**: `AttendanceMarker` implementation used when admins mark attendance manually.
 - **ProfileService.java**: Manages creation and updates of user and student profiles.
-- **RecognitionService.java**: High-level façade for calling specific recognizers and returning a `RecognitionResult`.
 - **RecognitionObserver.java**: Observer interface that inherits AttendanceObserver, to be notified when attendance changes via auto marking through face recognition.
 - **SessionService.java**: Handles creation and management of sessions, including application of auto-session rules.
 - **StudentAttendanceService.java**: Student-specific view of attendance (fetching summaries and filtered records for a student).
@@ -273,7 +274,6 @@ General-purpose utilities used across the application.
 - **EmailTemplates.java**: Provides text/HTML templates for emails (verification, reset, report).
 - **FileLoader.java**: Utility for loading files/resources (e.g. models, cascades, templates).
 - **OpenCVUtils.java**: Helper functions for OpenCV initialisation and image conversion.
-- **TestConnection.java**: Simple utility to test database connectivity.
 
 #### util/chart/
 
@@ -316,16 +316,17 @@ Security-related helpers.
 
 Application-level logging helpers.
 
-- **ApplicationLogger.java**: Main logger for the application; configures appenders and logging behaviour.
-- **AttendanceLogger.java**: Logger focused on attendance-related events.
-- **BaseLogger.java**: Common base for concrete loggers (formatting, file naming).
-- **LoggerFacade.java**: Facade used by other parts of the app to log without depending on a specific logger implementation.
+- **ApplicationLogger.java**: Main logger for the application; keeps all system logs in application.log and shows on terminal for troubleshooting.
+- **AttendanceLogger.java**: Logger focused on attendance-related events; records on attendance.log and displays on console.
+- **BaseLogger.java**: Abstract common base for concrete loggers (loggers setup, file based, console based, or both).
+- **LoggerFacade.java**: Logger interface class with different methods of log levels.
 
 #### util/validation/
 
 Input validation utilities and helpers for enforcing business rules.
 
 - **AuthValidator.java**: Validates login/registration/verification-related inputs.
+- **ConfigValidator.java**: Validates input fields for the configuration matters (threshold, model, ...etc).
 - **ProfileValidator.java**: Validates profile update inputs (names, phone numbers).
 - **ValidationResult.java**: Represents the result of a validation (valid flag plus messages).
 - **Validator.java**: Generic validator interface for implementing field or object validations.
@@ -392,6 +393,14 @@ mvn javafx:run
 ```
 
 ## Configuration
+
+### Database
+
+Users must first have a connection string url of the database, password, database name and the user. Firstly, create a database and run the following script under `resources/db/schema.sql` to create tables and indices. Next, run `resources/db/see.sql` to start seeding one admin user and 4 courses. 
+
+### SMTP Mailing
+
+Users must also have an active SMTP credentials. This could be from gmail App password with a SMTP gmail account.  
 
 ### ENV
 
@@ -486,9 +495,14 @@ The admin interface contains multiple tabs: **Dashboard**, **Students**, **Enrol
 
 #### 3.2 Students Tab
 
-- Admin view for managing students.
-- Displays student list and basic info (ID, name, etc.).
-- Supports viewing and editing student details via the **Student Profile** dialog.
+- Lists all students:
+  - Columns include Student ID, Email, Email Verified, Role and an **Action** button.
+- Actions:
+  - **Search**: search students by the email.
+  - **Add**: invite users through email and preferred role to onboard the system.
+  - **View Profile**: shows a dialog of full student details wiith their names, email, verification status, phone number, role and enrolled courses.
+  - **Enroll Course**: Enrol up to 4 courses for students.
+  - **Delete**: opens a confirmation dialog to allow user deletion.
 
 #### 3.3 Enrolments Tab
 

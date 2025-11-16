@@ -14,6 +14,8 @@ package com.smartattendance.util.report;
  *
  * <p>Configuration is typically loaded from environment variables using
  * {@link #fromEnv()}, so the application can be reconfigured without code changes.
+ * 
+ * @author Ernest Lun
  */
 public class EmailSettings {
 
