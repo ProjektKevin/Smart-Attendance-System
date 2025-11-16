@@ -36,7 +36,10 @@ import javafx.stage.FileChooser;
  * All heavy lifting (DB queries, report generation, email sending) is delegated
  * to {@link AttendanceReportService}; this class stays as a thin orchestration
  * layer.
+ *
+ * @author Ernest Lun
  */
+
 public class ReportController {
 
     // ===== Date range controls =====

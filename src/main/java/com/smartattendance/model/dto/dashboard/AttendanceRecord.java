@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
  *
  * <p>It is separate from the persistence/entity model to avoid coupling the
  * dashboard views directly to the database schema.
+ *
+ * @author Ernest Lun
  */
 public class AttendanceRecord {
 

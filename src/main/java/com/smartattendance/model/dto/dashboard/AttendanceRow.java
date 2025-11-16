@@ -17,7 +17,10 @@ import java.time.LocalDate;
  *     <li>Decouple the controller and UI layer from the database/entity model</li>
  *     <li>Provide a simple, read-friendly object for table views and summaries</li>
  * </ul>
+ *
+ * @author Ernest Lun
  */
+
 public class AttendanceRow {
 
     /**
