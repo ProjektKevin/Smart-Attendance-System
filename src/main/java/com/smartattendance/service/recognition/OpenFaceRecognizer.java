@@ -290,14 +290,14 @@ public class OpenFaceRecognizer extends Recognizer {
                 // Convert similarity to percentage (cosine similarity is -1 to 1)
 
                 // Mapping Formula for OpenFace embeddings:
-                // - similarity 0.7+ → 70%+ confidence (good match)
-                // - similarity 0.6 → 50% confidence (uncertain)
-                // - similarity 0.4 → 30% confidence (likely wrong)
-                // - similarity 0.2 → 10% confidence (definitely wrong)
+                // - similarity 0.5+ → 50%+ confidence (good match)
+                // - similarity 0.4 → 30% confidence (uncertain)
+                // - similarity 0.2 → 10% confidence (likely wrong)
+                // - similarity 0.0 → 10% confidence (definitely wrong)
                 double confidence;
                 if (bestSimilarity >= 0.5) {
-                    // Good match range: 0.6-1.0 maps to 50%-100%
-                    confidence = 50.0 + (bestSimilarity - 0.6) / 0.4 * 50.0;
+                    // Good match range: 0.5-1.0 maps to 50%-100%
+                    confidence = 50.0 + (bestSimilarity - 0.5) / 0.5 * 50.0;
                 } else if (bestSimilarity >= 0.0) {
                     // Uncertain range: 0.0-0.6 maps to 10%-50%
                     confidence = 10.0 + (bestSimilarity / 0.6) * 40.0;
