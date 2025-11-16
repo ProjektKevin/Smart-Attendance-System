@@ -10,6 +10,8 @@ package com.smartattendance.util.report;
  *     <li>Report generators (CSV, PDF, etc.), which read these flags to decide
  *         which columns to output and in what order</li>
  * </ul>
+ * 
+ * @author Ernest Lun
  */
 public class ReportSpec {
 

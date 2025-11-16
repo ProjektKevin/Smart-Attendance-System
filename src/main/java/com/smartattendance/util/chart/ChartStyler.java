@@ -21,6 +21,8 @@ import javafx.scene.chart.StackedBarChart;
  *     // In a controller or service:
  *     chartStyler.styleBarChart(attendanceBarChart);
  * </pre>
+ * 
+ * @author Ernest Lun
  */
 public interface ChartStyler {
 

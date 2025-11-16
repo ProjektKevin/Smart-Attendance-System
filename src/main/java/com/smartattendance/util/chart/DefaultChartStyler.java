@@ -20,6 +20,8 @@ import javafx.scene.chart.XYChart;
  * <p>This class is intended to be the "default" theme used by the dashboard,
  * but it can be swapped for another implementation (e.g. a dark theme) without
  * changing controller code.
+ * 
+ * @author Ernest Lun
  */
 public class DefaultChartStyler extends AbstractChartStyler {
 

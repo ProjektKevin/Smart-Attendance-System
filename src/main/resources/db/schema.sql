@@ -1,4 +1,4 @@
--- Drop tables in correct order (reverse of dependencies)
+-- Drop tables
 DROP TABLE IF EXISTS attendance CASCADE;
 
 DROP TABLE IF EXISTS verification CASCADE;
@@ -143,49 +143,3 @@ CREATE INDEX idx_attendance_user ON attendance (user_id);
 CREATE INDEX idx_attendance_status ON attendance (status);
 
 CREATE INDEX idx_attendance_marked_at ON attendance (marked_at);
-
--- Seeding
-
--- Seed admin user and profile
--- Password: adminPass123
-INSERT INTO
-    users (
-        username,
-        email,
-        password_hash,
-        role,
-        is_email_verified
-    )
-VALUES (
-        'admin123',
-        'tsh.harry.dev@gmail.com',
-        'S5ccr9eQPRSL2o+Kp/qle3ac3tUT7LMeEk0eAQqAVV8=',
-        'ADMIN',
-        TRUE
-    );
-
-INSERT INTO
-    profile (
-        user_id,
-        first_name,
-        last_name
-    )
-VALUES (1, 'Admin', 'User');
-
--- Seed courses
--- Insert courses
-INSERT INTO
-    courses (course_name, course_code)
-VALUES (
-        'Programming Fundamentals II',
-        'CS102'
-    ),
-    (
-        'Mathematical Foundations of Computing',
-        'CS104'
-    ),
-    (
-        'IT Solution Architecture',
-        'CS301'
-    ),
-    ('Operating Systems', 'CS205');
