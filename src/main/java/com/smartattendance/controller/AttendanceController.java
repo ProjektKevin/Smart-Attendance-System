@@ -1,15 +1,12 @@
 package com.smartattendance.controller;
 
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.smartattendance.ApplicationContext;
@@ -23,7 +20,6 @@ import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.ManualAttendanceMarker;
 import com.smartattendance.service.StudentService;
-import com.smartattendance.util.security.log.ApplicationLogger;
 
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -32,7 +28,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -647,6 +642,9 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
                         + " - " + newRecord.getStudent().getName() + " successfully.");
             }
 
+            // Hide clear edit button
+            exitEditMode();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -685,6 +683,9 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
             // show success message
             showSuccess("Deleted " + selectedRecords.size() + " record(s) successfully.");
         }
+
+        // Hide clear edit button
+        exitEditMode();
     }
 
     /**
