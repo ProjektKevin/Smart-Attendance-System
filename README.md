@@ -2,6 +2,11 @@
 
 A comprehensive JavaFX-based attendance management system with facial recognition capabilities. This system enables instructors and administrators to manage student attendance, courses, and generate detailed reports with support for multiple export formats.
 
+## Github Repository
+
+Clone this project by running the following command in desired terminal.
+git clone `https://github.com/ProjektKevin/Smart-Attendance-System`
+
 ## Tech Stack
 
 - **Frontend Framework**: JavaFX 21.0.3 (controls, FXML, Swing interop)
