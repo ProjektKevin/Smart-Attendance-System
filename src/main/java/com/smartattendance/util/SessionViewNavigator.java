@@ -12,6 +12,15 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * Util for navigating from SessionView.fxml to AttendanceView.fxml/SessionForm.fxml and vice versa
+ *
+ * @author Lim Jia Hui
+ * @author Chue Wan Yan (modified openAttendanceView)
+ *
+ * @version 13:00 16 Nov 2025
+ *
+ */
 public class SessionViewNavigator {
 
     private final VBox mainContainer; // sessionListContainer
@@ -32,15 +41,19 @@ public class SessionViewNavigator {
      * @throws IOException If FXML fails to load
      */
     public void openAttendanceView(String fxmlPath, Session session) throws IOException {
+        // Load the Attendance view fresh and get its controller
         FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
         Parent root = loader.load();
 
-        // Get the attendance controller
+        // F_MA: modified by felicia handling marking attendance
         attendanceController = loader.getController();
+
+        // Pass session to the attendance controller
         attendanceController.setSession(session);
 
-        // Provide back handler
+        // Provide a callback so AttendanceController can go back to the sessions list
         attendanceController.setBackHandler(() -> {
+            // hide attendance view and show session list
             placeholderContainer.getChildren().clear();
             placeholderContainer.setVisible(false);
             placeholderContainer.setManaged(false);
@@ -49,10 +62,11 @@ public class SessionViewNavigator {
             mainContainer.setManaged(true);
         });
 
-        // Show attendance view
+        // Hide session list
         mainContainer.setVisible(false);
         mainContainer.setManaged(false);
 
+        // Put attendance UI into placeholder and show it
         placeholderContainer.getChildren().setAll(root);
         placeholderContainer.setVisible(true);
         placeholderContainer.setManaged(true);
