@@ -20,6 +20,7 @@ import com.smartattendance.service.AttendanceObserver;
 import com.smartattendance.service.AttendanceService;
 import com.smartattendance.service.ManualAttendanceMarker;
 import com.smartattendance.service.StudentService;
+import com.smartattendance.util.InfoLabelUtil;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -113,54 +114,11 @@ public class AttendanceController implements AttendanceObserver {
 
     // Helper methods for different message types
     private void showSuccess(String message) {
-        styleInfoLabel("success", "✓ " + message);
-    }
-
-    private void showError(String message) {
-        styleInfoLabel("error", "✗ " + message);
+        InfoLabelUtil.showSuccess(attendanceInfo, message);
     }
 
     private void showWarning(String message) {
-        styleInfoLabel("warning", "⚠ " + message);
-    }
-
-    private void showInfo(String message) {
-        styleInfoLabel("normal", "ℹ " + message);
-    }
-
-    // Styles the info label based on message type
-    // @param type "success", "error", "warning", or "normal"
-    // @param message The text to display
-    private void styleInfoLabel(String type, String message) {
-        attendanceInfo.setText(message);
-
-        // Reset styles first
-        attendanceInfo.setStyle("-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px;");
-
-        switch (type.toLowerCase()) {
-            case "success":
-                attendanceInfo.setStyle("-fx-text-fill: #155724; -fx-background-color: #d4edda; -fx-border-color: #c3e6cb; "
-                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
-                break;
-            case "error":
-                attendanceInfo.setStyle("-fx-text-fill: #721c24; -fx-background-color: #f8d7da; -fx-border-color: #f5c6cb; "
-                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
-                break;
-            case "warning":
-                attendanceInfo.setStyle("-fx-text-fill: #856404; -fx-background-color: #fff3cd; -fx-border-color: #ffeaa7; "
-                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
-                break;
-            case "normal":
-            default:
-                attendanceInfo.setStyle("-fx-text-fill: #383d41; -fx-background-color: #e2e3e5; -fx-border-color: #d6d8db; "
-                        + "-fx-padding: 8px 12px; -fx-background-radius: 4px; -fx-border-radius: 4px; -fx-border-width: 1px;");
-                break;
-        }
-
-        // Auto-clear after 3 seconds
-        // PauseTransition pause = new PauseTransition(Duration.seconds(3));
-        // pause.setOnFinished(e -> attendanceInfo.setText(""));
-        // pause.play();
+        InfoLabelUtil.showWarning(attendanceInfo, message);
     }
 
     public void setBackHandler(Runnable backHandler) {
