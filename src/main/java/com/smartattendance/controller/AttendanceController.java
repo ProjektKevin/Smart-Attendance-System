@@ -640,10 +640,10 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
                 loadAttendanceRecords();
                 showSuccess("Added record for student " + newRecord.getStudent().getStudentId()
                         + " - " + newRecord.getStudent().getName() + " successfully.");
+                        
+                // Hide clear edit button
+                exitEditMode();
             }
-
-            // Hide clear edit button
-            exitEditMode();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -682,10 +682,10 @@ public class AttendanceController implements AttendanceObserver, TabRefreshable 
 
             // show success message
             showSuccess("Deleted " + selectedRecords.size() + " record(s) successfully.");
-        }
 
-        // Hide clear edit button
-        exitEditMode();
+            // Hide clear edit button
+            exitEditMode();
+        }
     }
 
     /**
