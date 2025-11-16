@@ -15,7 +15,10 @@ import java.time.LocalDate;
  *
  * <p>This is intentionally a very lightweight DTO with public fields so it is
  * easy to construct and pass around in the dashboard layer.
+ *
+ * @author Ernest Lun
  */
+
 public class DashboardFilter {
 
     /**
