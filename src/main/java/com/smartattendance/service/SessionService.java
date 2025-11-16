@@ -20,10 +20,47 @@ import com.smartattendance.service.rules.SessionEndedRule;
 import com.smartattendance.service.rules.StatusValidationRule;
 import com.smartattendance.service.rules.TimeRule;
 
+/**
+ * Service class for managing session business logic and operations.
+ * 
+ * This service acts as a facade between controllers and repositories,
+ * implementing business rules, validation, and complex operations related
+ * to session management. It utilises the Decorator pattern for automatic
+ * session processing rules.
+ * </p>
+ * 
+ * Key responsibilities:
+ * - Session lifecycle management (creation, starting, stopping)
+ * - Automatic session processing with rule-based validation
+ * - Attendance record creation and management
+ * - Business rule enforcement and validation
+ * - Integration with application context and authentication
+ * 
+ * @author Lim Jia Hui
+ * @version 19:06 16 Nov 2025
+ */
 public class SessionService {
+
+    // ========== DEPENDENCIES ==========
+
+    /** Repository for session data access operations */
     private final SessionRepository repo;
+
+    /** Rule engine for automatic session processing using Decorator pattern */
     private final AutoSessionRule autoSessionRule;
 
+    // ========== CONSTRUCTOR ==========
+
+    /**
+     * Constructs a new SessionService with initialized dependencies.
+     * Sets up the rule decorator chain for automatic session processing.
+     * 
+     * Rule chain order (outermost to innermost):
+     * - SessionEndedRule - Checks if session has ended
+     * - StatusValidationRule - Validates session status
+     * - ConflictPreventionRule - Prevents session conflicts
+     * - TimeRule - Validates timing constraints
+     */
     public SessionService() {
         this.repo = new SessionRepository();
         // Build the decorator chain with the new rule
@@ -32,53 +69,79 @@ public class SessionService {
                         new ConflictPreventionRule(
                                 new TimeRule(),
                                 this)));
-        System.out.println("SessionService: Initialized with rule chain: " + autoSessionRule.getRuleDescription());
     }
 
-    // Return all sessions
+    // ========== BASIC DATA ACCESS METHODS ==========
+
+    /**
+     * Retrieves all sessions from the database.
+     *
+     * @return a list of all Session objects, never null
+     */
     public List<Session> getAllSessions() {
         return repo.findAll();
     }
 
-    // Find a student by ID
+    /**
+     * Finds a session by its unique identifier.
+     *
+     * @param id the session ID to search for
+     * @return the Session object if found, null otherwise
+     * @throws IllegalArgumentException if the ID is not positive
+     */
     public Session findById(int id) {
         return repo.findById(id);
     }
 
-    // Check if there is already a session opened
+    /**
+     * Checks if there is currently an open session in the system.
+     * The system enforces that only one session can be open at a time.
+     *
+     * @return true if there is an open session, false otherwise
+     */
     public boolean isSessionOpen() {
         return repo.isSessionOpen();
     }
 
-    // Creation of session using form
-    public Session createSession(String courseId, LocalDate date, LocalTime start,
-            LocalTime end, String loc, int lateThreshold) {
-        Session session = new Session(courseId.toUpperCase(), date, start, end, loc, lateThreshold);
-        repo.save(session);
-        createAttendanceRecordsForSession(session);
-        return session;
-    }
-
-    // Deletion of session by id
+    /**
+     * Deletes a session by its unique identifier.
+     *
+     * @param id the session ID to delete
+     * @throws IllegalArgumentException if the ID is not positive
+     */
     public void deleteSession(int id) {
         repo.deleteById(id);
     }
 
-    // Delete all sessions
+    /**
+     * Deletes all sessions from the system and resets auto-increment counters.
+     * 
+     * Warning: This operation is destructive and cannot be undone.
+     * Use with extreme caution in production environments.
+     */
     public void deleteAll() {
         repo.deleteAll();
     }
 
-    // Update session status
+    /**
+     * Updates the status of a session in the database.
+     *
+     * @param session the Session object containing the new status
+     * @throws IllegalArgumentException if the session is null
+     */
     public void updateSessionStatus(Session s) {
-        // System.out.println("SessionService: updateSessionStatus called for session " + s.getSessionId() +
-        //         " with status: " + s.getStatus());
         repo.updateStatus(s.getSessionId(), s.getStatus());
-        // System.out.println("SessionService: updateSessionStatus completed for session " + s.getSessionId());
     }
 
-    // Create Attendance Record for each student enrolled under the session created
-    // based on matching course
+    // ========== SESSION CREATION METHODS ==========
+
+    /**
+     * Creates attendance records for all students enrolled in the session's course.
+     * This method is called automatically when a new session is created.
+     *
+     * @param session the session for which to create attendance records
+     * @throws IllegalArgumentException if the session is null
+     */
     private void createAttendanceRecordsForSession(Session s) {
         StudentRepository studentRepo = new StudentRepository();
         AttendanceRecordRepository attendanceRepo = new AttendanceRecordRepository();
@@ -102,168 +165,241 @@ public class SessionService {
         }
     }
 
-    // // Check if there is already a session with auto_start (either 0 or 1)
-    // public boolean hasAutoStartSession() {
-    //     return repo.hasAutoStartSession();
-    // }
+    /**
+     * Creates a new session with the specified parameters and generates attendance
+     * records.
+     *
+     * @param courseId      the course identifier (will be converted to uppercase)
+     * @param date          the date of the session
+     * @param start         the start time of the session
+     * @param end           the end time of the session
+     * @param location      the physical location of the session
+     * @param lateThreshold the grace period in minutes for late attendance
+     * @return the newly created Session object with assigned ID
+     * @throws IllegalArgumentException if any parameter is null or invalid
+     */
+    public Session createSession(String courseId, LocalDate date, LocalTime start,
+            LocalTime end, String loc, int lateThreshold) {
+        Session session = new Session(courseId.toUpperCase(), date, start, end, loc, lateThreshold);
+        repo.save(session);
+        createAttendanceRecordsForSession(session);
+        return session;
+    }
 
-    // Check if there are other sessions with auto_start = TRUE excluding the given
-    // session
+    // ========== AUTO SETTINGS MANAGEMENT METHODS ==========
+
+    /**
+     * Checks if there are other sessions with auto-start enabled, excluding the
+     * specified session.
+     *
+     * @param excludeSessionId the session ID to exclude from the check
+     * @return true if other auto-start sessions exist, false otherwise
+     * @throws IllegalArgumentException if excludeSessionId is not positive
+     */
     public boolean hasOtherAutoStartSession(int excludeSessionId) {
         return repo.hasOtherAutoStartSession(excludeSessionId);
     }
 
-    // // Check if there is already a session with auto_stop (either 0 or 1)
-    // public boolean hasAutoStopSession() {
-    //     return repo.hasAutoStopSession();
-    // }
-
-    // Check if there are other sessions with auto_stop = TRUE excluding the given
-    // session
+    /**
+     * Checks if there are other sessions with auto-stop enabled, excluding the
+     * specified session.
+     *
+     * @param excludeSessionId the session ID to exclude from the check
+     * @return true if other auto-stop sessions exist, false otherwise
+     * @throws IllegalArgumentException if excludeSessionId is not positive
+     */
     public boolean hasOtherAutoStopSession(int excludeSessionId) {
         return repo.hasOtherAutoStopSession(excludeSessionId);
     }
 
-    // Update auto start/stop settings
+    /**
+     * Updates the automatic start and stop settings for a session.
+     *
+     * @param sessionId the session ID to update
+     * @param autoStart whether automatic start should be enabled
+     * @param autoStop  whether automatic stop should be enabled
+     * @throws IllegalArgumentException if sessionId is not positive
+     */
     public void updateAutoSettings(int sessionId, boolean autoStart, boolean autoStop) {
         repo.updateAutoSettings(sessionId, autoStart, autoStop);
     }
 
-    // // Method for validation - auto start
-    // public String validateAutoStart(Session session) {
-    //     System.out.println("SessionService: Validating auto-start for session " + session.getSessionId());
+    // ========== SESSION VALIDATION METHODS ==========
 
-    //     // Check 1: Only one auto-start session allowed
-    //     if (hasAutoStartSession()) {
-    //         System.out.println("SessionService: Validation failed - another auto-start session exists");
-    //         return "Only one session can have Auto Start enabled. Please disable the other session first.";
-    //     }
+    /**
+     * Validates and starts a session if all conditions are met.
+     *
+     * @param session the session to start
+     * @throws IllegalStateException    if the session cannot be started due to:
+     *                                  - Session status is not "Pending"
+     *                                  - Another session is already open
+     * @throws IllegalArgumentException if the session is null
+     */
+    public void startSessionIfValid(Session session) throws IllegalStateException {
+        if (!"Pending".equals(session.getStatus())) {
+            throw new IllegalStateException("Can only start sessions with 'Pending' status");
+        }
+        // Check if there's already an open session
+        if (isSessionOpen()) {
+            throw new IllegalStateException(
+                    "There is already an open session. Please close the current open session before starting a new one.");
+        }
+        startSession(session);
+    }
 
-    //     // Check 2: Only Pending sessions can have auto-start enabled
-    //     if (!"Pending".equals(session.getStatus())) {
-    //         System.out.println("SessionService: Validation failed - session status is " + session.getStatus());
-    //         return "Can only enable Auto Start for Pending sessions. Current status: " + session.getStatus();
-    //     }
+    /**
+     * Stops multiple sessions if they are valid for stopping.
+     * Only stops sessions that are not already closed.
+     *
+     * @param sessions the list of sessions to stop
+     * @return the number of sessions successfully stopped
+     * @throws IllegalArgumentException if the sessions list is null
+     */
+    public int stopSessionsIfValid(List<Session> sessions) {
+        int stoppedCount = 0;
+        for (Session session : sessions) {
+            if (!"Closed".equals(session.getStatus())) {
+                stopSession(session);
+                stoppedCount++;
+            }
+        }
+        return stoppedCount;
+    }
 
-    //     // Check 3: Cannot enable auto-start if session has already ended
-    //     if (hasSessionEnded(session)) {
-    //         System.out.println("SessionService: Validation failed - session has already ended");
-    //         return "Cannot enable Auto Start for sessions that have already ended.";
-    //     }
+    // ========== BUSINESS OPERATIONS METHODS ==========
 
-    //     return null; // Validation passed
-    // }
+    /**
+     * Starts a session and updates the application context.
+     * This method performs the actual session start operation.
+     *
+     * @param session the session to start
+     * @throws IllegalArgumentException if the session is null
+     */
+    public void startSession(Session s) {
+        s.open();
+        repo.updateStatus(s.getSessionId(), s.getStatus());
+        ApplicationContext.getAuthSession().setActiveSessionId(s.getSessionId());
+    }
 
-    // // Method for validation - auto stop
-    // public String validateAutoStop(Session session) {
-    //     System.out.println("SessionService: Validating auto-start for session " + session.getSessionId());
+    /**
+     * Stops a session and clears the active session from application context if
+     * applicable.
+     *
+     * @param session the session to stop
+     * @throws IllegalArgumentException if the session is null
+     */
+    public void stopSession(Session s) {
+        s.close();
+        repo.updateStatus(s.getSessionId(), s.getStatus());
 
-    //     // Check 1: Only one auto-stop session allowed
-    //     if (hasAutoStopSession()) {
-    //         System.out.println("SessionService: Validation failed - another auto-start session exists");
-    //         return "Only one session can have Auto Stop enabled. Please disable the other session first.";
-    //     }
+        // Clear Session ID from AuthSession
+        Integer activeSessionId = ApplicationContext.getAuthSession().getActiveSessionId();
+        if (activeSessionId != null && activeSessionId == s.getSessionId()) {
+            ApplicationContext.getAuthSession().clearActiveSessionId();
+        }
+    }
 
-    //     // Check 2: Only Pending and Open sessions can have auto-stop enabled
-    //     if ("Closed".equals(session.getStatus())) {
-    //         System.out.println("SessionService: Validation failed - session status is " + session.getStatus());
-    //         return "Can only enable Auto Stop for Pending and Open sessions. Current status: " + session.getStatus();
-    //     }
+    // ========== AUTO-SESSION VALIDATION METHODS ==========
 
-    //     return null; // Validation passed
-    // }
-
-    // Check if session can have auto-start enabled (for UI)
+    /**
+     * Determines if a session can have auto-start enabled based on business rules.
+     * 
+     * Auto-start is ONLY allowed for:
+     * - Pending sessions that have not ended yet
+     * - No other auto-start sessions exist
+     * - No open sessions exist (regardless of auto-start status)
+     *
+     * @param session the session to check
+     * @return true if the session can have auto-start enabled, false otherwise
+     * @throws IllegalArgumentException if the session is null
+     */
     public boolean canSessionHaveAutoStart(Session session) {
-        // Auto-start is ONLY allowed for:
-        // - Pending sessions that haven't ended yet
-        // - No other auto-start sessions exist
-        // - No open sessions exist (regardless of auto-start status)
         boolean canHave = "Pending".equals(session.getStatus()) &&
                 !hasSessionEnded(session) &&
                 !hasOtherAutoStartSession(session.getSessionId()) &&
                 !isSessionOpen();
-        // System.out.println("SessionService: Session " + session.getSessionId() +
-        //         " can have auto-start: " + canHave +
-        //         " (Status: " + session.getStatus() +
-        //         ", Ended: " + hasSessionEnded(session) +
-        //         ", Other Auto-start: " + hasOtherAutoStartSession(session.getSessionId()) +
-        //         ", Open Session: " + isSessionOpen() + ")");
         return canHave;
     }
 
-    // Check if session can have auto-stop enabled (for UI)
+    /**
+     * Determines if a session can have auto-stop enabled based on business rules.
+     * 
+     * Auto-stop is allowed for:
+     * - Pending sessions (can auto-stop if they become open and then end)
+     * - Open sessions (can auto-stop when time reaches end)
+     * - NOT allowed for Closed sessions
+     *
+     * @param session the session to check
+     * @return true if the session can have auto-stop enabled, false otherwise
+     * @throws IllegalArgumentException if the session is null
+     */
     public boolean canSessionHaveAutoStop(Session session) {
-        // Auto-stop is allowed for:
-        // - Pending sessions (can auto-stop if they become open and then end)
-        // - Open sessions (can auto-stop when time reaches end)
-        // - NOT allowed for Closed sessions
         boolean canHave = !"Closed".equals(session.getStatus());
-        // System.out.println("SessionService: Session " + session.getSessionId() +
-        //         " can have auto-stop: " + canHave + " (Status: " + session.getStatus() + ")");
         return canHave;
     }
 
-    // Get reason why auto-start is disabled (for logging)
-    // public String getAutoStartDisabledReason(Session session) {
-    //     if ("Closed".equals(session.getStatus())) w{
-    //         return "Auto Start not available for closed sessions";
-    //     } else if ("Open".equals(session.getStatus())) {
-    //         return "Auto Start not available for open sessions";
-    //     } else if (hasSessionEnded(session)) {
-    //         return "Auto Start not available - session has ended";
-    //     } else if (hasOtherAutoStartSession(session.getSessionId())) {
-    //         return "Auto Start not available - another session has auto-start enabled";
-    //     } else if (isSessionOpen()) {
-    //         return "Auto Start not available - there is already an open session";
-    //     }
-    //     return "Auto Start not available";
-    // }
-
-    // Check if session has ended
+    /**
+     * Checks if a session has ended based on current time and session end time.
+     *
+     * @param session the session to check
+     * @return true if the current time is after or equal to the session end time,
+     *         false otherwise
+     * @throws IllegalArgumentException if the session is null
+     */
     public boolean hasSessionEnded(Session session) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime endDateTime = LocalDateTime.of(session.getSessionDate(), session.getEndTime());
 
         boolean hasEnded = now.isAfter(endDateTime) || now.equals(endDateTime);
-        // System.out.println("SessionService: Checking if session " + session.getSessionId() + " has ended - Current: " +
-        //         now + ", End: " + endDateTime + " - " + (hasEnded ? "ENDED" : "NOT ENDED"));
         return hasEnded;
     }
 
     // ========== DECORATOR RULE ACCESS METHODS ==========
 
-    // Helper methods for UI to check what the decorator rules allow
+    /**
+     * Checks if a session can be automatically started based on all business rules.
+     * Delegates to the rule decorator chain for comprehensive validation.
+     *
+     * @param session the session to check
+     * @return true if the session can be auto-started, false otherwise
+     * @throws IllegalArgumentException if the session is null
+     */
     public boolean canAutoStart(Session session) {
         boolean result = autoSessionRule.canAutoStart(session);
-        // System.out.println("SessionService: canAutoStart for session " + session.getSessionId() +
-        //         " (status: " + session.getStatus() + ") = " + result);
         return result;
     }
 
+    /**
+     * Checks if a session can be automatically stopped based on all business rules.
+     * Delegates to the rule decorator chain for comprehensive validation.
+     *
+     * @param session the session to check
+     * @return true if the session can be auto-stopped, false otherwise
+     * @throws IllegalArgumentException if the session is null
+     */
     public boolean canAutoStop(Session session) {
         boolean result = autoSessionRule.canAutoStop(session);
-        // System.out.println("SessionService: canAutoStop for session " + session.getSessionId() +
-        //         " (status: " + session.getStatus() + ") = " + result);
         return result;
     }
 
     // ========== AUTO SESSION PROCESSING ==========
 
+    /**
+     * Processes all sessions for automatic start and stop operations.
+     * This method is typically called by a scheduled background task.
+     * 
+     * For each session:
+     * - Auto-starts sessions with auto_start enabled that pass all rule validations
+     * - Auto-stops sessions with auto_stop enabled that pass all rule validations
+     */
     public void processAutoSessions() {
         System.out.println("SessionService: Processing auto sessions (background)");
         List<Session> sessions = getAllSessions();
 
-        // System.out.println("SessionService: Using rule chain: " + autoSessionRule.getRuleDescription());
-
         for (Session session : sessions) {
-            // System.out.println("SessionService: Checking session " + session.getSessionId() +
-            //         " - autoStart: " + session.isAutoStart() + ", autoStop: " + session.isAutoStop() +
-            //         ", status: " + session.getStatus());
 
             // Auto start logic - ONLY for sessions with auto_start = TRUE
             if (session.isAutoStart() && autoSessionRule.canAutoStart(session)) {
-                System.out.println("SessionService: AUTO-STARTING session " + session.getSessionId());
                 session.open();
                 updateSessionStatus(session);
                 ApplicationContext.getAuthSession().setActiveSessionId(session.getSessionId());
@@ -271,18 +407,22 @@ public class SessionService {
 
             // Auto stop logic - ONLY for sessions with auto_stop = TRUE
             if (session.isAutoStop() && autoSessionRule.canAutoStop(session)) {
-                System.out.println("SessionService: AUTO-STOPPING session " + session.getSessionId());
                 session.close();
                 updateSessionStatus(session);
             }
         }
-        // System.out.println("SessionService: Finished processing auto sessions");
     }
 
-    // Method to get rule description for debugging
+    // ========== DEBUGGING AND DIAGNOSTIC METHODS ==========
+
+    /**
+     * Retrieves a description of the current auto-session rule configuration.
+     * Useful for debugging and understanding the rule evaluation chain.
+     *
+     * @return a string describing the rule decorator chain
+     */
     public String getAutoSessionRulesDescription() {
         String description = autoSessionRule.getRuleDescription();
-        // System.out.println("SessionService: Current auto session rules: " + description);
         return description;
     }
 }
