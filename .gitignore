@@ -30,3 +30,14 @@ Thumbs.db
 .project
 .settings/
 .class
+
+# file to printout folder structure
+src/folder_structure.py
+out
+## Application logs
+application.log.*
+## Attendance logs
+attendance.log.*
+
+#Local Capture Folder
+captured_faces

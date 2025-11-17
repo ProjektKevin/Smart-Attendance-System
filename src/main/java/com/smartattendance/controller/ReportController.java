@@ -1,365 +1,605 @@
 package com.smartattendance.controller;
 
-import com.smartattendance.model.AttendanceRecord;
-import com.smartattendance.model.Session;
-import com.smartattendance.model.Student;
-import com.smartattendance.service.AttendanceService;
-import com.smartattendance.util.AppContext;
-import com.smartattendance.util.EmailService;
-import com.smartattendance.util.EmailSettings;
+import java.io.File;
+import java.time.LocalDate;
+import java.util.List;
+
+import com.smartattendance.service.AttendanceReportService;
+import com.smartattendance.util.report.AttendanceReportRow;
+import com.smartattendance.util.report.ReportSpec;
+import com.smartattendance.util.security.log.ApplicationLogger;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
+/**
+ * Controller for the Attendance Report screen.
+ *
+ * <p>
+ * Responsibilities:
+ * <ul>
+ * <li>Read filter / column selections from the UI</li>
+ * <li>Call {@link AttendanceReportService} to fetch data and generate
+ * reports</li>
+ * <li>Trigger exports (PDF, Excel, CSV) and email sending</li>
+ * <li>Update the status label with user-friendly messages</li>
+ * </ul>
+ *
+ * <p>
+ * All heavy lifting (DB queries, report generation, email sending) is delegated
+ * to {@link AttendanceReportService}; this class stays as a thin orchestration
+ * layer.
+ *
+ * @author Ernest Lun
+ */
 
 public class ReportController {
 
-  @FXML private DatePicker fromDate;
-  @FXML private DatePicker toDate;
-  @FXML private Label reportStatus;
+    // ===== Date range controls =====
 
-  // Email UI
-  @FXML private TextField emailTo;
-  @FXML private TextField emailSubject;
-  @FXML private TextArea  emailBody;
+    @FXML
+    private DatePicker fromDate;
+    @FXML
+    private DatePicker toDate;
 
-  private final AttendanceService attendance = AppContext.getAttendanceService();
+    // ===== Filter dropdowns =====
 
-  // keep track of the last exports to attach easily
-  private File lastExportedPdf;
-  private File lastExportedCsv;
+    @FXML
+    private ComboBox<String> sessionFilter;
+    @FXML
+    private ComboBox<String> courseFilter;
+    @FXML
+    private ComboBox<String> statusFilter;
+    @FXML
+    private ComboBox<String> methodFilter;
+    @FXML
+    private ComboBox<String> confidenceFilter;
 
-  @FXML
-  public void initialize() {
-    LocalDate today = LocalDate.now();
-    fromDate.setValue(today);
-    toDate.setValue(today);
-    reportStatus.setText("Select a range and export/import.");
-    emailSubject.setText("Attendance Report");
-    emailBody.setText("Hi,\n\nPlease find the attendance report attached.\n\nRegards,\nSmart Attendance");
-  }
+    // ===== Column selection checkboxes =====
 
-  /* ---------------- CSV export ---------------- */
-  @FXML
-  private void onExportCSV() {
-    List<AttendanceRecord> rows = dataForRange();
-    if (rows.isEmpty()) { reportStatus.setText("No data in range."); return; }
+    @FXML
+    private CheckBox selectAllFieldsCheck;
+    @FXML
+    private CheckBox includeDateTimeCheck;
+    @FXML
+    private CheckBox includeSessionIdCheck;
+    @FXML
+    private CheckBox includeCourseCodeCheck;
+    @FXML
+    private CheckBox includeStudentIdCheck;
+    @FXML
+    private CheckBox includeStudentNameCheck;
+    @FXML
+    private CheckBox includeStatusCheck;
+    @FXML
+    private CheckBox includeMethodCheck;
+    @FXML
+    private CheckBox includeConfidenceCheck;
+    @FXML
+    private CheckBox includeNoteCheck;
 
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Save Attendance CSV");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-    fc.setInitialFileName("attendance.csv");
-    File file = fc.showSaveDialog(null);
-    if (file == null) return;
+    // ===== Email controls =====
 
-    try (BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-      w.write("date,time,session_id,course_id,student_id,student_name,status,method,confidence,note\n");
-      DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-      DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm:ss");
-      for (AttendanceRecord r : rows) {
-        String date = r.getTimestamp().toLocalDate().format(df);
-        String time = r.getTimestamp().toLocalTime().format(tf);
-        Session s = r.getSession();
-        Student st = r.getStudent();
-        w.write(String.join(",",
-            esc(date),
-            esc(time),
-            esc(s.getSessionId()),
-            esc(s.getCourseId()),
-            esc(st.getStudentId()),
-            esc(st.getName()),
-            esc(r.getStatus()),
-            esc(r.getMethod()),
-            String.format("%.2f", r.getConfidence()),
-            esc(r.getNote() == null ? "" : r.getNote())
-        ));
-        w.write("\n");
-      }
-      lastExportedCsv = file;
-      reportStatus.setText("CSV exported: " + file.getName());
-    } catch (IOException e) {
-      reportStatus.setText("CSV export failed: " + e.getMessage());
-    }
-  }
+    @FXML
+    private TextField emailTo;
+    @FXML
+    private TextField emailSubject;
+    @FXML
+    private TextArea emailBody;
 
-  /* ---------------- PDF export ---------------- */
-  @FXML
-  private void onExportPDF() {
-    List<AttendanceRecord> rows = dataForRange();
-    if (rows.isEmpty()) { reportStatus.setText("No data in range."); return; }
+    // Label used to show status messages (export/email result, errors, etc.)
+    @FXML
+    private Label reportStatus;
 
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Save Attendance PDF");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-    fc.setInitialFileName("attendance.pdf");
-    File file = fc.showSaveDialog(null);
-    if (file == null) return;
+    /**
+     * Service that encapsulates all report-related logic:
+     * fetching data, generating files, and sending emails.
+     */
+    private final AttendanceReportService reportService = new AttendanceReportService();
 
-    try (PDDocument doc = new PDDocument()) {
+    /**
+     * References to the most recently exported files (per format),
+     * so the email buttons can attach them without regenerating.
+     */
+    private File lastPdf;
+    private File lastCsv;
+    private File lastXlsx;
 
-      // page + layout params
-      float margin = 36f;
-      float leading = 14f;
-      float y;
-      float x = margin;
+    /**
+     * Guard flag to prevent infinite recursion when we update the
+     * "Select All" checkbox based on individual checkbox changes.
+     */
+    private boolean updatingSelectAll = false;
 
-      // reusable header
-      final String[] headers = {"Date","Time","Session","Course","Student","Status","Method","Conf"};
-      final float[] widths   = { 55f, 45f,   60f,     55f,     150f,     55f,     55f,     35f };
-      DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-      DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
+    /**
+     * Application Logger to show on terminal and write file to refer back to
+     */
+    private final ApplicationLogger appLogger = ApplicationLogger.getInstance();
 
-      // helpers to create a new page + header
-      PDPage page = new PDPage(PDRectangle.A4);
-      doc.addPage(page);
-      PDPageContentStream cs = new PDPageContentStream(doc, page);
-      try {
-        y = page.getMediaBox().getHeight() - margin;
+    /**
+     * Called automatically by JavaFX after FXML fields are injected.
+     * Sets up default values, wiring for the "Select All" behaviour,
+     * and loads dropdown options from the service.
+     */
+    @FXML
+    public void initialize() {
+        // Default the date range to today's date, if controls exist in this view.
+        LocalDate today = LocalDate.now();
+        if (fromDate != null)
+            fromDate.setValue(today);
+        if (toDate != null)
+            toDate.setValue(today);
 
-        // Title
-        cs.beginText();
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 14);
-        cs.newLineAtOffset(x, y);
-        cs.showText("Attendance Report");
-        cs.endText();
-        y -= leading * 2;
-
-        // Header row
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 10);
-        y = drawRow(cs, x, y, leading, headers, widths);
-        cs.setFont(PDType1Font.HELVETICA, 10);
-
-        // Data rows
-        for (AttendanceRecord r : rows) {
-          if (y < margin + leading * 2) {
-            // new page
-            cs.close();
-            page = new PDPage(PDRectangle.A4);
-            doc.addPage(page);
-            cs = new PDPageContentStream(doc, page);
-            y = page.getMediaBox().getHeight() - margin;
-            // header on new page
-            cs.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            y = drawRow(cs, x, y, leading, headers, widths);
-            cs.setFont(PDType1Font.HELVETICA, 10);
-          }
-          String[] row = {
-              r.getTimestamp().toLocalDate().format(df),
-              r.getTimestamp().toLocalTime().format(tf),
-              r.getSession().getSessionId(),
-              r.getSession().getCourseId(),
-              r.getStudent().getName() + " (" + r.getStudent().getStudentId() + ")",
-              r.getStatus(),
-              r.getMethod(),
-              String.format("%.2f", r.getConfidence())
-          };
-          y = drawRow(cs, x, y, leading, row, widths);
+        // Initial status text for the report screen.
+        if (reportStatus != null) {
+            reportStatus.setText("Select filters and export.");
         }
-      } finally {
-        cs.close();
-      }
 
-      doc.save(file);
-      lastExportedPdf = file;
-      reportStatus.setText("PDF exported: " + file.getName());
-    } catch (Exception e) {
-      reportStatus.setText("PDF export failed: " + e.getMessage());
-    }
-  }
-
-  /* ---------------- Email buttons ---------------- */
-  @FXML
-  private void onEmailPdf() {
-    if (lastExportedPdf == null || !lastExportedPdf.exists()) {
-      reportStatus.setText("Export a PDF first.");
-      return;
-    }
-    sendEmailWithAttachments(List.of(lastExportedPdf));
-  }
-
-  @FXML
-  private void onEmailCsv() {
-    if (lastExportedCsv == null || !lastExportedCsv.exists()) {
-      reportStatus.setText("Export a CSV first.");
-      return;
-    }
-    sendEmailWithAttachments(List.of(lastExportedCsv));
-  }
-
-  private void sendEmailWithAttachments(List<File> files) {
-    final String to = safe(emailTo.getText());
-    if (to.isBlank()) { reportStatus.setText("Enter recipient email."); return; }
-
-    final String subject = (emailSubject.getText() == null || emailSubject.getText().isBlank())
-            ? "Attendance Report" : emailSubject.getText();
-
-    final String body = (emailBody.getText() == null || emailBody.getText().isBlank())
-            ? "Please find the report attached." : emailBody.getText();
-
-    final List<File> attachments = (files == null) ? List.of() : List.copyOf(files);
-    final EmailService svc = new EmailService(EmailSettings.fromEnv());
-
-    reportStatus.setText("Sending email…");
-
-    Thread t = new Thread(() -> {
-      try {
-        svc.send(to, subject, body, attachments);
-        Platform.runLater(() -> reportStatus.setText("Email sent to " + to));
-      } catch (Exception ex) {
-        final String msg = ex.getMessage();
-        Platform.runLater(() -> reportStatus.setText("Email failed: " + msg));
-      }
-    }, "mail-sender");
-    t.setDaemon(true);
-    t.start();
-  }
-
-  /* ---------------- Imports ---------------- */
-  @FXML
-  private void onImportStudentsCSV() {
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Import Students CSV");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-    File file = fc.showOpenDialog(null);
-    if (file == null) return;
-
-    int imported = 0;
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-      String line; boolean headerSkipped = false;
-      while ((line = br.readLine()) != null) {
-        if (!headerSkipped) { headerSkipped = true; continue; }
-        String[] parts = splitCsv(line);
-        if (parts.length < 3) continue;
-        String id = parts[0].trim();
-        String name = parts[1].trim();
-        String group = parts[2].trim();
-        if (id.isEmpty() || name.isEmpty()) continue;
-
-        var svc = AppContext.getStudentService();
-        var found = svc.findById(id);
-        if (found == null) {
-          svc.addStudent(new Student(id, name, group));
-          imported++;
+        // Default email subject/body for convenience.
+        if (emailSubject != null) {
+            emailSubject.setText("Attendance Report");
         }
-      }
-      reportStatus.setText("Imported students: " + imported);
-    } catch (IOException e) {
-      reportStatus.setText("Import failed: " + e.getMessage());
-    }
-  }
-
-  @FXML
-  private void onImportAttendanceCSV() {
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Import Attendance CSV");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-    File file = fc.showOpenDialog(null);
-    if (file == null) return;
-
-    int imported = 0;
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-      String line; boolean headerSkipped = false;
-      DateTimeFormatter df = DateTimeFormatter.ISO_LOCAL_DATE;
-      DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm[:ss]");
-      while ((line = br.readLine()) != null) {
-        if (!headerSkipped) { headerSkipped = true; continue; }
-        String[] p = splitCsv(line);
-        if (p.length < 9) continue;
-
-        LocalDate date = LocalDate.parse(p[0].trim(), df);
-        LocalTime time = LocalTime.parse(p[1].trim(), tf);
-        String sessId = p[2].trim();
-        String courseId = p[3].trim();
-        String stuId = p[4].trim();
-        String stuName = p[5].trim();
-        String status = p[6].trim();
-        String method = p[7].trim();
-        double conf = safeDouble(p[8].trim());
-        String note = p.length > 9 ? p[9] : "";
-
-        Student st = AppContext.getStudentService().findById(stuId);
-        if (st == null) {
-          st = new Student(stuId, stuName.isEmpty() ? stuId : stuName, "G?");
-          AppContext.getStudentService().addStudent(st);
+        if (emailBody != null) {
+            emailBody.setText("Please find the attached attendance report.");
         }
-        Session sess = new Session(sessId.isEmpty() ? "IMP-" + System.nanoTime() : sessId,
-            courseId.isEmpty() ? "COURSE?" : courseId,
-            date, LocalTime.of(9,0), LocalTime.of(10,0), "Imported", 15);
 
-        AttendanceRecord rec = new AttendanceRecord(st, sess,
-            (status.isEmpty() ? "Present" : status),
-            (method.isEmpty() ? "Import" : method),
-            conf, LocalDateTime.of(date, time));
-        rec.setNote(note);
-        AppContext.getAttendanceService().markAttendance(rec);
-        imported++;
-      }
-      reportStatus.setText("Imported attendance rows: " + imported);
-    } catch (Exception e) {
-      reportStatus.setText("Import failed: " + e.getMessage());
+        // By default, include all columns in the export.
+        setColumnChecks(true);
+        if (selectAllFieldsCheck != null) {
+            selectAllFieldsCheck.setSelected(true);
+            // When "Select All" changes → update all individual checkboxes.
+            selectAllFieldsCheck.selectedProperty().addListener((obs, ov, nv) -> {
+                if (updatingSelectAll)
+                    return;
+                updatingSelectAll = true;
+                setColumnChecks(nv);
+                updatingSelectAll = false;
+            });
+        }
+
+        // When individual boxes change, keep the "Select All" checkbox in sync.
+        registerColumnForSelectAll(includeDateTimeCheck);
+        registerColumnForSelectAll(includeSessionIdCheck);
+        registerColumnForSelectAll(includeCourseCodeCheck);
+        registerColumnForSelectAll(includeStudentIdCheck);
+        registerColumnForSelectAll(includeStudentNameCheck);
+        registerColumnForSelectAll(includeStatusCheck);
+        registerColumnForSelectAll(includeMethodCheck);
+        registerColumnForSelectAll(includeConfidenceCheck);
+        registerColumnForSelectAll(includeNoteCheck);
+
+        // Load dropdown options (sessions, courses, status, etc.) from the service.
+        loadDropDowns();
     }
-  }
 
-  /* ---------------- helpers ---------------- */
-  private List<AttendanceRecord> dataForRange() {
-    LocalDate from = fromDate.getValue();
-    LocalDate to = toDate.getValue();
-    return attendance.getBetween(from, to);
-  }
-
-  private static String esc(String s) {
-    String v = s.replace("\"", "\"\"");
-    return (v.contains(",") || v.contains("\"") || v.contains("\n")) ? "\"" + v + "\"" : v;
-  }
-
-  private static String[] splitCsv(String line) {
-    java.util.List<String> out = new java.util.ArrayList<>();
-    StringBuilder cur = new StringBuilder();
-    boolean q = false;
-    for (int i = 0; i < line.length(); i++) {
-      char c = line.charAt(i);
-      if (c == '"') q = !q;
-      else if (c == ',' && !q) { out.add(cur.toString().trim()); cur.setLength(0); }
-      else cur.append(c);
+    /**
+     * Populate the filter dropdowns (session, course, status, method, confidence)
+     * using data and fixed lists from {@link AttendanceReportService}.
+     */
+    private void loadDropDowns() {
+        // Sessions (usually includes an "All" option)
+        if (sessionFilter != null) {
+            sessionFilter.getItems().setAll(reportService.getSessionOptions());
+            if (!sessionFilter.getItems().isEmpty()) {
+                sessionFilter.getSelectionModel().select(0); // "All" or first entry
+            }
+        }
+        // Courses
+        if (courseFilter != null) {
+            courseFilter.getItems().setAll(reportService.getCourseOptions());
+            if (!courseFilter.getItems().isEmpty()) {
+                courseFilter.getSelectionModel().select(0);
+            }
+        }
+        // Status / method / confidence – fixed sets from the service.
+        if (statusFilter != null) {
+            statusFilter.getItems().setAll(reportService.getStatusOptions());
+            statusFilter.getSelectionModel().selectFirst();
+        }
+        if (methodFilter != null) {
+            methodFilter.getItems().setAll(reportService.getMethodOptions());
+            methodFilter.getSelectionModel().selectFirst();
+        }
+        if (confidenceFilter != null) {
+            confidenceFilter.getItems().setAll(reportService.getConfidenceOptions());
+            confidenceFilter.getSelectionModel().selectFirst();
+        }
     }
-    out.add(cur.toString().trim());
-    return out.toArray(new String[0]);
-  }
 
-  private static float drawRow(PDPageContentStream cs, float x, float y, float leading,
-                               String[] cols, float[] widths) throws IOException {
-    float cursorX = x;
-    cs.beginText();
-    cs.newLineAtOffset(cursorX, y);
-    for (int i = 0; i < cols.length; i++) {
-      cs.showText(trunc(cols[i], (int)(widths[i] / 6))); // rough fit
-      cs.newLineAtOffset(widths[i], 0);
+    /**
+     * Set all column checkboxes (if present) to the given value.
+     *
+     * @param v {@code true} to check all; {@code false} to uncheck all
+     */
+    private void setColumnChecks(boolean v) {
+        safeSet(includeDateTimeCheck, v);
+        safeSet(includeSessionIdCheck, v);
+        safeSet(includeCourseCodeCheck, v);
+        safeSet(includeStudentIdCheck, v);
+        safeSet(includeStudentNameCheck, v);
+        safeSet(includeStatusCheck, v);
+        safeSet(includeMethodCheck, v);
+        safeSet(includeConfidenceCheck, v);
+        safeSet(includeNoteCheck, v);
     }
-    cs.endText();
-    return y - leading;
-  }
 
-  private static String trunc(String s, int max) {
-    if (s == null) return "";
-    return (s.length() <= max) ? s : s.substring(0, Math.max(0, max - 1)) + "…";
-  }
+    /**
+     * Register a checkbox so its changes keep the "Select All" checkbox in sync.
+     * If any child is unchecked, "Select All" is unchecked. If all are checked, it
+     * re-checks "Select All".
+     */
+    private void registerColumnForSelectAll(CheckBox cb) {
+        if (cb == null)
+            return;
+        cb.selectedProperty().addListener((obs, ov, nv) -> {
+            if (updatingSelectAll)
+                return;
+            if (!nv && selectAllFieldsCheck != null) {
+                // A column got unchecked → uncheck "Select All".
+                selectAllFieldsCheck.setSelected(false);
+            } else if (nv && selectAllFieldsCheck != null && areAllColumnsSelected()) {
+                // All columns are now selected → check "Select All".
+                selectAllFieldsCheck.setSelected(true);
+            }
+        });
+    }
 
-  private static double safeDouble(String s) {
-    try { return Double.parseDouble(s); } catch (Exception e) { return 0.0; }
-  }
+    /**
+     * @return {@code true} if all column checkboxes are currently selected.
+     */
+    private boolean areAllColumnsSelected() {
+        return isChecked(includeDateTimeCheck)
+                && isChecked(includeSessionIdCheck)
+                && isChecked(includeCourseCodeCheck)
+                && isChecked(includeStudentIdCheck)
+                && isChecked(includeStudentNameCheck)
+                && isChecked(includeStatusCheck)
+                && isChecked(includeMethodCheck)
+                && isChecked(includeConfidenceCheck)
+                && isChecked(includeNoteCheck);
+    }
 
-  private static String safe(String s) { return (s == null) ? "" : s.trim(); }
+    /**
+     * Null-safe check for a checkbox.
+     */
+    private boolean isChecked(CheckBox cb) {
+        return cb != null && cb.isSelected();
+    }
+
+    /**
+     * Null-safe setter for a checkbox.
+     */
+    private void safeSet(CheckBox cb, boolean v) {
+        if (cb != null)
+            cb.setSelected(v);
+    }
+
+    /* =================== button handlers: filters =================== */
+
+    /**
+     * Handler for the "Latest Session" button.
+     * <ul>
+     * <li>Asks the service for the latest session</li>
+     * <li>Updates session/course dropdowns and date range to match that
+     * session</li>
+     * <li>Updates the status label</li>
+     * </ul>
+     */
+    @FXML
+    private void onLatestSession() {
+        // Ask the service for the latest session summary.
+        var latest = reportService.getLatestSession();
+        if (latest == null) {
+            setStatus("No sessions found.");
+            return;
+        }
+
+        // Select session in combo box.
+        if (sessionFilter != null) {
+            sessionFilter.getSelectionModel().select(latest.display);
+        }
+        // Also set the course dropdown to that session's course (if available).
+        if (courseFilter != null && latest.courseDisplay != null) {
+            courseFilter.getSelectionModel().select(latest.courseDisplay);
+        }
+
+        // Restrict date range to that session's date.
+        if (fromDate != null)
+            fromDate.setValue(latest.date);
+        if (toDate != null)
+            toDate.setValue(latest.date);
+
+        setStatus("Latest session selected.");
+    }
+
+    /**
+     * Handler for the "Reset Filters" button.
+     * Resets date range to today, and sets all dropdowns back to their first
+     * option.
+     */
+    @FXML
+    private void onResetFilters() {
+        LocalDate today = LocalDate.now();
+        if (fromDate != null)
+            fromDate.setValue(today);
+        if (toDate != null)
+            toDate.setValue(today);
+
+        if (sessionFilter != null && !sessionFilter.getItems().isEmpty())
+            sessionFilter.getSelectionModel().selectFirst();
+        if (courseFilter != null && !courseFilter.getItems().isEmpty())
+            courseFilter.getSelectionModel().selectFirst();
+        if (statusFilter != null && !statusFilter.getItems().isEmpty())
+            statusFilter.getSelectionModel().selectFirst();
+        if (methodFilter != null && !methodFilter.getItems().isEmpty())
+            methodFilter.getSelectionModel().selectFirst();
+        if (confidenceFilter != null && !confidenceFilter.getItems().isEmpty())
+            confidenceFilter.getSelectionModel().selectFirst();
+
+        setStatus("Filters reset.");
+    }
+
+    /* =================== button handlers: exports =================== */
+
+    /**
+     * Handler for "Export PDF" button.
+     * Validates column selection, fetches filtered data, allows user to choose
+     * a file, then delegates to the service to generate the PDF.
+     */
+    @FXML
+    private void onExportPDF() {
+        if (!atLeastOneColumnSelected()) {
+            setStatus("Select at least one column.");
+            return;
+        }
+        var filter = buildFilter();
+        var spec = buildReportSpec();
+
+        List<AttendanceReportRow> rows = reportService.getAttendance(filter);
+        if (rows.isEmpty()) {
+            setStatus("No data to export.");
+            return;
+        }
+
+        File target = chooseFile("attendance-report.pdf", "PDF files", "*.pdf");
+        if (target == null) {
+            setStatus("PDF export cancelled.");
+            return;
+        }
+
+        try {
+            reportService.generatePdfReport(rows, spec, target);
+            lastPdf = target;
+            setStatus("PDF exported: " + target.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            setStatus("PDF export failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handler for "Export Excel" button (.xlsx).
+     */
+    @FXML
+    private void onExportExcel() {
+        if (!atLeastOneColumnSelected()) {
+            setStatus("Select at least one column.");
+            return;
+        }
+        var filter = buildFilter();
+        var spec = buildReportSpec();
+
+        List<AttendanceReportRow> rows = reportService.getAttendance(filter);
+        if (rows.isEmpty()) {
+            setStatus("No data to export.");
+            return;
+        }
+
+        File target = chooseFile("attendance-report.xlsx", "Excel files", "*.xlsx");
+        if (target == null) {
+            setStatus("Excel export cancelled.");
+            return;
+        }
+
+        try {
+            reportService.generateXlsxReport(rows, spec, target);
+            lastXlsx = target;
+            setStatus("Excel exported: " + target.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            setStatus("Excel export failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handler for "Export CSV" button.
+     */
+    @FXML
+    private void onExportCSV() {
+        if (!atLeastOneColumnSelected()) {
+            setStatus("Select at least one column.");
+            return;
+        }
+        var filter = buildFilter();
+        var spec = buildReportSpec();
+
+        List<AttendanceReportRow> rows = reportService.getAttendance(filter);
+        if (rows.isEmpty()) {
+            setStatus("No data to export.");
+            return;
+        }
+
+        File target = chooseFile("attendance-report.csv", "CSV files", "*.csv");
+        if (target == null) {
+            setStatus("CSV export cancelled.");
+            return;
+        }
+
+        try {
+            reportService.generateCsvReport(rows, spec, target);
+            lastCsv = target;
+            setStatus("CSV exported: " + target.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            setStatus("CSV export failed: " + e.getMessage());
+        }
+    }
+
+    // ====== email buttons ======
+
+    /**
+     * Handler for "Email PDF" button.
+     * Requires that a PDF has already been exported in this session.
+     */
+    @FXML
+    private void onEmailPdf() {
+        if (lastPdf == null || !lastPdf.exists()) {
+            setStatus("Export a PDF first.");
+            return;
+        }
+        sendEmailWith(lastPdf);
+    }
+
+    /**
+     * Handler for "Email CSV" button.
+     */
+    @FXML
+    private void onEmailCsv() {
+        if (lastCsv == null || !lastCsv.exists()) {
+            setStatus("Export a CSV first.");
+            return;
+        }
+        sendEmailWith(lastCsv);
+    }
+
+    /**
+     * Handler for "Email Excel" button.
+     */
+    @FXML
+    private void onEmailExcel() {
+        if (lastXlsx == null || !lastXlsx.exists()) {
+            setStatus("Export an Excel first.");
+            return;
+        }
+        sendEmailWith(lastXlsx);
+    }
+
+    /**
+     * Common helper for sending email with the given report file attached.
+     * Runs the actual sending in a background thread, then updates the UI status
+     * on the JavaFX Application Thread using {@link Platform#runLater(Runnable)}.
+     */
+    private void sendEmailWith(File file) {
+        String to = emailTo != null ? emailTo.getText() : "";
+        if (to == null || to.isBlank()) {
+            setStatus("Enter recipient email.");
+            return;
+        }
+        String subject = (emailSubject != null && !emailSubject.getText().isBlank())
+                ? emailSubject.getText()
+                : "Attendance Report";
+        String body = (emailBody != null && !emailBody.getText().isBlank())
+                ? emailBody.getText()
+                : "Please find the report attached.";
+
+        setStatus("Sending email...");
+
+        // Perform email sending off the UI thread to avoid freezing the interface.
+        new Thread(() -> {
+            try {
+                reportService.sendEmail(to, subject, body, file);
+                Platform.runLater(() -> setStatus("Email sent to " + to));
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> setStatus("Email failed: " + e.getMessage()));
+            }
+        }, "mail-thread").start();
+    }
+
+    /* ================= helpers ================= */
+
+    /**
+     * @return {@code true} if at least one column checkbox is selected.
+     *         Used to prevent generating empty reports.
+     */
+    private boolean atLeastOneColumnSelected() {
+        return isChecked(includeDateTimeCheck)
+                || isChecked(includeSessionIdCheck)
+                || isChecked(includeCourseCodeCheck)
+                || isChecked(includeStudentIdCheck)
+                || isChecked(includeStudentNameCheck)
+                || isChecked(includeStatusCheck)
+                || isChecked(includeMethodCheck)
+                || isChecked(includeConfidenceCheck)
+                || isChecked(includeNoteCheck);
+    }
+
+    /**
+     * Build a report filter object (inner type defined in
+     * {@link AttendanceReportService})
+     * from the current UI selections.
+     */
+    private AttendanceReportService.ReportFilter buildFilter() {
+        AttendanceReportService.ReportFilter f = new AttendanceReportService.ReportFilter();
+        f.fromDate = fromDate != null ? fromDate.getValue() : null;
+        f.toDate = toDate != null ? toDate.getValue() : null;
+        f.sessionDisplay = sessionFilter != null ? sessionFilter.getValue() : null;
+        f.courseDisplay = courseFilter != null ? courseFilter.getValue() : null;
+        f.status = statusFilter != null ? statusFilter.getValue() : null;
+        f.method = methodFilter != null ? methodFilter.getValue() : null;
+        f.confidenceExpr = confidenceFilter != null ? confidenceFilter.getValue() : null;
+        return f;
+    }
+
+    /**
+     * Build a {@link ReportSpec} from the current column checkbox states.
+     * This determines which columns will appear in the exported report.
+     */
+    private ReportSpec buildReportSpec() {
+        return new ReportSpec.Builder()
+                .includeDateTime(isChecked(includeDateTimeCheck))
+                .includeSessionId(isChecked(includeSessionIdCheck))
+                .includeCourseCode(isChecked(includeCourseCodeCheck))
+                .includeStudentId(isChecked(includeStudentIdCheck))
+                .includeStudentName(isChecked(includeStudentNameCheck))
+                .includeStatus(isChecked(includeStatusCheck))
+                .includeMethod(isChecked(includeMethodCheck))
+                .includeConfidence(isChecked(includeConfidenceCheck))
+                .includeNote(isChecked(includeNoteCheck))
+                .build();
+    }
+
+    /**
+     * Helper to show a "Save As" dialog with default name and extension filter.
+     *
+     * @param defaultName default file name suggestion
+     * @param desc        description for the extension filter (e.g. "PDF files")
+     * @param exts        allowed extensions (e.g. "*.pdf")
+     * @return the selected file, or {@code null} if the user cancelled
+     */
+    private File chooseFile(String defaultName, String desc, String... exts) {
+        FileChooser fc = new FileChooser();
+        fc.setInitialFileName(defaultName);
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(desc, exts));
+        return fc.showSaveDialog(null);
+    }
+
+    /**
+     * Update the status label (if present) and also log to stdout for debugging.
+     *
+     * @param msg status message to show/log
+     */
+    private void setStatus(String msg) {
+        if (reportStatus != null) {
+            reportStatus.setText(msg);
+        }
+        appLogger.info("[ReportController] " + msg);
+    }
 }

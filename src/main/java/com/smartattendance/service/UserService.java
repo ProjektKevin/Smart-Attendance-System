@@ -1,0 +1,152 @@
+package com.smartattendance.service;
+
+import com.smartattendance.model.dto.student.StudentProfileDTO;
+import com.smartattendance.model.dto.user.UserListDTO;
+import com.smartattendance.model.dto.user.UserProfileDTO;
+import com.smartattendance.model.entity.Profile;
+import com.smartattendance.model.entity.User;
+import com.smartattendance.model.entity.Course;
+import com.smartattendance.repository.UserRepository;
+import com.smartattendance.repository.ProfileRepository;
+import com.smartattendance.repository.CourseRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Auth Service
+ * Controls auth business logic and interact with db repository
+ * Displays user information by various filtered entities: id, role...etc
+ * Performs other actions: such as inviting users and enrolling students
+ * 
+ * @author Thiha Swan Htet
+ */
+public class UserService {
+    private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
+    private final CourseRepository courseRepository;
+
+    public UserService() {
+        this.userRepository = new UserRepository();
+        this.profileRepository = new ProfileRepository();
+        this.courseRepository = new CourseRepository();
+    }
+
+    // ==================== Entity Methods ====================
+
+    /**
+     * Get all users by role
+     *
+     * @param role The role filtered
+     * @return List of User objects by the filtered role
+     */
+    public List<User> getUsersByRole(String role) {
+        return userRepository.findUsersByRole(role);
+    }
+
+    /**
+     * Get user by the id
+     *
+     * @param userid The id of the user
+     * @return User object found by id
+     */
+    public User getUserById(Integer userId) {
+        return userRepository.findUserById(userId);
+    }
+
+    /**
+     * Delete user
+     *
+     * @param userId The user id
+     * @return Boolean: if deleted > true. If not > false
+     */
+    public boolean deleteUser(Integer userId) {
+        return userRepository.deleteUserById(userId);
+    }
+
+    // ==================== DTO Methods ====================
+
+    /**
+     * Get all students as StudentListDTO for table display
+     *
+     * @return List of StudentListDTO objects
+     */
+    public List<UserListDTO> getStudentListDTOs() {
+        return getUsersByRole("STUDENT")
+                .stream()
+                .map(UserListDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get student profile DTO with full details
+     *
+     * @param userId The user ID
+     * @return StudentProfileDTO with user, profile information, and enrolled
+     *         courses
+     */
+    public StudentProfileDTO getStudentProfileDTO(Integer userId) {
+        User user = getUserById(userId);
+        Profile profile = profileRepository.getProfileById(userId);
+
+        if (user == null || profile == null) {
+            return null;
+        }
+
+        List<Course> enrolledCourses = courseRepository.getCoursesByStudentId(userId);
+
+        return new StudentProfileDTO(user, profile, enrolledCourses);
+    }
+
+    /**
+     * Get user profile DTO with full details
+     *
+     * @param userId The user ID
+     * @return UserProfileDTO with user, profile information
+     */
+    public UserProfileDTO getUserProfileDTO(Integer userId) {
+        User user = getUserById(userId);
+        Profile profile = profileRepository.getProfileById(userId);
+
+        if (user == null || profile == null) {
+            return null;
+        }
+
+        return new UserProfileDTO(user, profile);
+    }
+
+    // ==================== Enrollment Methods ====================
+
+    /**
+     * Enroll a student in multiple courses
+     *
+     * @param userId    The user ID to enroll
+     * @param courseIds List of course IDs to enroll in
+     * @return true if all enrollments were successful, false if any failed
+     */
+    public boolean enrollStudentInCourses(Integer userId, List<Integer> courseIds) {
+        return courseRepository.enrollStudentInCourses(userId, courseIds);
+    }
+
+    /**
+     * Enroll a student in a single course
+     *
+     * @param userId   The user ID to enroll
+     * @param courseId The course ID to enroll in
+     * @return true if enrollment was successful, false otherwise
+     */
+    public boolean enrollStudentInCourse(Integer userId, Integer courseId) {
+        return courseRepository.enrollStudentInCourse(userId, courseId);
+    }
+
+    /**
+     * Unenroll a student from a course
+     *
+     * @param userId   The user ID to unenroll
+     * @param courseId The course ID to unenroll from
+     * @return true if unenrollment was successful, false otherwise
+     */
+    public boolean unenrollStudentFromCourse(Integer userId, Integer courseId) {
+        return courseRepository.unenrollStudentFromCourse(userId, courseId);
+    }
+}

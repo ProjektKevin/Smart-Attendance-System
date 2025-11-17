@@ -1,19 +1,21 @@
 package com.smartattendance.util;
 
+import com.smartattendance.config.ENV;
+
+/**
+ * Loads email settings to be passsed into the constructor of the email service
+ * 
+ * @author Ernest Lun
+ */
 public record EmailSettings(
         String host, int port, String username, String password, boolean startTls) {
 
     public static EmailSettings fromEnv() {
-        String host = getenv("SMTP_HOST", "smtp.gmail.com");
-        int port = Integer.parseInt(getenv("SMTP_PORT", "587"));
-        String user = getenv("SMTP_USER", "");
-        String pass = getenv("SMTP_PASS", ""); // use an App Password for Gmail/Outlook
-        boolean tls = Boolean.parseBoolean(getenv("SMTP_TLS", "true"));
+        String host = ENV.getSMTPHost();
+        int port = Integer.parseInt(ENV.getSMTPPort());
+        String user = ENV.getSMTPUser();
+        String pass = ENV.getSMTPPass();
+        boolean tls = Boolean.parseBoolean(ENV.getSMTPTls());
         return new EmailSettings(host, port, user, pass, tls);
-    }
-
-    private static String getenv(String k, String d) {
-        String v = System.getenv(k);
-        return (v == null || v.isBlank()) ? d : v.trim();
     }
 }

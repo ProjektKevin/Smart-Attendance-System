@@ -1,12 +1,206 @@
 package com.smartattendance.repository;
 
-import com.smartattendance.model.Student;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
-public interface StudentRepository {
-  List<Student> findAll();
+import org.opencv.core.Mat;
 
-  Student findById(String id);
+import com.smartattendance.config.DatabaseUtil;
+import com.smartattendance.model.entity.FaceData;
+import com.smartattendance.model.entity.Student;
+import com.smartattendance.util.OpenCVUtils;
 
-  void save(Student s);
+/**
+ * Student Repository
+ * Data access layer for student-related database operations
+ * Handles CRUD operations for students, enrollments, and face data retrieval
+ * Manages database queries for student enrollment and face recognition data
+ * 
+ * @author Chue Wan Yan, Min Thet Khine
+ */
+
+public class StudentRepository {
+
+    /**
+     * Retrieve all students from the database
+     * Joins enrollment, user, and course tables to get complete student information
+     * 
+     * @return List of all students with their enrollment information
+     */
+    public List<Student> findAll() {
+        List<Student> students = new ArrayList<>();
+        String sql = "SELECT e.user_id, u.username, c.course_code FROM enrollments e JOIN users u ON e.user_id = u.user_id JOIN courses c ON e.course_id = c.course_id;";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                students.add(new Student(
+                        rs.getInt("user_id"),
+                        rs.getString("username"),
+                        rs.getString("course_code")));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return students;
+    }
+
+    /**
+     * Find a student by their unique ID
+     * 
+     * @param id The student's user ID
+     * @return Student object if found, null otherwise
+     */
+    public Student findById(int id) {
+        String sql = "SELECT e.user_id, u.username, c.course_code FROM enrollments e JOIN users u ON e.user_id = u.user_id JOIN courses c ON e.course_id = c.course_id WHERE e.user_id = ?;";
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Student(
+                            rs.getInt("user_id"),
+                            rs.getString("username"),
+                            rs.getString("course_code"));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Find all students enrolled in a specific course
+     * 
+     * @param course The course code to search for
+     * @return List of students enrolled in the specified course
+     */
+    public List<Student> findByCourse(String course) {
+        List<Student> students = new ArrayList<>();
+        String sql = "SELECT e.user_id, u.username, c.course_code FROM enrollments e JOIN users u ON e.user_id = u.user_id JOIN courses c ON e.course_id = c.course_id WHERE c.course_code = ?;";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, course);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    students.add(new Student(
+                            rs.getInt("user_id"),
+                            rs.getString("username"),
+                            rs.getString("course_code")));
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return students;
+    }
+
+    /**
+     * Save a new student enrollment to the database
+     * Inserts a record linking the student to a course
+     * 
+     * @param s The student to enroll
+     */
+    public void save(Student s) {
+        String sql = "INSERT INTO enrollments (user_id, course_id) VALUES (?, (SELECT course_id FROM courses WHERE course_code = ?));";
+
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, s.getStudentId());
+            ps.setString(2, s.getCourse());
+
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Fetch all enrolled students for a specific session with their face data
+     * Retrieves students along with their pre-computed face histograms and
+     * embeddings
+     * Used for loading students before starting face recognition
+     * 
+     * @param sessionId The session ID to fetch students for
+     * @return List of students with their face data loaded
+     */
+    public List<Student> fetchEnrolledStudentsByCourse(Integer sessionId) {
+        List<Student> students = new ArrayList<>();
+        String sql = """
+                SELECT
+                    u.user_id,
+                    u.username,
+                    fd.avg_histogram,
+                    fd.avg_embedding,
+                    c.course_code
+                FROM users u
+                INNER JOIN face_data fd ON u.user_id = fd.student_id
+                INNER JOIN enrollments e ON u.user_id = e.user_id
+                INNER JOIN courses c ON e.course_id = c.course_id
+                INNER JOIN sessions s ON c.course_id = s.course_id
+                WHERE u.role = 'STUDENT' AND s.session_id = ?
+                ORDER BY u.username
+                """;
+
+        try (Connection conn = DatabaseUtil.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, sessionId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int studentId = rs.getInt("user_id");
+                    String userName = rs.getString("username");
+                    String courseCode = rs.getString("course_code");
+                    byte[] histogramBytes = rs.getBytes("avg_histogram");
+                    String strEmbedding = rs.getString("avg_embedding");
+
+                    FaceData faceData = new FaceData();
+
+                    Student student = new Student(studentId, userName, courseCode);
+                    if (histogramBytes != null && histogramBytes.length > 0) {
+                        Mat histogram = OpenCVUtils.bytesToMatHistogram(histogramBytes);
+                        faceData.setHistogram(histogram);
+                    }
+
+                    if (strEmbedding != null) {
+                        Mat embedding = OpenCVUtils.postgresVectorToMat(strEmbedding);
+                        if (!embedding.empty()) {
+                            faceData.setFaceEmbedding(embedding);
+                        }
+                    }
+
+                    student.setFaceData(faceData);
+                    students.add(student);
+                }
+
+                return students;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return students;
+
+    }
+
 }

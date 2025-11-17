@@ -1,88 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import java.net.*?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>  
+<?import javafx.geometry.Pos?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.smartattendance.controller.student.StudentAttendanceController"
-      spacing="12" fillWidth="true">
+      spacing="12"
+      style="-fx-padding: 12;"
+      styleClass="student-attendance"
+      stylesheets="@/view/styles/student-attendance.css">
 
-    <stylesheets>
-        <URL value="@styles/styles.css"/>
-    </stylesheets>
-
-    <!-- Filters -->
-    <ToolBar>
+    <!-- FILTER BAR -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
         <Label text="Course:"/>
-        <ComboBox fx:id="courseCombo" prefWidth="220"/>
+        <ComboBox fx:id="courseCombo" prefWidth="150"/>
 
-        <Label text="From:" styleClass="spacer-left"/>
-        <DatePicker fx:id="fromDate"/>
+        <Label text="From:"/>
+        <DatePicker fx:id="fromDate" prefWidth="140"/>
 
         <Label text="To:"/>
-        <DatePicker fx:id="toDate"/>
+        <DatePicker fx:id="toDate" prefWidth="140"/>
 
-        <Button text="Apply" onAction="#onApplyFilters"/>
-        <Button text="Reset" onAction="#onResetFilters"/>
         <Pane HBox.hgrow="ALWAYS"/>
-        <Label fx:id="recordsLabel" text="0 records"/>
-    </ToolBar>
+        <Button text="Reset" onAction="#onResetFilters"/>
+    </HBox>
 
-    <!-- Per-module summary -->
-    <TitledPane expanded="true" text="Module Attendance Summary">
-        <content>
-            <TableView fx:id="summaryTable" prefHeight="160">
-                <columns>
-                    <TableColumn text="Module" prefWidth="280">
-                        <cellValueFactory>
-                            <PropertyValueFactory property="module"/>
-                        </cellValueFactory>
-                    </TableColumn>
+    <!-- SUMMARY HEADER -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <!-- bumped from 13px to 15px -->
+        <Label text="Summary by course"
+               style="-fx-font-size: 15px; -fx-font-weight: bold;"/>
+    </HBox>
 
-                    <TableColumn text="Attended" prefWidth="100">
-                        <cellValueFactory>
-                            <PropertyValueFactory property="attended"/>
-                        </cellValueFactory>
-                    </TableColumn>
+    <TableView fx:id="summaryTable" prefHeight="160" VBox.vgrow="NEVER">
+        <columns>
+            <TableColumn fx:id="colSummaryCourse" text="Course" prefWidth="140"/>
+            <TableColumn fx:id="colSummaryAttended" text="Attended" prefWidth="80"/>
+            <TableColumn fx:id="colSummaryTotal" text="Total" prefWidth="80"/>
+            <TableColumn fx:id="colSummaryPercent" text="Percentage" prefWidth="220"/>
+        </columns>
+    </TableView>
 
-                    <TableColumn text="Total" prefWidth="90">
-                        <cellValueFactory>
-                            <PropertyValueFactory property="total"/>
-                        </cellValueFactory>
-                    </TableColumn>
+    <!-- RECORDS HEADER + LEGEND + COUNT -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <!-- bumped header -->
+        <Label text="Attendance records"
+               style="-fx-font-size: 15px; -fx-font-weight: bold;"/>
 
-                    <TableColumn text="Percentage" prefWidth="220" fx:id="colPercent">
-                        <cellValueFactory>
-                            <PropertyValueFactory property="ratio"/>
-                        </cellValueFactory>
-                    </TableColumn>
-                </columns>
-            </TableView>
-        </content>
-    </TitledPane>
+        <Pane HBox.hgrow="ALWAYS"/>
 
-    <!-- Detailed rows -->
+        <!-- legend stays the same -->
+        <HBox spacing="8" alignment="CENTER_RIGHT">
+            <Label text="Legend:" style="-fx-font-size: 11px; -fx-text-fill: #555;"/>
+
+            <HBox spacing="4" alignment="CENTER">
+                <Region style="-fx-background-color: #d4edda; -fx-min-width: 14; -fx-min-height: 10; -fx-background-radius: 3;"/>
+                <Label text="Present" style="-fx-font-size: 11px;"/>
+            </HBox>
+
+            <HBox spacing="4" alignment="CENTER">
+                <Region style="-fx-background-color: #ffe4b5; -fx-min-width: 14; -fx-min-height: 10; -fx-background-radius: 3;"/>
+                <Label text="Late" style="-fx-font-size: 11px;"/>
+            </HBox>
+
+            <HBox spacing="4" alignment="CENTER">
+                <Region style="-fx-background-color: #f8d7da; -fx-min-width: 14; -fx-min-height: 10; -fx-background-radius: 3;"/>
+                <Label text="Absent" style="-fx-font-size: 11px;"/>
+            </HBox>
+
+            <HBox spacing="4" alignment="CENTER">
+                <Region style="-fx-background-color: #e2e3e5; -fx-min-width: 14; -fx-min-height: 10; -fx-background-radius: 3;"/>
+                <Label text="Pending" style="-fx-font-size: 11px;"/>
+            </HBox>
+        </HBox>
+
+        <!-- more obvious record count -->
+        <Label fx:id="recordsLabel"
+               text="0 records"
+               style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #333; -fx-padding: 0 0 0 8;"/>
+    </HBox>
+
     <TableView fx:id="table" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn text="Date" prefWidth="130">
-                <cellValueFactory>
-                    <PropertyValueFactory property="date"/>
-                </cellValueFactory>
-            </TableColumn>
-
-            <TableColumn text="Module" prefWidth="260">
-                <cellValueFactory>
-                    <PropertyValueFactory property="module"/>
-                </cellValueFactory>
-            </TableColumn>
-
-            <TableColumn text="Status" prefWidth="120">
-                <cellValueFactory>
-                    <PropertyValueFactory property="status"/>
-                </cellValueFactory>
-            </TableColumn>
+            <TableColumn fx:id="colDate" text="Date" prefWidth="120"/>
+            <TableColumn fx:id="colCourse" text="Course" prefWidth="120"/>
+            <TableColumn fx:id="colStatus" text="Status" prefWidth="110"/>
+            <TableColumn fx:id="colMethod" text="Method" prefWidth="110"/>
+            <TableColumn fx:id="colMarkedAt" text="Marked At" prefWidth="180"/>
         </columns>
     </TableView>
 

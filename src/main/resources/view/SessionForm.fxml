@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.smartattendance.controller.SessionFormController"
+      spacing="10" alignment="CENTER"
+      style="-fx-padding: 20; -fx-background-color: white;">
+    
+    <Label text="Create New Session" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+    <GridPane hgap="10" vgap="10">
+        <Label text="Course Code:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+        <ComboBox fx:id="cmbCourse" GridPane.rowIndex="1" GridPane.columnIndex="1" prefWidth="200" />
+
+        <Label text="Date:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+        <DatePicker fx:id="datePicker" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+
+        <Label text="Start Time (HH:MM):" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+        <TextField fx:id="txtStart" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+
+        <Label text="End Time (HH:MM):" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+        <TextField fx:id="txtEnd" GridPane.rowIndex="4" GridPane.columnIndex="1" />
+
+        <Label text="Location:" GridPane.rowIndex="5" GridPane.columnIndex="0" />
+        <TextField fx:id="txtLocation" GridPane.rowIndex="5" GridPane.columnIndex="1" />
+
+        <Label text="Late Threshold (min):" GridPane.rowIndex="6" GridPane.columnIndex="0" />
+        <TextField fx:id="txtLate" GridPane.rowIndex="6" GridPane.columnIndex="1" />
+    </GridPane>
+
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button text="Cancel" onAction="#onCancel" />
+        <Button text="Create" onAction="#onCreate" />
+    </HBox>
+</VBox>

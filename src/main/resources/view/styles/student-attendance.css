@@ -1,0 +1,186 @@
+/* ============================================
+   STUDENT ATTENDANCE VIEW PAGE: DARK MODE ONLY
+   ============================================ */
+.root.dark .student-attendance {
+  /* optional page bg polish if needed:
+     -fx-background-color: transparent; */
+}
+
+/* Inputs (the controls) */
+.root.dark .student-attendance .combo-box,
+.root.dark .student-attendance .choice-box,
+.root.dark .student-attendance .date-picker,
+.root.dark .student-attendance .text-field {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+  -fx-text-fill: #e5e7eb;
+  -fx-background-radius: 8; -fx-border-radius: 8;
+}
+.root.dark .student-attendance .date-picker .text-field {
+  -fx-background-color: transparent;
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .student-attendance .combo-box:focused,
+.root.dark .student-attendance .choice-box:focused,
+.root.dark .student-attendance .date-picker:focused,
+.root.dark .student-attendance .text-field:focused {
+  -fx-border-color: #38bdf8;   /* cyan focus ring */
+}
+
+/* ---------- ComboBox popup ---------- */
+.root.dark .student-attendance .combo-box-popup > .list-view {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+}
+.root.dark .student-attendance .combo-box-popup .list-cell {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .student-attendance .combo-box-popup .list-cell:hover,
+.root.dark .student-attendance .combo-box-popup .list-cell:selected {
+  -fx-background-color: #16223b;  /* dark hover/selected */
+}
+
+/* ---------- ChoiceBox popup (is a ContextMenu) ---------- */
+.root.dark .student-attendance .context-menu {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+}
+.root.dark .student-attendance .menu-item .label { -fx-text-fill: #e5e7eb; }
+.root.dark .student-attendance .menu-item:focused { -fx-background-color: #16223b; }
+
+/* ---------- DatePicker popup ---------- */
+.root.dark .student-attendance .date-picker-popup {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+}
+
+/* header (month/year row) */
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane {
+  -fx-background-color: #0f172a;
+  -fx-border-color: #1f2937;
+  -fx-border-width: 0 0 1 0;
+}
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane .label {
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane .button {
+  -fx-background-color: #111827;
+  -fx-text-fill: #e5e7eb;
+  -fx-background-radius: 8;
+}
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane .button:hover {
+  -fx-background-color: #1a243b;
+}
+
+/* week day labels + day cells */
+.root.dark .student-attendance .date-picker-popup > * > .calendar-grid {
+  /* keeps grid transparent, cells style below */
+}
+.root.dark .student-attendance .date-picker-popup > * > .day-name-cell,
+.root.dark .student-attendance .date-picker-popup > * > .week-number-cell {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #94a3b8;
+}
+.root.dark .student-attendance .date-picker-popup > * > .day-cell {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+  -fx-background-insets: 0;
+}
+.root.dark .student-attendance .date-picker-popup > * > .day-cell:hover {
+  -fx-background-color: #16223b;
+}
+.root.dark .student-attendance .date-picker-popup > * > .day-cell:selected {
+  -fx-background-color: #2563eb; /* blue-600 for selection */
+  -fx-text-fill: white;
+}
+.root.dark .student-attendance .date-picker-popup > * > .today {
+  -fx-border-color: #38bdf8;     /* outline “today” */
+  -fx-border-width: 1;
+}
+
+/* make the small calendar icon buttons inside DatePicker dark too */
+.root.dark .student-attendance .date-picker .arrow-button {
+  -fx-background-color: #111827;
+  -fx-background-radius: 8;
+  -fx-border-color: #1f2937;
+}
+.root.dark .student-attendance .date-picker .arrow-button:hover {
+  -fx-background-color: #1a243b;
+}
+
+/* ---- DatePicker header: month–year label fix (dark) ---- */
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane {
+  -fx-background-color: #0f172a;
+  -fx-border-color: #1f2937;
+  -fx-border-width: 0 0 1 0;
+}
+
+/* Cover JavaFX 17/21 structures: plain label + label inside Spinner */
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane .label,
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane .spinner .label,
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane .spinner > .text-field {
+  -fx-text-fill: #e5e7eb;
+  -fx-opacity: 1.0;         /* Modena sometimes dims it */
+  -fx-font-weight: 700;      /* optional: make it stand out */
+}
+
+/* Keep the header arrow buttons readable */
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane .button {
+  -fx-background-color: #111827;
+  -fx-text-fill: #e5e7eb;
+  -fx-background-radius: 8;
+  -fx-border-color: #1f2937;
+}
+.root.dark .student-attendance .date-picker-popup > * > .month-year-pane .button:hover {
+  -fx-background-color: #1a243b;
+}
+
+/* ===========================
+   DatePicker month/year header – bulletproof dark fix
+   =========================== */
+
+/* Popup & header strip background */
+.root.dark .date-picker-popup,
+.root.dark .date-picker-popup > * {
+  -fx-background-color: #0f172a;
+}
+
+.root.dark .date-picker-popup .month-year-pane {
+  -fx-background-color: #0f172a;
+  -fx-border-color: #1f2937;
+  -fx-border-width: 0 0 1 0;
+}
+
+/* Force ALL text inside the header to be visible */
+.root.dark .date-picker-popup .month-year-pane * {
+  -fx-text-fill: #e5e7eb;   /* covers Label, TextField inside Spinner, etc. */
+  -fx-fill: #e5e7eb;        /* covers SVG glyphs if any skin uses them */
+  -fx-opacity: 1.0;         /* some skins dim the label */
+  -fx-font-weight: 700;     /* optional: make it pop */
+}
+
+/* Header arrow buttons (prev/next) */
+.root.dark .date-picker-popup .month-year-pane .button {
+  -fx-background-color: #111827;
+  -fx-text-fill: #e5e7eb;
+  -fx-background-radius: 10;
+  -fx-border-color: #1f2937;
+}
+.root.dark .date-picker-popup .month-year-pane .button:hover {
+  -fx-background-color: #1a243b;
+}
+
+/* Keep the grid readable (you already had most of this) */
+.root.dark .date-picker-popup > * > .day-cell {
+  -fx-background-color: #0f172a;
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .date-picker-popup > * > .day-cell:hover,
+.root.dark .date-picker-popup > * > .day-cell:selected {
+  -fx-background-color: #16223b;
+}
+.root.dark .date-picker-popup .week-number-cell,
+.root.dark .date-picker-popup .day-name-cell {
+  -fx-text-fill: #94a3b8;
+}

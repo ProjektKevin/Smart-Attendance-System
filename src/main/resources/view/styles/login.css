@@ -1,3 +1,7 @@
+/* =========================================================
+   LOGIN PAGE STYLESHEET
+   ========================================================= */
+
 /* ---------------- Light theme (default) ---------------- */
 .root {
     -fx-font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
@@ -14,7 +18,7 @@
     -color-input-bg:      #ffffff;
 }
 
-/* Optional dark theme: add 'dark' to the root later if you need it */
+/* Optional dark theme: add 'dark' to the root later if needed */
 .root.dark {
     -color-bg:            #0e1525;
     -color-bg-2:          #111827;

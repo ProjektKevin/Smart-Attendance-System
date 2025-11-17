@@ -1,0 +1,9 @@
+database.path=YOUR_DB_PATH
+recognition.algorithm=PREFERRED_ALGORITHM:HISTOGRAM..etc
+recognition.low.threshold=PREFERRED_THRESHOLD
+camera.index=PREFERRED_CAMERA_INDEX
+cooldown.seconds=PREFERRED_COOLDOWN_SECONDS
+recognition.high.threshold=PREFERRED_RECOGNITION_THRESHOLD
+enrollment.image.amount=PREFERRED_ENROLLMENT_IMAGE_AMOUNT
+late.threshold.minutes=PREFERRED_LATE_THRESHOLD_MINUTES
+datetime.format=yyyy-MM-dd HH\:mm\:ss

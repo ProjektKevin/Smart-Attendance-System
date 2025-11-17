@@ -4,33 +4,35 @@
 <?import java.net.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
-            fx:id="root"
-            fx:controller="com.smartattendance.controller.RootController">
+    fx:id="root"
+    fx:controller="com.smartattendance.controller.RootController">
     <stylesheets>
         <!-- Reuse same app stylesheet like MainView -->
-        <URL value="@styles/styles.css"/>
+        <URL value="@styles/styles.css" />
     </stylesheets>
 
     <top>
         <ToolBar>
             <!-- Title label is optional; RootController will append student id if available -->
-            <Label fx:id="titleLabel" text="CS102-Project-Smart Attendance System - Student Portal"/>
-            <Pane HBox.hgrow="ALWAYS"/>
-            <ToggleButton fx:id="themeToggle" text="Dark mode" onAction="#onThemeToggle"/>
+            <Label fx:id="titleLabel" text="CS102-Project-Smart Attendance System - Student Portal" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <ToggleButton fx:id="themeToggle" text="Dark mode" onAction="#onThemeToggle" />
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="logoutButton" text="Logout" onAction="#handleLogout" style="-fx-font-size: 12; -fx-padding: 6 12;" />
         </ToolBar>
     </top>
 
     <center>
         <TabPane tabClosingPolicy="UNAVAILABLE">
             <tabs>
-                <Tab fx:id="tabCapture" text="Face Capture">
-                    <content>
-                        <fx:include source="StudentCaptureView.fxml"/>
-                    </content>
-                </Tab>
                 <Tab fx:id="tabAttendance" text="My Attendance">
                     <content>
-                        <fx:include source="StudentAttendanceView.fxml"/>
+                        <fx:include source="StudentAttendanceView.fxml" />
+                    </content>
+                </Tab>
+                <Tab fx:id="tabProfile" text="My Profile">
+                    <content>
+                        <fx:include source="ProfileView.fxml" />
                     </content>
                 </Tab>
             </tabs>

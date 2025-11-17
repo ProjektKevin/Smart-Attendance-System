@@ -1,5 +1,5 @@
 /* =========================================================
-   DASHBOARD THEME (scoped – no chained lookups)
+   DASHBOARD THEME STYLESHEET
    ========================================================= */
 
 /* -------- LIGHT (default) -------- */
@@ -232,4 +232,140 @@
 .dashboard .card .stacked-bar-chart > .chart-legend {
   -fx-padding: 8 6 0 6;   /* room for the legend row */
   -fx-opacity: 1.0;       /* guard against overrides */
+}
+
+/* ===============================
+   DARK FILTERS: editors + popups
+   =============================== */
+
+/* --- editors on the toolbar --- */
+.root.dark .combo-box,
+.root.dark .choice-box,
+.root.dark .date-picker {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 10;
+  -fx-border-radius: 10;
+}
+.root.dark .combo-box .list-cell,
+.root.dark .choice-box .label,
+.root.dark .date-picker .text-field {
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .combo-box:focused,
+.root.dark .choice-box:focused,
+.root.dark .date-picker:focused {
+  -fx-border-color: #38bdf8;  /* focus ring */
+}
+/* keep arrow buttons neutral */
+.root.dark .combo-box-base > .arrow-button,
+.root.dark .date-picker > .arrow-button {
+  -fx-background-color: transparent;
+}
+
+/* --- ComboBox popup (the dropdown list) --- */
+.root.dark .combo-box-popup > .list-view {
+  -fx-background-color: #0b1220;
+  -fx-control-inner-background: #0b1220;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 8;
+  -fx-border-radius: 8;
+}
+.root.dark .combo-box-popup .list-cell {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .combo-box-popup .list-cell:hover,
+.root.dark .combo-box-popup .list-cell:selected {
+  -fx-background-color: #16223b;
+}
+/* popup scrollbar */
+.root.dark .combo-box-popup .scroll-bar .track  { -fx-background-color: #111827; }
+.root.dark .combo-box-popup .scroll-bar .thumb  { -fx-background-color: #1f2937; }
+
+/* --- ChoiceBox popup (ContextMenu) --- */
+.root.dark .context-menu {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 8;
+  -fx-border-radius: 8;
+}
+.root.dark .menu-item .label { -fx-text-fill: #e5e7eb; }
+.root.dark .menu-item:focused { -fx-background-color: #16223b; }
+
+/* --- DatePicker popup (calendar) --- */
+.root.dark .date-picker-popup {
+  -fx-background-color: #0b1220;
+  -fx-border-color: #1f2937;
+  -fx-background-radius: 10;
+  -fx-border-radius: 10;
+}
+/* header strip + month/year row */
+.root.dark .date-picker-popup > .month-year-pane,
+.root.dark .date-picker-popup > * > .calendar-header {
+  -fx-background-color: #111827;
+  -fx-text-fill: #e5e7eb;
+}
+/* nav buttons in header */
+.root.dark .date-picker-popup .button {
+  -fx-background-color: #1e293b;
+  -fx-text-fill: #e5e7eb;
+  -fx-background-radius: 8;
+  -fx-border-color: #1f2937;
+}
+.root.dark .date-picker-popup .button:hover { -fx-background-color: #334155; }
+
+/* day grid */
+.root.dark .date-picker-popup > * > .day-cell {
+  -fx-background-color: #0b1220;
+  -fx-text-fill: #e5e7eb;
+}
+.root.dark .date-picker-popup > * > .day-cell:hover,
+.root.dark .date-picker-popup > * > .day-cell:selected {
+  -fx-background-color: #16223b;
+}
+
+/* --- Fix DatePicker header text & arrows (dark mode) --- */
+.root.dark .date-picker-popup .label {
+  /* covers "November" and weekday labels in the header strip */
+  -fx-text-fill: #e5e7eb;
+  -fx-font-weight: 600;
+}
+
+/* ensure the tiny arrow glyphs show up */
+.root.dark .date-picker-popup .button > .left-arrow,
+.root.dark .date-picker-popup .button > .right-arrow {
+  -fx-background-color: #e5e7eb;   /* arrow color */
+}
+
+/* optional: make weekday names a bit dimmer than the month/year */
+.root.dark .date-picker-popup .calendar-header .label {
+  -fx-text-fill: #cbd5e1;
+}
+
+/* --- Fix DatePicker header text (month/year already OK) --- */
+.root.dark .date-picker-popup > * > .day-name-cell {
+  -fx-background-color: #111827;   /* dark strip behind Sun–Sat */
+  -fx-text-fill: #e5e7eb;          /* high-contrast labels */
+  -fx-font-weight: 700;
+  -fx-opacity: 1.0;                /* guard against theme dimming */
+}
+
+/* Optional: week-number column if enabled */
+.root.dark .date-picker-popup > * > .week-number-cell {
+  -fx-background-color: #111827;
+  -fx-text-fill: #cbd5e1;
+  -fx-font-weight: 600;
+}
+
+/* Improve contrast for days from prev/next month */
+.root.dark .date-picker-popup > * > .day-cell.previous-month,
+.root.dark .date-picker-popup > * > .day-cell.next-month {
+  -fx-text-fill: #94a3b8;
+}
+
+/* Keep normal days bright */
+.root.dark .date-picker-popup > * > .day-cell {
+  -fx-text-fill: #e5e7eb;
 }
