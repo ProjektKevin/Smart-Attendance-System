@@ -149,7 +149,7 @@ public class StudentListController implements TabRefreshable {
 
         // Add Error Handling if profile is null
         if (profileDto == null) {
-            setInfoDialog(javafx.scene.control.Alert.AlertType.ERROR, "User Has No Profile",
+            setInfoDialog(javafx.scene.control.Alert.AlertType.WARNING, "User Has No Profile",
                     "Invalid User Profile", "User Has Yet to Register Profile.");
             return;
         }
